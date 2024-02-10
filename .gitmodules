@@ -1,3 +1,6 @@
 [submodule "amina"]
 	path = amina
 	url = git@github.com:9lives-lab/amina.git
+[submodule "lappi_lab/lappi_lab_ui/src/amina_ui"]
+	path = lappi_lab/lappi_lab_ui/src/amina_ui
+	url = git@github.com:9lives-lab/amina_ui.git
