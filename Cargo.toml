@@ -1,0 +1,8 @@
+[workspace]
+members = [
+	"lappi_lab/lappi_lab",
+	"lappi_core",
+	"amina/amina_core_derive",
+	"amina/amina_core",
+	"amina/amina_server",
+]
