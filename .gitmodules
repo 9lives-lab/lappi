@@ -1,0 +1,3 @@
+[submodule "amina"]
+	path = amina
+	url = git@github.com:9lives-lab/amina.git
