@@ -3,7 +3,7 @@
     <q-header bordered class="header">
       <div class="row items-center">
         <div class="col-auto text-h6 text-weight-light q-ml-lg q-mr-md">
-          Lappi Lab
+          <router-link class="root-link" to="/">Lappi Lab</router-link>
         </div>
         <PlayerPane class="col"></PlayerPane>
       </div>
@@ -104,5 +104,9 @@ export default defineComponent({
 <style lang="sass" scoped>
 .header
   background-color: $amina-title
+
+  .root-link
+    color: white
+    text-decoration: none
 
 </style>
