@@ -1,17 +1,19 @@
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Lappi Lab logo"
-      src="~assets/lappi_pattern.svg"
-      style="height: 350px;"
-    >
+  <q-page class="index-page row flex-center items-stretch">
+    <ChatPane class="col-6"/>
   </q-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import ChatPane from 'src/components/chat/ChatPane.vue'
 
-export default defineComponent({
-  name: 'IndexPage'
-})
 </script>
+
+<style lang="sass" scoped>
+.index-page
+  background-image: url( '~assets/lappi_pattern.svg' )
+  background-position: center
+  background-size: 350px
+  background-repeat: no-repeat
+
+</style>
