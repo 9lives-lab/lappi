@@ -1,8 +1,8 @@
 <template>
   <AminaPlate class="message column">
-    <TitledPane :title="message.bot ? 'Lappi spirit:' : 'You:'" class="message-header">
+    <TitledPane :title="message.role === 'Assistant' ? 'Lappi spirit:' : 'You:'" class="message-header">
       <div class="message-text q-pa-md">
-        {{ message.text }}
+        {{ message.content }}
       </div>
     </TitledPane>
   </AminaPlate>

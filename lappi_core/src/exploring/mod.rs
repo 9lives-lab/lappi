@@ -1,4 +1,5 @@
 pub mod py_source;
+pub mod chat;
 
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};

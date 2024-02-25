@@ -17,10 +17,10 @@
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Drop Shadow"
        id="filter74"
-       x="-0.034416558"
-       y="-0.034170571"
-       width="1.0688331"
-       height="1.0683411"><feFlood
+       x="-0.10867292"
+       y="-0.36630585"
+       width="1.1926512"
+       height="1.8063925"><feFlood
          result="flood"
          in="SourceGraphic"
          flood-opacity="0.498039"
@@ -88,11 +88,11 @@
      inkscape:cx="696.50018"
      inkscape:cy="524.67323"
      inkscape:window-width="1920"
-     inkscape:window-height="1129"
+     inkscape:window-height="1005"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg587" /><g
+     inkscape:current-layer="g13" /><g
      id="g13"
      style="filter:url(#filter74)"
      inkscape:label="root"><g
@@ -174,7 +174,7 @@
          style="fill:#002f57;fill-opacity:1" /></g><g
        id="g86"
        inkscape:label="pattern"
-       style="display:inline;opacity:0.7;fill:#fbfbfb;fill-opacity:1;filter:url(#filter74)"><path
+       style="display:inline;opacity:0.85;fill:#fbfbfb;fill-opacity:1;filter:url(#filter74)"><path
          fill="#ffffff"
          d="m 702.81,135.41 q -2.04,9.51 -9.27,13.49 -5.71,3.15 -12.4,1.99 -7.07,-1.22 -11.35,-7.2 -4.68,-6.54 -2.62,-14.81 1.45,-6.89 6.38,-9.96 5.11,-2.13 9.47,-2.6 c 9.04,-0.98 16.38,4.91 18.93,13.26 0.55,1.77 0.35,3.85 0.86,5.83 z"
          id="path434"

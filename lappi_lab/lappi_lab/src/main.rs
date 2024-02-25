@@ -17,6 +17,7 @@ use lappi_core::debug::Debugger;
 use lappi_core::collection::Collection;
 use lappi_core::playback::Playback;
 use lappi_core::database::Database;
+use lappi_core::exploring::chat::ChatService;
 use lappi_core::import::collection::CollectionImporter;
 use lappi_core::settings::Settings;
 use lappi_core::exploring::Exploring;
@@ -59,6 +60,7 @@ fn main() {
     context.init_service::<Playback>();
     context.init_service::<CollectionImporter>();
     context.init_service::<PyServerClient>();
+    context.init_service::<ChatService>();
     context.init_service::<Exploring>();
 
     context.start();
