@@ -1,9 +1,12 @@
 use std::path::Path;
-
 use reqwest::blocking::Client;
 use reqwest::Result as ReqwestResult;
 use serde::{Deserialize, Serialize};
 use url::Url;
+use amina_core::service::Service;
+use amina_core::settings::Property;
+
+use crate::settings::Settings;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StatusResponse {
@@ -13,25 +16,28 @@ pub struct StatusResponse {
 }
 
 pub struct VlcHttpApi {
-
+    url: Property<String>,
+    password: Property<String>,
 }
 
 impl VlcHttpApi {
-    pub fn new() -> Self {
+    pub fn new(settings: Service<Settings>) -> Self {
         Self {
-
+            url: settings.get_string("playback.vlc_http.url"),
+            password: settings.get_string("playback.vlc_http.password"),
         }
     }
 
     pub fn send_command(&self, args: &[(&str, &str)]) -> ReqwestResult<StatusResponse> {
         let client = Client::new();
-        let mut url = "http://localhost:9090/requests/status.json?".to_string();
+        let mut url = format!("http://{}/requests/status.json?", self.url.get());
+        let password = self.password.get();
         for (key, value) in args {
             url.push_str(format!("{}={}&", key, value).as_str());
         }
         url.pop();
         let response: StatusResponse = client.get(url.as_str())
-            .basic_auth("", Some("123"))
+            .basic_auth("", Some(password))
             .send()?
             .json()?;
         return Ok(response);

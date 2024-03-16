@@ -1,9 +1,11 @@
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::atomic::AtomicI32;
+use amina_core::service::{Context, Service};
 
-use crate::playback::{Player, PlayerState};
+use crate::playback::{Player, PlayerFactory, PlayerState};
 use crate::playback::sources::PlaybackSource;
+use crate::settings::Settings;
 
 pub mod http_api;
 
@@ -54,11 +56,28 @@ impl Player for VlcHttpPlayer {
 }
 
 impl VlcHttpPlayer {
-    pub fn new() -> Self {
+    pub fn new(settings: Service<Settings>) -> Self {
         VlcHttpPlayer {
-            api: http_api::VlcHttpApi::new(),
+            api: http_api::VlcHttpApi::new(settings),
             current_length: AtomicI32::new(0),
         }
     }
 }
 
+pub struct VlcHttpPlayerFactory {
+    settings: Service<Settings>,
+}
+
+impl PlayerFactory for VlcHttpPlayerFactory {
+    fn create_player(&self) -> Box<dyn Player> {
+        Box::new(VlcHttpPlayer::new(self.settings.clone()))
+    }
+}
+
+impl VlcHttpPlayerFactory {
+    pub fn new(context: &Context) -> Self {
+        VlcHttpPlayerFactory {
+            settings: context.get_service::<Settings>(),
+        }
+    }
+}

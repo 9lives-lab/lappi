@@ -34,6 +34,9 @@ pub trait Player: Send + Sync {
     fn get_state(&self) -> PlayerState;
 }
 
+pub trait PlayerFactory {
+    fn create_player(&self) -> Box<dyn Player>;
+}
 
 pub struct Playback {
     collection: Service<Collection>,
@@ -43,12 +46,6 @@ pub struct Playback {
 }
 
 impl Playback {
-
-    pub fn test_vlc_api(&self) {
-        let vlc_api = players::vlc_http::http_api::VlcHttpApi::new();
-        let _ = vlc_api.get_status();
-    }
-
     pub fn play_item(&self, item_id: ItemId) {
         let file = self.collection.music().get_external_src_files(item_id).get(0).unwrap().path.clone();
         let source = Box::new(sources::PlaybackSource::LocalFile(file.clone()));
@@ -103,7 +100,7 @@ impl Playback {
         if let Some(playlist) = playlist.as_ref() {
             event.title = playlist.get_current_title();
         } else {
-            event.title = "None".to_string();
+            event.title = "Playback stopped".to_string();
         }
 
         match state {
@@ -164,14 +161,15 @@ impl ServiceInitializer for Playback {
         let task_manager = context.get_service::<TaskManager>();
         let rpc = context.get_service::<Rpc>();
 
+        let vlc_http_player_factory = players::vlc_http::VlcHttpPlayerFactory::new(context);
+
         let playback = Arc::new(Self {
             collection,
             event_emitter,
-            current_player: Box::new(players::vlc_http::VlcHttpPlayer::new()),
+            current_player: vlc_http_player_factory.create_player(),
             current_playlist: Mutex::new(None),
         });
 
-        register_rpc_handler!(rpc, playback, "lappi.playback.test_vlc_api", test_vlc_api());
         register_rpc_handler!(rpc, playback, "lappi.playback.play_item", play_item(item_id: ItemId));
         register_rpc_handler!(rpc, playback, "lappi.playback.toggle", toggle());
         register_rpc_handler!(rpc, playback, "lappi.playback.resume", resume());

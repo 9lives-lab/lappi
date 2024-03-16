@@ -26,9 +26,9 @@ import { getCurrentInstance, onMounted, ref } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
-const title = ref('')
+const title = ref(' ')
 const playButtonIcon = ref('play_arrow')
-const progress = ref(200)
+const progress = ref(0)
 
 async function tooglePlay () {
   await aminaApi.sendRequest('lappi.playback.toggle')
