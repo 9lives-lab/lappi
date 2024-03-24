@@ -2,7 +2,13 @@ use std::fs::File;
 use std::path::PathBuf;
 use std::io::Write;
 use std::ops::Add;
+use std::sync::Arc;
+
+use amina_core::service::{Context, ServiceApi, ServiceInitializer};
+
 use crate::database_api::{DbExporter, DbImporter, DbTableExporter, DbValue};
+use crate::debug::Debugger;
+use crate::platform_api::PlatformApi;
 
 pub struct CsvFileDbTableExporter {
     file: File,
@@ -43,9 +49,9 @@ impl DbExporter for CsvFileDbExporter {
 }
 
 impl CsvFileDbExporter {
-    pub fn create(ws_path: PathBuf) -> Self {
+    pub fn create(path: PathBuf) -> Self {
         return Self {
-            root_path: ws_path.join(".collection")
+            root_path: path,
         };
     }
 }
@@ -94,9 +100,61 @@ impl DbImporter for CsvFileDbImporter {
 }
 
 impl CsvFileDbImporter {
-    pub fn create(ws_path: PathBuf) -> Self {
+    pub fn create(path: PathBuf) -> Self {
         return Self {
-            root_path: ws_path.join(".collection")
+            root_path: path,
         };
+    }
+}
+
+pub struct LocalStorage {
+    storage_path: PathBuf,
+    storage_available: bool,
+}
+
+impl LocalStorage {
+    pub fn is_available(&self) -> bool {
+        return self.storage_available;
+    }
+
+    pub fn get_internal_storage_path(&self) -> PathBuf {
+        return self.storage_path.join(".lappi");
+    }
+
+    pub fn get_internal_storage_folder(&self, folder_name: &str) -> PathBuf {
+        return self.get_internal_storage_path().join(folder_name);
+    }
+
+    pub fn get_database_path(&self) -> PathBuf {
+        return self.get_internal_storage_path().join("db");
+    }
+
+    pub fn get_importer(&self) -> Box<dyn DbImporter> {
+        return Box::new(CsvFileDbImporter::create(self.get_database_path()));
+    }
+
+    pub fn get_exporter(&self) -> Box<dyn DbExporter> {
+        return Box::new(CsvFileDbExporter::create(self.get_database_path()));
+    }
+}
+
+impl ServiceApi for LocalStorage {
+
+}
+
+impl ServiceInitializer for LocalStorage {
+    fn initialize(context: &Context) -> Arc<Self> {
+        let platform_api = context.get_service::<PlatformApi>();
+        let debugger = context.get_service::<Debugger>();
+
+        let storage_available = debugger.config().collection.storage;
+        let storage_path = platform_api.file_system.get_workspace_dir().join("collection");
+
+        let storage = Arc::new(Self {
+            storage_path,
+            storage_available,
+        });
+
+        return storage;
     }
 }

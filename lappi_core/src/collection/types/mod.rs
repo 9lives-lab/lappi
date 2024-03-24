@@ -1,6 +1,7 @@
 pub mod tags;
 
 pub type ItemId = i64;
+pub type PictureId = i64;
 pub type ArtistId = i64;
 pub type EdgeId = i64;
 pub type MusicItemId = ItemId;

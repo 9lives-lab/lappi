@@ -8,7 +8,7 @@ use crate::collection::tree::{FolderDescription, FolderType};
 use crate::collection::database_api::DatabaseApi;
 use crate::collection::music::types::ExternalSrcFileDesc;
 use crate::collection::types::tags::Tag;
-use crate::collection::types::{ArtistId, EdgeId, FolderId, ItemId, ItemType};
+use crate::collection::types::{ArtistId, EdgeId, FolderId, ItemId, ItemType, PictureId};
 use crate::database::sqlite::utils::DatabaseUtils;
 use super::utils;
 
@@ -54,6 +54,26 @@ impl DatabaseApi for CollectionDbApi {
 
     fn get_collection_items(&self) -> DbResult<Vec<ItemId>> {
         self.db_utils.lock().get_rows_list("collection_items")
+    }
+
+    fn add_picture(&self, extension: &str) -> PictureId {
+        let context = self.db_utils.lock();
+        utils::pictures::add_picture(&context, extension).unwrap()
+    }
+
+    fn get_picture_extension(&self, picture_id: PictureId) -> DbResult<String> {
+        let context = self.db_utils.lock();
+        utils::pictures::get_picture_extension(&context, picture_id)
+    }
+    
+    fn add_picture_to_artist(&self, picture_id: PictureId, artist_id: ArtistId) -> DbResult<()> {
+        let context = self.db_utils.lock();
+        utils::pictures::add_picture_to_artist(&context, picture_id, artist_id)
+    }
+
+    fn get_pictures_by_artist(&self, artist_id: ArtistId) -> DbResult<Vec<PictureId>> {
+        let context = self.db_utils.lock();
+        utils::pictures::get_pictures_by_artist(&context, artist_id)
     }
 
     fn find_or_add_artist(&self, name: &str) -> DbResult<ArtistId> {

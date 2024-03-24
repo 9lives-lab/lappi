@@ -2,6 +2,7 @@ pub mod artists;
 pub mod nodes;
 pub mod tags;
 pub mod tree;
+pub mod pictures;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 
@@ -91,6 +92,12 @@ impl DatabaseContext<'_> {
         let query = format!("SELECT {} FROM {} WHERE {}=(?1)", field_name, table_name, key_name);
         let result = self.connection.query_row(&query, params![key_value], |row| row.get::<_, T>(0))?;
         Ok(result)
+    }
+
+    pub fn add_empty_row(&self, table_name: &str) -> DbResult<i64> {
+        let query = format!("INSERT INTO {} DEFAULT VALUES", table_name);
+        self.connection.execute(&query, [])?;
+        Ok(self.connection.last_insert_rowid())
     }
 
     pub fn find_or_add_string_row(&self, table_name: &str, field_name: &str, value: &str) -> DbResult<i64> {

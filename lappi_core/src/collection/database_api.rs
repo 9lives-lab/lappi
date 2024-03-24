@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use amina_core::events::Event;
 
 use crate::database_api::{DbExporter, DbImporter, DbResult};
-use crate::collection::types::{ArtistId, EdgeId, FolderId, ItemId, ItemType};
+use crate::collection::types::{ArtistId, EdgeId, FolderId, ItemId, ItemType, PictureId};
 use crate::collection::types::tags::Tag;
 use crate::collection::music::types::ExternalSrcFileDesc;
 use crate::collection::tree::{FolderDescription, FolderType};
@@ -23,6 +23,12 @@ pub trait DatabaseApi: Send + Sync {
 
     fn add_collection_item(&self) -> ItemId;
     fn get_collection_items(&self) -> DbResult<Vec<ItemId>>;
+
+    // Pictures
+    fn add_picture(&self, extension: &str) -> PictureId;
+    fn get_picture_extension(&self, picture_id: PictureId) -> DbResult<String>;
+    fn add_picture_to_artist(&self, picture_id: PictureId, artist_id: ArtistId) -> DbResult<()>;
+    fn get_pictures_by_artist(&self, artist_id: ArtistId) -> DbResult<Vec<PictureId>>;
 
     // Artists
     fn find_or_add_artist(&self, name: &str) -> DbResult<ArtistId>;
