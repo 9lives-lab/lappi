@@ -8,10 +8,9 @@ use amina_core::service::Context;
 
 use crate::collection::database_api::DatabaseApi;
 use crate::collection::music::types::ExternalSrcFileDesc;
-use crate::collection::types::{ArtistId, ItemId, ItemType};
+use crate::collection::types::{FolderId, ItemId};
 use crate::collection::types::tags::Tag;
 use crate::database::Database;
-use crate::database_api::DbResult;
 
 pub struct ItemRef {
     db: Arc<Box<dyn DatabaseApi>>,
@@ -22,14 +21,6 @@ impl ItemRef {
 
     pub fn get_item_id(&self) -> ItemId {
         self.id
-    }
-
-    pub fn get_item_type(&self) -> ItemType {
-        self.db.get_node_type(self.id)
-    }
-
-    pub fn get_item_name(&self) -> String {
-        self.db.get_node_name(self.id)
     }
 
     pub fn add_tag(&self, key: &str, value: &str) {
@@ -85,7 +76,6 @@ impl MusicCollection {
         });
 
         register_rpc_handler!(rpc, music, "lappi.collection.get_tags", get_tags(item_id: ItemId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.get_artists", get_artists(item_id: ItemId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.add_external_src_file", add_external_src_file(item_id: ItemId, path: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_external_src_files", get_external_src_files(item_id: ItemId));
 
@@ -98,6 +88,10 @@ impl MusicCollection {
         })
     }
 
+    pub fn create_item(&self, name: &str, folder_id: FolderId) -> ItemId {
+        return self.db.add_music_item(name, folder_id)
+    }
+
     pub fn get_item(&self, id: ItemId) -> ItemRef {
         ItemRef {
             db: self.db.clone(),
@@ -105,16 +99,12 @@ impl MusicCollection {
         }
     }
 
+    pub fn add_tag(&self, item_id: ItemId, key: &str, value: &str) {
+        self.db.add_tag(item_id, key, value).unwrap();
+    }
+
     pub fn get_tags(&self, item_id: ItemId) -> Vec<Tag> {
         self.get_item(item_id).get_tags()
-    }
-
-    pub fn add_artist(&self, item: ItemId, artist: ArtistId) {
-        self.db.add_artist_to_collection_item(artist, item).unwrap();
-    }
-
-    pub fn get_artists(&self, item_id: ItemId) -> DbResult<Vec<ArtistId>> {
-        self.db.get_artists_by_collection_item(item_id)
     }
 
     pub fn add_external_src_file(&self, item_id: ItemId, path: String) {

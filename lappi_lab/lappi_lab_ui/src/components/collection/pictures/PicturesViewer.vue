@@ -19,7 +19,6 @@ import { getCurrentInstance, ref, onMounted } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const picturesUrlList = ref([])
-let config = null
 
 async function updateUrls (picturesIdList) {
   const newUrlList = []
@@ -34,9 +33,8 @@ async function updateUrls (picturesIdList) {
   picturesUrlList.value = newUrlList
 }
 
-async function update (newConfig) {
-  config = newConfig
-  const picturesIdList = await aminaApi.sendRequest(config.getPicturesRpcKey, { item_id: config.id })
+async function update (newFolderId) {
+  const picturesIdList = await aminaApi.sendRequest('lappi.collection.pictures.get_pictures_in_folder', { folder_id: newFolderId })
   await updateUrls(picturesIdList)
 }
 

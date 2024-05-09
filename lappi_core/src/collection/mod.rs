@@ -1,11 +1,10 @@
 pub mod types;
 pub mod database_api;
 pub mod music;
-pub mod artists;
-pub mod tree;
 pub mod storage;
 pub mod debug;
 pub mod pictures;
+pub mod folders;
 
 use std::sync::Arc;
 
@@ -15,46 +14,31 @@ use amina_core::service::{ServiceApi, ServiceInitializer, Context, Service};
 
 use crate::database::Database;
 use crate::collection::database_api::{DatabaseApi, OnItemsUpdated};
+use crate::collection::folders::FoldersView;
 use crate::collection::music::MusicCollection;
-use crate::collection::artists::ArtistsCollection;
 use crate::collection::pictures::PicturesCollection;
 use crate::collection::storage::local::LocalStorage;
-use crate::collection::types::ItemId;
-use crate::collection::tree::CollectionView;
 
 pub struct Collection {
     local_storage: Service<LocalStorage>,
     music: Arc<MusicCollection>,
-    artists: Arc<ArtistsCollection>,
     pictures: Arc<PicturesCollection>,
-    view: Arc<CollectionView>,
+    folders: Arc<FoldersView>,
     api: Arc<Box<dyn DatabaseApi>>,
 }
 
 impl Collection {
 
-    pub fn create_item(&self) -> ItemId {
-        return self.api.add_collection_item();
-    }
-
-    pub fn add_tag(&self, item_id: ItemId, key: &str, value: &str) {
-        self.api.add_tag(item_id, key, value).unwrap();
-    }
-
     pub fn music(&self) -> &MusicCollection {
         &self.music
-    }
-
-    pub fn artists(&self) -> &ArtistsCollection {
-        &self.artists
     }
 
     pub fn pictures(&self) -> &PicturesCollection {
         &self.pictures
     }
 
-    pub fn view(&self) -> &CollectionView {
-        &self.view
+    pub fn folders(&self) -> &FoldersView {
+        &self.folders
     }
     
     pub fn start_batch(&self) {
@@ -65,10 +49,8 @@ impl Collection {
         self.api.stop_batch();
     }
 
-    fn on_item_updated(&self, event: &OnItemsUpdated) {
-        for item in &event.items {
-            self.view.update_item(*item);
-        }
+    fn on_item_updated(&self, _: &OnItemsUpdated) {
+        self.folders.update_item();
     }
 
 }
@@ -99,9 +81,8 @@ impl ServiceInitializer for Collection {
         let collection = Arc::new(Self {
             local_storage,
             music: MusicCollection::initialize(context),
-            artists: ArtistsCollection::initialize(context),
             pictures: PicturesCollection::initialize(context),
-            view: CollectionView::initialize(context),
+            folders: FoldersView::initialize(context),
             api: db_api.clone(),
         });
 

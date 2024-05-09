@@ -1,10 +1,9 @@
 use crate::collection::Collection;
+use crate::collection::folders::FolderType;
 use crate::collection::types::{ItemId};
 use crate::collection::types::tags::TagsMap;
 
 pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<ItemId> {
-    let item_id = collection.create_item();
-
     let title = tags.get_string_tag("title");
     let album = tags.get_string_tag("album");
     let artist = tags.get_string_tag("artist");
@@ -12,11 +11,14 @@ pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<ItemId> {
         return None;
     }
 
-    let artist_id = collection.artists().find_by_name(artist.unwrap().clone());
-    collection.music().add_artist(item_id, artist_id);
+    let folders = collection.folders();
+    let artist_id = folders.find_or_add_folder(folders.get_root_folder(), artist.unwrap().clone(), FolderType::Artist);
+    let album_id = folders.find_or_add_folder(artist_id, album.unwrap().clone(), FolderType::Album);
 
-    collection.add_tag(item_id, "title", title.unwrap());
-    collection.add_tag(item_id, "album", album.unwrap());
+    let item_id = collection.music().create_item(title.unwrap(), album_id);
+
+    collection.music().add_tag(item_id, "title", title.unwrap());
+    collection.music().add_tag(item_id, "album", album.unwrap());
 
     return Some(item_id);
 }

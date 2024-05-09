@@ -1,10 +1,10 @@
 <template>
   <div class="column pictures-editor">
-    <PicturesViewer ref="picturesViewer" />
     <ToolPane class="col">
       <q-btn class="col-auto" icon="add" label="Add" @click="addPicture" />
       <q-input borderless dense class="col" v-model="addPath" />
     </ToolPane>
+    <PicturesViewer ref="picturesViewer" />
   </div>
 </template>
 
@@ -17,19 +17,18 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 
 const picturesViewer = ref(null)
 const addPath = ref('')
-let config = null
+let folderId = 0
 
 async function addPicture () {
   const path = addPath.value
-  const pictureId = await aminaApi.sendRequest('lappi.collection.pictures.copy_to_collection_by_path', { file_path: path })
+  await aminaApi.sendRequest('lappi.collection.pictures.copy_to_collection_by_path', { file_path: path, folder_id: folderId })
   addPath.value = ''
-  await aminaApi.sendRequest(config.addPictureRpcKey, { picture_id: pictureId, item_id: config.id })
-  picturesViewer.value.update(config)
+  picturesViewer.value.update(folderId)
 }
 
-async function update (newConfig) {
-  config = newConfig
-  picturesViewer.value.update(newConfig)
+async function update (newFolderId) {
+  folderId = newFolderId
+  picturesViewer.value.update(newFolderId)
 }
 
 defineExpose({

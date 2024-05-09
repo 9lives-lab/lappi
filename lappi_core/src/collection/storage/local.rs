@@ -18,6 +18,7 @@ impl DbTableExporter for CsvFileDbTableExporter {
     fn add_row(&mut self, data: Vec<DbValue>) {
         let list: Vec<String> = data.iter().map(|v| {
             let res = match v {
+                DbValue::Null => "NULL".to_string(),
                 DbValue::String(s) => s.clone(),
                 DbValue::Number(i) => i.to_string()
             };
@@ -86,12 +87,17 @@ impl DbImporter for CsvFileDbImporter {
             let row = row.unwrap();
             let mut row_data = Vec::new();
             for (index_in_csv, column_type) in &sorted_columns {
-                let value = match column_type.as_str() {
-                    "INTEGER" => DbValue::Number(row.get(*index_in_csv).unwrap().parse::<i64>().unwrap()),
-                    "TEXT" => DbValue::String(row.get(*index_in_csv).unwrap().to_string()),
-                    _ => panic!("Unknown column type: {}", column_type),
-                };
-                row_data.push(value);
+                let text_representation = row.get(*index_in_csv).unwrap();
+                if text_representation.eq("NULL") {
+                    row_data.push(DbValue::Null);
+                } else {
+                    let value = match column_type.as_str() {
+                        "INTEGER" => DbValue::Number(text_representation.parse::<i64>().unwrap()),
+                        "TEXT" => DbValue::String(text_representation.to_string()),
+                        _ => panic!("Unknown column type: {}", column_type),
+                    };
+                    row_data.push(value);
+                }
             }
             result.push(row_data);
         }

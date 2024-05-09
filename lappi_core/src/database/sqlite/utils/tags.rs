@@ -3,7 +3,7 @@ use crate::database_api::DbResult;
 
 pub fn add_tag_to_item(conn: &Connection, collection_item_id: i64, tag_value_id: i64) -> DbResult<()> {
     conn.execute(
-        "INSERT INTO tags (item_id, tag_id) VALUES (?1, ?2)",
+        "INSERT INTO music_items_tags (item_id, tag_id) VALUES (?1, ?2)",
         params![collection_item_id, tag_value_id],
     )?;
     Ok(())

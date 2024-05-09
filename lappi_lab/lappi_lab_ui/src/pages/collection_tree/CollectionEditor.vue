@@ -1,8 +1,8 @@
 <template>
   <div class="">
-    <ArtistEditor
-      ref="artistEditor"
-      v-show="editorType === 'artist'"
+    <FolderEditor
+      ref="folderEditor"
+      v-show="editorType === 'folder'"
     />
     <ItemEditor
       ref="itemEditor"
@@ -14,16 +14,16 @@
 
 <script setup>
 import { ref } from 'vue'
-import ArtistEditor from 'src/components/collection/artists/ArtistEditor.vue'
+import FolderEditor from 'src/components/collection/folders/FolderEditor.vue'
 import ItemEditor from 'src/components/collection/music_items/ItemEditor.vue'
 
-const artistEditor = ref(null)
+const folderEditor = ref(null)
 const itemEditor = ref(null)
 const editorType = ref('none')
 
-async function setArtist (artistId) {
-  editorType.value = 'artist'
-  await artistEditor.value.updateArtist(artistId)
+async function setFolder (folderId) {
+  editorType.value = 'folder'
+  await folderEditor.value.updateFolder(folderId)
 }
 
 async function setItem (itemId) {
@@ -32,7 +32,7 @@ async function setItem (itemId) {
 }
 
 defineExpose({
-  setArtist,
+  setFolder,
   setItem
 })
 </script>

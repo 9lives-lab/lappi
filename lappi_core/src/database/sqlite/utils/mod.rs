@@ -1,5 +1,3 @@
-pub mod artists;
-pub mod nodes;
 pub mod tags;
 pub mod tree;
 pub mod pictures;
@@ -190,11 +188,11 @@ impl DatabaseContext<'_> {
             let mut row_data = Vec::new();
             for i in 0..table_info.len() {
                 let value = match table_info[i].1.as_str() {
-                    "INTEGER" => DbValue::Number(row.get::<usize, i64>(i)?),
-                    "TEXT" => DbValue::String(row.get::<usize, String>(i)?),
+                    "INTEGER" => row.get::<usize, Option<i64>>(i)?.map(|value| DbValue::Number(value)),
+                    "TEXT" => row.get::<usize, Option<String>>(i)?.map(|value| DbValue::String(value)),
                     _ => panic!("Unknown column type: {}", table_info[i].1),
                 };
-                row_data.push(value);
+                row_data.push(value.unwrap_or_default());
             }
             table_exporter.add_row(row_data);
         }

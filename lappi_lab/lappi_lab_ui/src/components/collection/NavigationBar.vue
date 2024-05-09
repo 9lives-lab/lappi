@@ -16,7 +16,7 @@
     <q-breadcrumbs-el
       v-for="item in items"
       :key="item.folder_id"
-      :label="item.title"
+      :label="item.name"
       class="folder-button"
       v-on:click="onFolderClicked(item.folder_id)"
     />
@@ -31,7 +31,7 @@ const emit = defineEmits(['folder-selected'])
 const items = ref([])
 
 async function update (folderId) {
-  const parentFolders = await aminaApi.sendRequest('lappi.collection.view.get_parent_folders', { folder_id: folderId })
+  const parentFolders = await aminaApi.sendRequest('lappi.collection.folders.get_parent_folders', { folder_id: folderId })
   items.value = parentFolders
 }
 

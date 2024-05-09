@@ -7,7 +7,7 @@ use amina_core::service::{Context, Service};
 
 use crate::collection::database_api::DatabaseApi;
 use crate::collection::storage::local::LocalStorage;
-use crate::collection::types::{ArtistId, PictureId};
+use crate::collection::types::{FolderId, PictureId};
 use crate::database::Database;
 
 static FILE_HANDLER_KEY: &str = "lappi.collection.pictures";
@@ -30,10 +30,9 @@ impl PicturesCollection {
             local_storage,
         });
 
-        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.copy_to_collection_by_path", copy_to_collection_by_path(file_path: String));
+        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.copy_to_collection_by_path", copy_to_collection_by_path(file_path: String, folder_id: FolderId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_picture_path", get_picture_path(picture_id: PictureId));
-        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.add_picture_to_artist", add_picture_to_artist(picture_id: PictureId, item_id: ArtistId));
-        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_pictures_by_artist", get_pictures_by_artist(item_id: ArtistId));
+        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_pictures_in_folder", get_pictures_in_folder(folder_id: FolderId));
 
         let pictures_copy = pictures.clone();
         rpc.add_get_file_handler(FILE_HANDLER_KEY, move|path| {
@@ -43,10 +42,10 @@ impl PicturesCollection {
         return pictures;
     }
 
-    pub fn copy_to_collection_by_path(&self, file_path: String) -> PictureId {
+    pub fn copy_to_collection_by_path(&self, file_path: String, folder_id: FolderId) -> PictureId {
         let file_path = PathBuf::from(file_path);
         let file_extension = file_path.extension().unwrap().to_str().unwrap();
-        let picture_id = self.db.add_picture(file_extension);
+        let picture_id = self.db.add_picture_item(file_extension, folder_id).unwrap();
         let new_file_path = self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
         log::debug!("Copying file from {:?} to {:?}", file_path, new_file_path);
         std::fs::copy(file_path, new_file_path).unwrap();
@@ -58,12 +57,8 @@ impl PicturesCollection {
         return format!("{}/{}.{}", FILE_HANDLER_KEY, picture_id, file_extension);
     }
 
-    pub fn add_picture_to_artist(&self, picture_id: PictureId, item_id: ArtistId) {
-        self.db.add_picture_to_artist(picture_id, item_id).unwrap();
-    }
-
-    pub fn get_pictures_by_artist(&self, item_id: ArtistId) -> Vec<PictureId> {
-        return self.db.get_pictures_by_artist(item_id).unwrap();
+    pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Vec<PictureId> {
+        return self.db.get_pictures_in_folder(folder_id).unwrap();
     }
 
     pub fn get_picture_binary(&self, path: &str) -> Result<Vec<u8>, std::io::Error> {

@@ -4,11 +4,11 @@ use rusqlite::{params, Connection};
 use amina_core::service::Context;
 
 use crate::database_api::{DbExporter, DbImporter, DbResult};
-use crate::collection::tree::{FolderDescription, FolderType};
+use crate::collection::folders::{FolderDescription, FolderType};
 use crate::collection::database_api::DatabaseApi;
 use crate::collection::music::types::ExternalSrcFileDesc;
 use crate::collection::types::tags::Tag;
-use crate::collection::types::{ArtistId, EdgeId, FolderId, ItemId, ItemType, PictureId};
+use crate::collection::types::{FolderId, ItemId, MusicItemId, PictureId};
 use crate::database::sqlite::utils::DatabaseUtils;
 use super::utils;
 
@@ -42,117 +42,77 @@ impl DatabaseApi for CollectionDbApi {
         self.db_utils.lock().stop_batch();
     }
 
-    fn add_collection_item(&self) -> ItemId {
+    // Folders
+
+    fn get_root_folder(&self) -> FolderId {
+        utils::get_root_folder()
+    }
+
+    fn get_folder_parent(&self, folder_id: FolderId) -> DbResult<FolderId> {
+        self.db_utils.lock().get_field_value(folder_id, "folders", "parent_id")
+    }
+
+    fn get_folder_name(&self, folder_id: FolderId) -> DbResult<String> {
+        self.db_utils.lock().get_field_value(folder_id, "folders", "name")
+    }
+
+    fn get_folder_description(&self, folder_id: FolderId) -> DbResult<FolderDescription> {
         let context = self.db_utils.lock();
-        let creation_date = 0i32;
+        utils::tree::get_folder_description(&context, folder_id)
+    }
+
+    fn find_or_add_folder(&self, parent_id: FolderId, folder_name: &str, folder_type: FolderType) -> DbResult<FolderId> {
+        let mut context = self.db_utils.lock();
+        let folder_id = utils::tree::find_add_folder_id(&mut context, parent_id, folder_name, folder_type)?;
+        context.on_collection_updated();
+        return Ok(folder_id);
+    }
+
+    fn get_folders_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<FolderDescription>> {
+        let context = self.db_utils.lock();
+        utils::tree::get_folders_in_folder(&context, folder_id)
+    }
+
+    // Music items
+
+    fn add_music_item(&self, name: &str, folder_id: FolderId) -> ItemId {
+        let context = self.db_utils.lock();
         context.connection().execute(
-            "INSERT INTO collection_items (creation_date) VALUES (?1)",
-            params![creation_date],
+            "INSERT INTO music_items (name, folder_id) VALUES (?1, ?2)",
+            params![name, folder_id],
         ).unwrap();
         return context.connection().last_insert_rowid();
     }
 
-    fn get_collection_items(&self) -> DbResult<Vec<ItemId>> {
-        self.db_utils.lock().get_rows_list("collection_items")
+    fn get_all_music_items(&self) -> DbResult<Vec<MusicItemId>> {
+        self.db_utils.lock().get_rows_list("music_items")
     }
 
-    fn add_picture(&self, extension: &str) -> PictureId {
+    fn get_music_item_folder(&self, item_id: MusicItemId) -> DbResult<FolderId> {
+        self.db_utils.lock().get_field_value(item_id, "music_items","folder_id")
+    }
+
+    fn get_music_items_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<MusicItemId>> {
+        self.db_utils.lock().get_fields_list_by_field_i64_value("music_items", "id", "folder_id", folder_id)
+    }
+
+    // Pictures
+
+    fn add_picture_item(&self, extension: &str, folder_id: FolderId) -> DbResult<PictureId> {
         let context = self.db_utils.lock();
-        utils::pictures::add_picture(&context, extension).unwrap()
+        utils::pictures::add_picture(&context, extension, folder_id)
     }
 
     fn get_picture_extension(&self, picture_id: PictureId) -> DbResult<String> {
         let context = self.db_utils.lock();
         utils::pictures::get_picture_extension(&context, picture_id)
     }
-    
-    fn add_picture_to_artist(&self, picture_id: PictureId, artist_id: ArtistId) -> DbResult<()> {
-        let context = self.db_utils.lock();
-        utils::pictures::add_picture_to_artist(&context, picture_id, artist_id)
+
+    fn get_pictures_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<PictureId>>{
+        self.db_utils.lock().get_fields_list_by_field_i64_value("picture_items", "id", "folder_id", folder_id)
     }
 
-    fn get_pictures_by_artist(&self, artist_id: ArtistId) -> DbResult<Vec<PictureId>> {
-        let context = self.db_utils.lock();
-        utils::pictures::get_pictures_by_artist(&context, artist_id)
-    }
-
-    fn find_or_add_artist(&self, name: &str) -> DbResult<ArtistId> {
-        self.db_utils.lock().find_or_add_string_row("artist_entries", "name", name)
-    }
-
-    fn get_artist_name(&self, artist_id: ArtistId) -> DbResult<String> {
-        let context = self.db_utils.lock();
-        utils::artists::get_artist_name(&context, artist_id)
-    }
-
-    fn add_artist_to_collection_item(&self, artist_id: ArtistId, item_id: ItemId) -> DbResult<()> {
-        let context = self.db_utils.lock();
-        utils::artists::add_artist_to_collection_item(&context, artist_id, item_id)
-    }
-
-    fn get_artists_by_collection_item(&self, item_id: ItemId) -> DbResult<Vec<ArtistId>> {
-        let context = self.db_utils.lock();
-        utils::artists::get_artists_by_collection_item(&context, item_id)
-    }
-
-    fn add_node(&self, item_type: ItemType, name: &str) -> ItemId {
-        let context = self.db_utils.lock();
-        return utils::nodes::add_node(context.connection(), item_type, name);
-    }
-
-    fn find_or_add_node(&self, item_type: ItemType, name: &str) -> ItemId {
-        let context = self.db_utils.lock();
-        match utils::nodes::find_node_id(context.connection(), item_type.clone(), name) {
-            Some(id) => id,
-            None => {
-                utils::nodes::add_node(context.connection(), item_type, name)
-            }
-        }
-    }
-
-    fn get_node_type(&self, item_id: ItemId) -> ItemType {
-        let context = self.db_utils.lock();
-        return utils::nodes::get_node_type(context.connection(), item_id);
-    }
-
-    fn get_node_name(&self, item_id: ItemId) -> String {
-        let context = self.db_utils.lock();
-        return utils::nodes::get_node_name(context.connection(), item_id);
-    }
-
-    fn get_all_nodes(&self) -> Vec<ItemId> {
-        let context = self.db_utils.lock();
-        let mut collection_stmt = context.connection().prepare("SELECT id FROM collection_nodes").unwrap();
-        let collection_rows = collection_stmt.query_map(
-            [],|row| row.get::<_, i64>(0)
-        ).unwrap();
-        let mut result = Vec::new();
-        for collection_item in collection_rows {
-            result.push(collection_item.unwrap());
-        }
-
-        return result;
-    }
-
-    fn find_or_add_edge(&self, first_node: ItemId, second_node: ItemId) -> EdgeId {
-        let context = self.db_utils.lock();
-        match utils::nodes::find_edge_id(context.connection(), first_node, second_node) {
-            Some(id) => id,
-            None => {
-                utils::nodes::add_edge(context.connection(), first_node, second_node)
-            }
-        }
-    }
-
-    fn get_edge(&self, edge_id: EdgeId) -> (ItemId, ItemId) {
-        let context = self.db_utils.lock();
-        return utils::nodes::get_edge(context.connection(), edge_id);
-    }
-
-    fn get_all_edges(&self) -> Vec<EdgeId> {
-        let context = self.db_utils.lock();
-        return utils::nodes::get_all_edges(context.connection());
-    }
+    // Tags
 
     fn add_tag(&self, collection_item_id: ItemId, name: &str, value: &str) -> DbResult<()> {
         let mut context = self.db_utils.lock();
@@ -177,7 +137,7 @@ impl DatabaseApi for CollectionDbApi {
             "SELECT tags_names.name, tags_values.value
                   FROM tags_values
                   INNER JOIN tags_names ON tags_names.id = tags_values.name_id
-                  WHERE tags_values.id IN (SELECT tag_id FROM tags WHERE item_id=(?1))"
+                  WHERE tags_values.id IN (SELECT tag_id FROM music_items_tags WHERE item_id=(?1))"
         )?;
         let tags_rows = tags_stmt.query_map(
             params![item_id],|row| {
@@ -194,6 +154,8 @@ impl DatabaseApi for CollectionDbApi {
         }
         return Ok(tags_vec);
     }
+
+    // Song files
 
     fn add_external_src_file(&self, item_id: ItemId, path: &str) -> DbResult<()> {
         let context = self.db_utils.lock();
@@ -222,54 +184,6 @@ impl DatabaseApi for CollectionDbApi {
             result.push(row?);
         }
         Ok(result)
-    }
-
-    fn get_root_folder(&self) -> FolderId {
-        utils::get_root_folder()
-    }
-
-    fn get_item_folder(&self, item_id: ItemId) -> DbResult<FolderId> {
-        self.db_utils.lock().get_field_value(item_id, "collection_items","folder_id")
-    }
-
-    fn get_folder_parent(&self, folder_id: FolderId) -> DbResult<FolderId> {
-        let context = self.db_utils.lock();
-        let result = context.connection().query_row(
-            "SELECT parent_id FROM collection_folders WHERE id=(?1)",
-            params![folder_id],
-            |row| row.get::<_, i64>(0),
-        )?;
-        Ok(result)
-    }
-
-    fn get_folder_description(&self, folder_id: FolderId) -> DbResult<FolderDescription> {
-        let context = self.db_utils.lock();
-        utils::tree::get_folder_description(&context, folder_id)
-    }
-
-    fn find_or_add_folder(&self, parent_id: FolderId, folder_name: &str, folder_type: FolderType) -> DbResult<FolderId> {
-        let context = self.db_utils.lock();
-        utils::tree::find_add_folder_id(context.connection(), parent_id, folder_name, folder_type)
-    }
-
-    fn get_folders_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<FolderDescription>> {
-        let context = self.db_utils.lock();
-        utils::tree::get_folders_in_folder(&context, folder_id)
-    }
-
-    fn set_folder_for_artist(&self, artist_id: ArtistId, folder_id: FolderId) -> DbResult<()> {
-        let context = self.db_utils.lock();
-        utils::tree::set_folder_for_artist(context.connection(), artist_id, folder_id)
-    }
-
-    fn set_folder_for_item(&self, item_id: ItemId, folder_id: FolderId) -> DbResult<()> {
-        let context = self.db_utils.lock();
-        utils::tree::set_folder_for_item(context.connection(), item_id, folder_id)
-    }
-
-    fn get_items_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<ItemId>> {
-        let context = self.db_utils.lock();
-        utils::tree::get_items_in_folder(context.connection(), folder_id)
     }
 
     fn export(&self, exporter: Box<dyn DbExporter>) -> DbResult<()> {

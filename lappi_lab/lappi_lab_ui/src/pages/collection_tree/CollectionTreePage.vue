@@ -18,7 +18,10 @@
                 @click="onItemClicked(item)"
               >
                 <q-item-section avatar>
-                  <q-icon :name="item.icon" />
+                  <q-avatar v-show="item.hasAvatar === true"  rounded>
+                    <img :src="item.pictureUrl">
+                  </q-avatar>
+                  <q-icon v-show="item.hasAvatar === false" :name="item.icon" />
                 </q-item-section>
 
                 <q-item-section>
@@ -75,35 +78,56 @@ const listItems = ref([])
 const newArtistName = ref('')
 let currentFolderId = 0
 
-async function openFolder (folderId) {
-  const { content } = await aminaApi.sendRequest('lappi.collection.view.get_folder_content', { folder_id: folderId })
-
-  const folders = content.folders.map((folder, id) => ({
+async function getFolderItem (id, folderDescription) {
+  const item = {
     id,
-    folder_id: folder.folder_id,
-    title: folder.title,
-    icon: folder.folder_type === 'Artist' ? 'account_circle' : 'folder_open',
-    caption: folder.folder_type === 'Artist' ? 'Artist' : ''
-  }))
+    folder_id: folderDescription.folder_id,
+    title: folderDescription.name,
+    caption: folderDescription.folder_type
+  }
+
+  if ('avatar_picture_id' in folderDescription) {
+    const path = await aminaApi.sendRequest('lappi.collection.pictures.get_picture_path', { picture_id: folderDescription.avatar_picture_id })
+    const pictureUrl = await aminaApi.getFileUrl(path)
+
+    item.hasAvatar = true
+    item.pictureUrl = pictureUrl
+  } else {
+    let icon = 'folder_open'
+
+    switch (folderDescription.folder_type) {
+      case 'Artist':
+        icon = 'account_circle'
+        break
+      case 'Album':
+        icon = 'album'
+        break
+    }
+
+    item.hasAvatar = false
+    item.icon = icon
+  }
+
+  return item
+}
+
+async function openFolder (folderId) {
+  const { content } = await aminaApi.sendRequest('lappi.collection.folders.get_folder_content', { folder_id: folderId })
+
+  const folders = await Promise.all(content.folders.map(async (folder, id) => (await getFolderItem(id, folder))))
 
   const items = content.items.map((item, id) => ({
     id: id + content.folders.length,
     item_id: item.item_id,
-    title: item.title,
+    title: item.name,
+    hasAvatar: false,
     icon: 'library_music',
     caption: 'Song'
   }))
 
   listItems.value = [...folders, ...items]
-
   navigationBar.value.update(folderId)
-
-  const folderDescription = await aminaApi.sendRequest('lappi.collection.tree.get_folder_description', { folder_id: folderId })
-  if (folderDescription.folder_type === 'Artist') {
-    const artistId = folderDescription.details.Artist
-    collectionEditor.value.setArtist(artistId)
-  }
-
+  collectionEditor.value.setFolder(folderId)
   currentFolderId = folderId
 }
 
@@ -119,12 +143,12 @@ async function update () {
   await openFolder(currentFolderId)
 }
 
-aminaApi.setEventHandler('lappi.collection.tree.OnFoldersUpdated', (event) => {
+aminaApi.setEventHandler('lappi.collection.folders.OnFoldersUpdated', (event) => {
   update()
 })
 
 async function addArtist () {
-  const newFolderId = await aminaApi.sendRequest('lappi.collection.artists.find_by_name', { name: newArtistName.value })
+  const newFolderId = await aminaApi.sendRequest('lappi.collection.folders.find_or_add_folder', { parent_id: currentFolderId, folder_name: newArtistName.value, folder_type: 'Artist' })
   newArtistName.value = ''
   console.log(newFolderId)
 }

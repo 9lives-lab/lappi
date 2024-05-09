@@ -7,7 +7,9 @@
       class="artist-item"
     >
       <q-item-section avatar>
-        <q-icon name="account_circle" />
+        <q-avatar rounded>
+          <img :src="item.pictureUrl">
+        </q-avatar>
       </q-item-section>
       <q-item-section>
         <q-item-label>{{ item.name }}</q-item-label>
@@ -28,7 +30,12 @@ async function updateItem (itemId) {
   const newItems = []
   for (const i in idList) {
     const artistDescription = await aminaApi.sendRequest('lappi.collection.artists.get_description', { artist_id: idList[i] })
-    newItems.push(artistDescription)
+    let pictureUrl = ''
+    if ('primary_picture_id' in artistDescription) {
+      const path = await aminaApi.sendRequest('lappi.collection.pictures.get_picture_path', { picture_id: artistDescription.primary_picture_id })
+      pictureUrl = await aminaApi.getFileUrl(path)
+    }
+    newItems.push({ name: artistDescription.name, pictureUrl })
   }
   items.value = newItems
 }

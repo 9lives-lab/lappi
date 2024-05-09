@@ -31,13 +31,21 @@ pub type DbResult<T, E = error::DbError> = std::result::Result<T, E>;
 
 #[derive(Debug, Clone)]
 pub enum DbValue {
+    Null,
     String(String),
     Number(i64),
+}
+
+impl Default for DbValue {
+    fn default() -> Self {
+        DbValue::Null
+    }
 }
 
 impl ToSql for DbValue {
     fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
         match self {
+            DbValue::Null => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Null)),
             DbValue::String(s) => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Text(s.clone()))),
             DbValue::Number(n) => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Integer(*n))),
         }
