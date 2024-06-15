@@ -2,15 +2,23 @@ pub mod types;
 
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::Context;
 
 use crate::collection::database_api::DatabaseApi;
 use crate::collection::music::types::ExternalSrcFileDesc;
-use crate::collection::types::{FolderId, ItemId};
+use crate::collection::types::{MusicItemId, FolderId, ItemId};
 use crate::collection::types::tags::Tag;
 use crate::database::Database;
+
+#[derive(Serialize, Deserialize)]
+pub struct MusicItemDescription {
+    pub item_id: MusicItemId,
+    pub name: String,
+    pub folder_id: FolderId,
+}
 
 pub struct ItemRef {
     db: Arc<Box<dyn DatabaseApi>>,
@@ -76,6 +84,7 @@ impl MusicCollection {
         });
 
         register_rpc_handler!(rpc, music, "lappi.collection.get_tags", get_tags(item_id: ItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.add_external_src_file", add_external_src_file(item_id: ItemId, path: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_external_src_files", get_external_src_files(item_id: ItemId));
 
@@ -97,6 +106,10 @@ impl MusicCollection {
             db: self.db.clone(),
             id,
         }
+    }
+
+    pub fn get_item_description(&self, item_id: MusicItemId) -> MusicItemDescription {
+        self.db.get_music_item_description(item_id).unwrap()
     }
 
     pub fn add_tag(&self, item_id: ItemId, key: &str, value: &str) {

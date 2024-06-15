@@ -2,10 +2,12 @@ use serde::{Serialize, Deserialize};
 use amina_core::events::Event;
 
 use crate::database_api::{DbExporter, DbImporter, DbResult};
-use crate::collection::types::{FolderId, ItemId, MusicItemId, PictureId};
+use crate::collection::types::{FolderId, ItemId, LyricsId, MusicItemId, PictureId};
 use crate::collection::types::tags::Tag;
+use crate::collection::music::MusicItemDescription;
 use crate::collection::music::types::ExternalSrcFileDesc;
 use crate::collection::folders::{FolderDescription, FolderType};
+use crate::collection::lyrics::LyricsDescription;
 
 #[derive(Default, Clone)]
 #[derive(Serialize, Deserialize)]
@@ -31,9 +33,14 @@ pub trait DatabaseApi: Send + Sync {
 
     // Music items
     fn add_music_item(&self, name: &str, folder_id: FolderId) -> MusicItemId;
+    fn get_music_item_description(&self, music_id: MusicItemId) -> DbResult<MusicItemDescription>;
     fn get_all_music_items(&self) -> DbResult<Vec<MusicItemId>>;
     fn get_music_item_folder(&self, item_id: MusicItemId) -> DbResult<FolderId>;
     fn get_music_items_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<MusicItemId>>;
+
+    // Lyrics
+    fn add_lyrics_item(&self, music_id: MusicItemId, lang_code: &str) -> DbResult<LyricsId>;
+    fn get_lyrics_list(&self, music_id: MusicItemId) -> DbResult<Vec<LyricsDescription>>;
 
     // Pictures
     fn add_picture_item(&self, extension: &str, folder_id: FolderId) -> DbResult<PictureId>;

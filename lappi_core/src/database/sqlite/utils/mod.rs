@@ -1,6 +1,7 @@
 pub mod tags;
 pub mod tree;
 pub mod pictures;
+pub mod lyrics;
 
 use std::sync::{Arc, Mutex, MutexGuard};
 

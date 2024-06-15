@@ -1,29 +1,26 @@
 <template>
-  <TitledPane title="Explore" class="column">
-    <div class="column col">
-      <ToolPane class="col-auto">
-        <q-btn icon="search" label="Find music files" style="color: #60bae0;" @click="findMusicFiles()" />
-        <q-btn icon="file_download" label="Import to collection" style="color: #72ba85;" @click="importMusicFIles()" />
-      </ToolPane>
-      <AbsoluteWrapper class="col">
-        <q-table
-          style="max-height: 100%;"
-          flat dense
-          :rows="rows"
-          :columns="columns"
-          row-key="index"
-          virtual-scroll
-          v-model:pagination="pagination"
-          :rows-per-page-options="[0]"
-        />
-      </AbsoluteWrapper>
-    </div>
-  </TitledPane>
+  <div class="column col">
+    <ToolPane class="col-auto">
+      <q-btn icon="search" label="Find music files" style="color: #60bae0;" @click="findMusicFiles()" />
+      <q-btn icon="file_download" label="Import to collection" style="color: #72ba85;" @click="importMusicFIles()" />
+    </ToolPane>
+    <AbsoluteWrapper class="col">
+      <q-table
+        style="max-height: 100%;"
+        flat dense
+        :rows="rows"
+        :columns="columns"
+        row-key="index"
+        virtual-scroll
+        v-model:pagination="pagination"
+        :rows-per-page-options="[0]"
+      />
+    </AbsoluteWrapper>
+  </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
-import TitledPane from 'src/amina_ui/components/TitledPane.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 

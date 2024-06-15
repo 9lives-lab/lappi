@@ -5,6 +5,7 @@ pub mod storage;
 pub mod debug;
 pub mod pictures;
 pub mod folders;
+pub mod lyrics;
 
 use std::sync::Arc;
 
@@ -15,6 +16,7 @@ use amina_core::service::{ServiceApi, ServiceInitializer, Context, Service};
 use crate::database::Database;
 use crate::collection::database_api::{DatabaseApi, OnItemsUpdated};
 use crate::collection::folders::FoldersView;
+use crate::collection::lyrics::LyricsCollection;
 use crate::collection::music::MusicCollection;
 use crate::collection::pictures::PicturesCollection;
 use crate::collection::storage::local::LocalStorage;
@@ -22,6 +24,7 @@ use crate::collection::storage::local::LocalStorage;
 pub struct Collection {
     local_storage: Service<LocalStorage>,
     music: Arc<MusicCollection>,
+    lyrics: Arc<LyricsCollection>,
     pictures: Arc<PicturesCollection>,
     folders: Arc<FoldersView>,
     api: Arc<Box<dyn DatabaseApi>>,
@@ -31,6 +34,10 @@ impl Collection {
 
     pub fn music(&self) -> &MusicCollection {
         &self.music
+    }
+
+    pub fn lyrics(&self) -> &LyricsCollection {
+        &self.lyrics
     }
 
     pub fn pictures(&self) -> &PicturesCollection {
@@ -81,6 +88,7 @@ impl ServiceInitializer for Collection {
         let collection = Arc::new(Self {
             local_storage,
             music: MusicCollection::initialize(context),
+            lyrics: LyricsCollection::initialize(context),
             pictures: PicturesCollection::initialize(context),
             folders: FoldersView::initialize(context),
             api: db_api.clone(),

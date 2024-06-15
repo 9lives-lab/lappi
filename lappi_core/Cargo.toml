@@ -24,3 +24,4 @@ url = "2.4.1"
 reqwest = { version = "0.11.18", features = ["blocking", "json"] }
 amina_core = { path = "../amina/amina_core" }
 amina_core_derive = { path = "../amina/amina_core_derive" }
+fallible-iterator = "0.2.0"

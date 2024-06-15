@@ -3,35 +3,24 @@
     <div class="row col-auto q-pb-sm q-pl-sm">
       <NavigationBar ref="navigationBar" v-on:folder-selected="openFolder($event)" />
     </div>
-    <div class="row col q-gutter-sm">
-      <UiPlate class="column col-3">
-        <div class="list-wrapper col">
-          <div class="list-absolute-wrapper">
-            <q-virtual-scroll
-              style="max-height: 100%;"
-              :items="listItems"
-              v-slot="{ item, index }"
-            >
-              <q-item
-                :key="index"
-                clickable
-                @click="onItemClicked(item)"
-              >
-                <q-item-section avatar>
-                  <q-avatar v-show="item.hasAvatar === true"  rounded>
-                    <img :src="item.pictureUrl">
-                  </q-avatar>
-                  <q-icon v-show="item.hasAvatar === false" :name="item.icon" />
-                </q-item-section>
-
-                <q-item-section>
-                    <q-item-label>{{ item.title }}</q-item-label>
-                    <q-item-label caption>{{ item.caption }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-virtual-scroll>
-          </div>
-        </div>
+    <div class="row col q-gutter-md">
+      <WidgetPane class="col-3">
+        <AbsoluteWrapper class="list-wrapper col">
+          <q-virtual-scroll class="list-scroll" :items="listItems" v-slot="{ item, index }">
+            <q-item class="list-item" :key="index" clickable @click="onItemClicked(item)">
+              <q-item-section avatar>
+                <q-avatar v-show="item.hasAvatar === true" rounded>
+                  <img :src="item.pictureUrl">
+                </q-avatar>
+                <q-icon v-show="item.hasAvatar === false" :name="item.icon" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.title }}</q-item-label>
+                <q-item-label caption>{{ item.caption }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-virtual-scroll>
+        </AbsoluteWrapper>
         <ToolPane class="col-auto">
           <q-btn label="Add Artist" @click="prompt = true" ></q-btn>
           <q-btn label="Add Item" />
@@ -53,20 +42,23 @@
             </q-card>
           </q-dialog>
         </ToolPane>
-      </UiPlate>
-      <UiPlate class="col">
-        <CollectionEditor ref="collectionEditor" />
-      </UiPlate>
+      </WidgetPane>
+      <AbsoluteWrapper class="col">
+        <q-scroll-area style="height: 100%; max-width: 100%;">
+          <CollectionEditor ref="collectionEditor" />
+        </q-scroll-area>
+      </AbsoluteWrapper>
     </div>
   </q-page>
 </template>
 
 <script setup>
 import { getCurrentInstance, onMounted, ref } from 'vue'
-import UiPlate from 'src/amina_ui/components/UiPlate.vue'
+import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import NavigationBar from 'components/collection/NavigationBar.vue'
 import CollectionEditor from 'pages/collection_tree/CollectionEditor.vue'
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
@@ -163,24 +155,12 @@ onMounted(() => {
 .q-item__section--avatar
   min-width: 0px
 
-.plate
-  background-color: $plate-dark-background
-  border-radius: 6px
-  border-color: $separator-dark-color
-  border-width: 1px
+.list-scroll
+  max-height: 100%
+
+.list-item
   border-style: solid
-  box-shadow: rgba(0, 0, 0, 0.14) 0px 0px 12px
-
-.list-wrapper
-  overflow: hidden
-  position: relative
-
-.list-absolute-wrapper
-  overflow: hidden
-  position: absolute
-  top: 0px
-  bottom: 0px
-  left: 0px
-  right: 0px
+  border-width: 0px 0px 1px 0px
+  border-color: $separator-dark-color
 
 </style>

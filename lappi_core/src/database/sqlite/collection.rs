@@ -6,9 +6,11 @@ use amina_core::service::Context;
 use crate::database_api::{DbExporter, DbImporter, DbResult};
 use crate::collection::folders::{FolderDescription, FolderType};
 use crate::collection::database_api::DatabaseApi;
+use crate::collection::lyrics::LyricsDescription;
+use crate::collection::music::MusicItemDescription;
 use crate::collection::music::types::ExternalSrcFileDesc;
 use crate::collection::types::tags::Tag;
-use crate::collection::types::{FolderId, ItemId, MusicItemId, PictureId};
+use crate::collection::types::{FolderId, ItemId, LyricsId, MusicItemId, PictureId};
 use crate::database::sqlite::utils::DatabaseUtils;
 use super::utils;
 
@@ -84,6 +86,23 @@ impl DatabaseApi for CollectionDbApi {
         return context.connection().last_insert_rowid();
     }
 
+    fn get_music_item_description(&self, music_id: MusicItemId) -> DbResult<MusicItemDescription> {
+        let context = self.db_utils.lock();
+        let description = context.connection().query_row(
+            "SELECT name, folder_id FROM music_items WHERE id=(?1)",
+            params![music_id],
+            |row| {
+                Ok(MusicItemDescription {
+                    item_id: music_id,
+                    name:        row.get:: < _, String>(0)?,
+                    folder_id:   row.get:: < _, i64>(1)? as FolderId,
+                })
+            },
+        )?;
+    
+        Ok(description)   
+    }
+
     fn get_all_music_items(&self) -> DbResult<Vec<MusicItemId>> {
         self.db_utils.lock().get_rows_list("music_items")
     }
@@ -94,6 +113,18 @@ impl DatabaseApi for CollectionDbApi {
 
     fn get_music_items_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<MusicItemId>> {
         self.db_utils.lock().get_fields_list_by_field_i64_value("music_items", "id", "folder_id", folder_id)
+    }
+
+    // Folders
+
+    fn add_lyrics_item(&self, music_id: MusicItemId, lang_code: &str) -> DbResult<LyricsId> {
+        let context = self.db_utils.lock();
+        utils::lyrics::add_lyrics_item(&context, music_id, lang_code)
+    }
+
+    fn get_lyrics_list(&self, music_id: MusicItemId) -> DbResult<Vec<LyricsDescription>> {
+        let context = self.db_utils.lock();
+        utils::lyrics::get_lyrics_list(&context, music_id)
     }
 
     // Pictures

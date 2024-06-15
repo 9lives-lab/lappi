@@ -3,44 +3,35 @@
     <div class="row col-auto q-pb-sm q-pl-sm">
       {{ currentPath }}
     </div>
-    <div class="row col q-gutter-sm">
-      <UiPlate class="column col-3">
+    <div class="row col q-gutter-md">
+      <WidgetPane class="column col-3">
         <ToolPane class="col-auto">
           <q-btn icon="arrow_upward" @click="openParentFolder()"/>
           <q-btn icon="home" @click="openRootFolder()" />
         </ToolPane>
         <AbsoluteWrapper class="col">
-          <q-virtual-scroll
-            style="max-height: 100%;"
-            :items="filesList"
-            v-slot="{ item }"
-          >
-            <q-item
-              :key="item.id"
-              clickable
-              @click="onItemClicked(item)"
-            >
+          <q-virtual-scroll style="max-height: 100%;" :items="filesList" v-slot="{ item }">
+            <q-item :key="item.id" clickable @click="onItemClicked(item)">
               <q-item-section avatar>
                 <q-icon :name="item.icon" />
               </q-item-section>
-
               <q-item-section>
                 <q-item-label>{{ item.name }}</q-item-label>
               </q-item-section>
             </q-item>
           </q-virtual-scroll>
         </AbsoluteWrapper>
-      </UiPlate>
-      <UiPlate class="column col">
+      </WidgetPane>
+      <WidgetPane class="column col" title="Explore">
         <FolderExploringPane class="col" ref="folderExploringPane" />
-      </UiPlate>
+      </WidgetPane>
     </div>
   </q-page>
 </template>
 
 <script setup>
 import { getCurrentInstance, onMounted, ref } from 'vue'
-import UiPlate from 'src/amina_ui/components/UiPlate.vue'
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import FolderExploringPane from 'src/pages/file_manager/FolderExploringPane.vue'

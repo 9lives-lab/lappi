@@ -4,7 +4,7 @@
     <q-btn class="col-auto text-subtitle1" :icon="playButtonIcon" @click="tooglePlay()"/>
     <q-btn class="col-auto text-subtitle2" icon="skip_next" />
     <div class="col q-pr-md q-pl-md q-pt-md">
-      <div class="text-weight-medium">{{ title }}</div>
+      <div class="title text-weight-light">{{ title }}</div>
       <q-slider
         class="col"
         v-model="progress"
@@ -59,5 +59,8 @@ onMounted(() => {
 
   .q-btn::before
     box-shadow: none
+
+  .title
+    text-align: center
 
 </style>

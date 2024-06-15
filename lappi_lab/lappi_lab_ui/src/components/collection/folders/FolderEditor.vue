@@ -1,21 +1,21 @@
 <template>
-  <div class="folder-editor">
+  <div class="folder-editor q-gutter-md">
     <EditorHeader :itemType="folderType" :title="folderName" />
-    <TitledPane title="Pictures">
+    <WidgetPane title="Pictures">
       <PicturesEditor ref="picturesEditor"/>
-    </TitledPane>
-    <TitledPane title="Explore">
+    </WidgetPane>
+    <WidgetPane title="Explore">
       <ItemExploringPane ref="itemExploringPane" />
-    </TitledPane>
+    </WidgetPane>
   </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
-import TitledPane from 'src/amina_ui/components/TitledPane.vue'
 import EditorHeader from 'src/components/collection/EditorHeader.vue'
 import PicturesEditor from 'src/components/collection/pictures/PicturesEditor.vue'
 import ItemExploringPane from 'src/components/collection/ItemExploringPane.vue'
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const folderName = ref(null)

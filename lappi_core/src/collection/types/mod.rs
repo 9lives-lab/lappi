@@ -8,6 +8,7 @@ pub type ItemId = i64;
 pub type MusicItemId = ItemId;
 
 pub type PictureId = i64;
+pub type LyricsId = i64;
 
 #[derive(Copy, Clone, FromPrimitive)]
 pub enum ItemType {

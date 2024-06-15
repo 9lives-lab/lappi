@@ -1,6 +1,6 @@
 <template>
-  <q-layout view="hHh Lpr lFf">
-    <q-header bordered class="header">
+  <q-layout class="main-layout text-weight-light" view="hHh Lpr lFf">
+    <q-header class="header">
       <div class="row items-center">
         <div class="col-auto text-h6 text-weight-light q-ml-lg q-mr-md">
           <router-link class="root-link" to="/">Lappi Lab</router-link>
@@ -9,30 +9,18 @@
       </div>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-      mini
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above mini >
       <q-list>
-        <q-item-label
-          header
-        >
-          Menu
-        </q-item-label>
-
-        <RouterIcon
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <q-item-label header>Menu</q-item-label>
+        <RouterIcon v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-footer class="footer q-pa-sm"></q-footer>
   </q-layout>
 </template>
 
@@ -108,5 +96,8 @@ export default defineComponent({
   .root-link
     color: white
     text-decoration: none
+
+.footer
+  background-color: transparent
 
 </style>
