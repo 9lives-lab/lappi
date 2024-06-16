@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex column q-pa-sm">
+  <div class="flex column q-pa-sm">
     <div class="row col-auto q-pb-sm q-pl-sm">
       {{ currentPath }}
     </div>
@@ -26,7 +26,7 @@
         <FolderExploringPane class="col" ref="folderExploringPane" />
       </WidgetPane>
     </div>
-  </q-page>
+  </div>
 </template>
 
 <script setup>
@@ -34,7 +34,7 @@ import { getCurrentInstance, onMounted, ref } from 'vue'
 import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
-import FolderExploringPane from 'src/pages/file_manager/FolderExploringPane.vue'
+import FolderExploringPane from 'src/components/file_manager/FolderExploringPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const folderExploringPane = ref(null)

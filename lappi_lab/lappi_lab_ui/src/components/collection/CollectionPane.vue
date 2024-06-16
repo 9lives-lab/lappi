@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex column q-pa-sm">
+  <div class="flex column q-pa-sm">
     <div class="row col-auto q-pb-sm q-pl-sm">
       <NavigationBar ref="navigationBar" v-on:folder-selected="openFolder($event)" />
     </div>
@@ -43,29 +43,25 @@
           </q-dialog>
         </ToolPane>
       </WidgetPane>
-      <AbsoluteWrapper class="col">
-        <q-scroll-area style="height: 100%; max-width: 100%;">
-          <CollectionEditor ref="collectionEditor" />
-        </q-scroll-area>
-      </AbsoluteWrapper>
+      <CollectionTabs class="col" ref="collectionTabs" />
     </div>
-  </q-page>
+  </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, onMounted, ref } from 'vue'
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
-import NavigationBar from 'components/collection/NavigationBar.vue'
-import CollectionEditor from 'pages/collection_tree/CollectionEditor.vue'
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
+import NavigationBar from 'src/components/collection/NavigationBar.vue'
+import CollectionTabs from 'src/components/collection/tabs/CollectionTabs.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
 const prompt = ref(false)
 
 const navigationBar = ref(null)
-const collectionEditor = ref(null)
+const collectionTabs = ref(null)
 const listItems = ref([])
 const newArtistName = ref('')
 let currentFolderId = 0
@@ -119,7 +115,7 @@ async function openFolder (folderId) {
 
   listItems.value = [...folders, ...items]
   navigationBar.value.update(folderId)
-  collectionEditor.value.setFolder(folderId)
+  collectionTabs.value.setFolder(folderId)
   currentFolderId = folderId
 }
 
@@ -127,7 +123,7 @@ async function onItemClicked (item) {
   if ('folder_id' in item) {
     await openFolder(item.folder_id)
   } else {
-    collectionEditor.value.setItem(item.item_id)
+    collectionTabs.value.setItem(item.item_id)
   }
 }
 

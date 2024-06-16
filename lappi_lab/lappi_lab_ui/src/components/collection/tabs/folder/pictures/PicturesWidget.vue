@@ -1,17 +1,20 @@
 <template>
-  <div class="column pictures-editor">
-    <ToolPane class="col">
-      <q-btn class="col-auto" icon="add" label="Add" @click="addPicture" />
-      <q-input borderless dense class="col" v-model="addPath" />
-    </ToolPane>
-    <PicturesViewer ref="picturesViewer" />
-  </div>
+  <WidgetPane title="Pictures">
+    <div class="column pictures-editor">
+      <ToolPane class="col">
+        <q-btn class="col-auto" icon="add" label="Add" @click="addPicture" />
+        <q-input borderless dense class="col" v-model="addPath" />
+      </ToolPane>
+      <PicturesViewer ref="picturesViewer" />
+    </div>
+  </WidgetPane>
 </template>
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
-import PicturesViewer from 'src/components/collection/pictures/PicturesViewer.vue'
+import PicturesViewer from 'src/components/collection/tabs/folder/pictures/PicturesViewer.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 

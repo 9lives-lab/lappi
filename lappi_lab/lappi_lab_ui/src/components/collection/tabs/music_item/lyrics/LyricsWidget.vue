@@ -1,13 +1,16 @@
 <template>
-  <div class="column lyrics-widget">
-    <ToolPane class="col">
-      <q-btn class="col-auto" icon="save" label="Save" @click="saveLyrics" />
-    </ToolPane>
-    <q-input class="lyrics-editor" v-model="text" borderless autogrow />
-  </div>
+  <WidgetPane title="Lyrics">
+    <div class="column lyrics-widget">
+      <ToolPane class="col">
+        <q-btn class="col-auto" icon="save" label="Save" @click="saveLyrics" />
+      </ToolPane>
+      <q-input class="lyrics-editor" v-model="text" borderless autogrow />
+    </div>
+  </WidgetPane>
 </template>
 
 <script setup>
+import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import { ref, getCurrentInstance } from 'vue'
 
