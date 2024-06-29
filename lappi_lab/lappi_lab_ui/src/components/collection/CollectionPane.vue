@@ -157,6 +157,6 @@ onMounted(() => {
 .list-item
   border-style: solid
   border-width: 0px 0px 1px 0px
-  border-color: $separator-dark-color
+  border-color: $amina-separator-color
 
 </style>

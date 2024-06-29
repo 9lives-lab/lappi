@@ -33,7 +33,7 @@ const text = computed(() => {
   min-width: 200px
   max-width: 600px
   background-color: $primary
-  border-color: $separator-dark-color
+  border-color: $amina-separator-color
   border-width: 1px
   border-style: solid
   border-radius: 5px
@@ -46,7 +46,7 @@ const text = computed(() => {
     justify-content: center
     align-items: center
     padding: 0 10px 0 10px
-    border-color: $separator-dark-color
+    border-color: $amina-separator-color
     border-width: 0 1px 0 0
     border-style: solid
 
@@ -60,7 +60,7 @@ const text = computed(() => {
     justify-content: center
     align-items: center
     padding: 0 10px 0 10px
-    border-color: $separator-dark-color
+    border-color: $amina-separator-color
     border-radius: 0 5px 5px 0
     border-width: 0 0 0 1px
     border-style: solid

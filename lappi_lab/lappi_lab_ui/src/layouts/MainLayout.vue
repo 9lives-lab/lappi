@@ -91,7 +91,7 @@ export default defineComponent({
 
 <style lang="sass" scoped>
 .header
-  background-color: $amina-title
+  background-color: $amina-primary-color
 
   .root-link
     color: white

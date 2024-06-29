@@ -1,5 +1,5 @@
 <template>
-  <div class="folder-editor q-gutter-md">
+  <div class="q-gutter-md">
     <TabHeader :itemType="folderType" :title="folderName" />
     <PicturesWidget ref="picturesWidget"/>
   </div>
@@ -29,7 +29,5 @@ defineExpose({
 </script>
 
 <style lang="sass" scoped>
-.name-field
-  text-align: center
 
 </style>

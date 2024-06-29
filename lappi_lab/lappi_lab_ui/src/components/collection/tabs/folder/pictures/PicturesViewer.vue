@@ -62,7 +62,7 @@ onMounted(async () => {
   cursor: pointer
   border-radius: 5px
   border: 1px solid #0c2230
-  box-shadow: 0px 0px 15px 0px rgba(0,0,0,0.8)
+  box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.5)
   transition: 0.3s ease
   &:hover
     filter: brightness(1.1)
