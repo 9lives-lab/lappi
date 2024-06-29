@@ -2,7 +2,9 @@
   <WidgetPane title="Lyrics">
     <div class="column lyrics-widget">
       <ToolPane class="col">
-        <q-btn class="col-auto" icon="save" label="Save" @click="saveLyrics" />
+        <q-btn class="save-button col-auto" icon="save" label="Save" @click="saveLyrics" />
+        <q-btn class="undo-button col-auto" icon="undo" label="Undo" @click="undoChanges" />
+        <q-btn class="find-button col-auto" icon="lyrics" label="Find lyrics" @click="findLyrics" />
       </ToolPane>
       <q-input class="lyrics-editor" v-model="text" borderless autogrow />
     </div>
@@ -43,10 +45,31 @@ async function saveLyrics () {
   }
 }
 
+async function undoChanges () {
+  await updateItem(currentMusicItemId)
+}
+
+async function findLyrics () {
+  try {
+    text.value = await aminaApi.sendRequest('lappi.exploring.lyrics.find_lyrics', { music_item_id: currentMusicItemId })
+  } catch (err) {
+    text.value = 'Error: ' + err
+  }
+}
+
 defineExpose({
   updateItem
 })
 </script>
+
+<style lang="sass" scoped>
+.save-button
+  color: $amina-positive
+.undo-button
+  color: $amina-negative
+.find-button
+  color: $amina-info
+</style>
 
 <style lang="sass">
 .lyrics-editor

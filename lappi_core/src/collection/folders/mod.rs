@@ -21,7 +21,7 @@ pub enum FolderType {
     Album = 2,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct FolderDescription {
     pub folder_id: FolderId,
     pub name: String,
@@ -103,6 +103,11 @@ impl FoldersView {
 
     pub fn get_folders_in_folder(&self, folder_id: FolderId) -> Vec<FolderDescription> {
         self.db.get_folders_in_folder(folder_id).unwrap()
+    }
+
+    pub fn find_parent_node(&self, folder_id: FolderId, folder_type: FolderType) -> Option<FolderDescription> {
+        let parent_folders = self.get_folders_chain(folder_id);
+        return parent_folders.iter().find(|f| f.folder_type == folder_type).cloned();
     }
 
     pub fn get_folder_content(&self, folder_id: FolderId) -> FolderContent {

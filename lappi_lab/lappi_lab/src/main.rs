@@ -21,7 +21,7 @@ use lappi_core::database::Database;
 use lappi_core::exploring::chat::ChatService;
 use lappi_core::import::collection::CollectionImporter;
 use lappi_core::settings::Settings;
-use lappi_core::exploring::Exploring;
+use lappi_core::exploring::lyrics::LyricsExplorer;
 use lappi_core::file_manager::FileManager;
 use lappi_core::file_manager::search::FilesExplorer;
 use lappi_core::playlists::classic::ClassicPlaylists;
@@ -63,7 +63,7 @@ fn main() {
     context.init_service::<CollectionImporter>();
     context.init_service::<PyServerClient>();
     context.init_service::<ChatService>();
-    context.init_service::<Exploring>();
+    context.init_service::<LyricsExplorer>();
 
     context.start();
 
