@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::{Serialize, Deserialize};
@@ -7,6 +8,7 @@ use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service};
 
 use crate::collection::database_api::DatabaseApi;
+use crate::collection::storage::local::LocalStorage;
 use crate::collection::types::{FolderId, ItemId, PictureId};
 use crate::database::Database;
 
@@ -58,18 +60,21 @@ pub struct OnFoldersUpdated {
 
 pub struct FoldersView {
     event_emitter: Service<EventEmitter>,
+    local_storage: Service<LocalStorage>,
     db: Arc<Box<dyn DatabaseApi>>,
 }
 
 impl FoldersView {
     pub fn initialize(context: &Context) -> Arc<Self> {
         let event_emitter = context.get_service::<EventEmitter>();
-        let rpc = context.get_service::<Rpc>();
+        let local_storage = context.get_service::<LocalStorage>();
+        let rpc: Service<Rpc> = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
         let db_api = Arc::new(database.collection());
 
         let folders = Arc::new(Self {
             event_emitter,
+            local_storage,
             db: db_api,
         });
 
@@ -77,6 +82,8 @@ impl FoldersView {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_content", get_folder_full_content(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
 
         return folders;
     }
@@ -158,6 +165,21 @@ impl FoldersView {
             content,
             folders_chain
         }
+    }
+
+    pub fn save_description(&self, folder_id: FolderId, text: String) {
+        let path = self.get_description_storage_path(folder_id);
+        std::fs::write(path, text.as_bytes()).unwrap();
+    }
+
+    pub fn get_description(&self, folder_id: FolderId) -> String {
+        let path = self.get_description_storage_path(folder_id);
+        let file_content = std::fs::read_to_string(path).unwrap_or("".to_string());
+        return file_content;
+    }
+
+    fn get_description_storage_path(&self, folder_id: FolderId) -> PathBuf {
+        return self.local_storage.get_internal_storage_folder("folders/about").join(format!("{}.txt", folder_id));
     }
 
     pub fn update_item(&self) {
