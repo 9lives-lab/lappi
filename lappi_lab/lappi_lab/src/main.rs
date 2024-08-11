@@ -19,6 +19,7 @@ use lappi_core::collection::storage::local::LocalStorage;
 use lappi_core::playback::Playback;
 use lappi_core::database::Database;
 use lappi_core::exploring::chat::ChatService;
+use lappi_core::exploring::chat::templates::ChatTemplates;
 use lappi_core::import::collection::CollectionImporter;
 use lappi_core::settings::Settings;
 use lappi_core::exploring::lyrics::LyricsExplorer;
@@ -63,6 +64,7 @@ fn main() {
     context.init_service::<CollectionImporter>();
     context.init_service::<PyServerClient>();
     context.init_service::<ChatService>();
+    context.init_service::<ChatTemplates>();
     context.init_service::<LyricsExplorer>();
 
     context.start();

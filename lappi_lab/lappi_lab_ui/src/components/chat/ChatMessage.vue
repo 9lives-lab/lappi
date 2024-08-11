@@ -1,6 +1,6 @@
 <template>
   <WidgetPane :title="message.role === 'Assistant' ? 'Lappi spirit:' : 'You:'" class="message">
-    <div class="message-text q-pa-md">{{ message.content }}</div>
+    <div class="message-text q-pa-md" v-html="formatMessageContent(message.content)"></div>
   </WidgetPane>
 </template>
 
@@ -10,6 +10,10 @@ import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 defineProps({
   message: Object
 })
+
+const formatMessageContent = (content) => {
+  return content.replace(/\n/g, '<br>')
+}
 </script>
 
 <style lang="sass" scoped>

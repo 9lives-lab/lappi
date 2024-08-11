@@ -1,4 +1,5 @@
-mod chatgpt;
+pub mod chatgpt;
+pub mod templates;
 
 use std::sync::{Arc, Mutex};
 

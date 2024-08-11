@@ -3,7 +3,8 @@
     <TabHeader itemType="" :title="itemName" />
     <TagsWidget ref="tagsWidget"/>
     <LyricsWidget ref="lyricsWidget" />
-    <PlaybackSourcesWidget ref="playbackSourcesWidget" class="col-auto" />
+    <ChatExploringWidget ref="chatExploringWidget" />
+    <PlaybackSourcesWidget ref="playbackSourcesWidget" />
   </div>
 </template>
 
@@ -13,12 +14,14 @@ import TabHeader from 'src/components/collection/tabs/TabHeader.vue'
 import TagsWidget from 'src/components/collection/common/tags/TagsWidget.vue'
 import PlaybackSourcesWidget from 'src/components/collection/tabs/music_item/PlaybackSourcesWidget.vue'
 import LyricsWidget from 'src/components/collection/tabs/music_item/lyrics/LyricsWidget.vue'
+import ChatExploringWidget from 'src/components/collection/common/exploring/ChatExploringWidget.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
 const tagsWidget = ref(null)
 const lyricsWidget = ref(null)
 const playbackSourcesWidget = ref(null)
+const chatExploringWidget = ref(null)
 
 const itemName = ref('null')
 
@@ -28,6 +31,7 @@ async function updateItem (itemId) {
 
   await tagsWidget.value.updateItem(itemId)
   await lyricsWidget.value.updateItem(itemId)
+  await chatExploringWidget.value.update({ MusicItem: itemId })
   await playbackSourcesWidget.value.updateItem(itemId)
 }
 
