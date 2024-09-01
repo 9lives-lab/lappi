@@ -1,18 +1,17 @@
 mod platform_impl;
 
-use std::ops::Deref;
-
-use simple_logger::SimpleLogger;
 use amina_core::service::Context;
 use amina_core::events::EventEmitter;
 use amina_core::rpc::Rpc;
 use amina_core::tasks::TaskManager;
 use amina_core::cmd_manager::CmdManager;
-use amina_core::cmd_manager::cli_adapter::CmdManagerCliAdapter;
 use amina_core::settings::SettingsManager;
 use amina_server::rpc_web_gate::RpcServer;
+use amina_server::cli::adapters::cmd_manager_adapter::CmdManagerAdapter;
+use amina_server::cli::CliContext;
 
 use lappi_core::platform_api::PlatformApi;
+use lappi_core::platform_api::FileSystemApi;
 use lappi_core::debug::Debugger;
 use lappi_core::collection::Collection;
 use lappi_core::collection::storage::local::LocalStorage;
@@ -27,21 +26,13 @@ use lappi_core::file_manager::FileManager;
 use lappi_core::file_manager::search::FilesExplorer;
 use lappi_core::playlists::classic::ClassicPlaylists;
 use lappi_core::py_server_client::PyServerClient;
+use log::LevelFilter;
 
 fn main() {
-    SimpleLogger::new()
-        .with_utc_timestamps()
-        .with_level(log::LevelFilter::Debug)
-        .with_module_level("hyper", log::LevelFilter::Info)
-        .with_module_level("reqwest", log::LevelFilter::Info)
-        .init().unwrap();
-
-    log::info!("Lappi Lab");
-
     let file_system_api = platform_impl::file_system::initialize();
 
     let platform_api = PlatformApi {
-        file_system: file_system_api,
+        file_system: file_system_api.clone(),
     };
 
     let context = Context::new();
@@ -52,6 +43,18 @@ fn main() {
     context.init_service::<EventEmitter>();
     context.init_service::<Rpc>();
     context.init_service::<CmdManager>();
+
+    let cli_history_file = file_system_api.get_workspace_dir().join("cli_history.txt");
+    let cmd_manager = context.get_service::<CmdManager>();
+    let cli_adapter = CmdManagerAdapter::new(cmd_manager);
+    let cli_filters = vec![
+        ("hyper".to_string(), LevelFilter::Info),
+        ("reqwest".to_string(), LevelFilter::Info)
+    ];
+    let mut cli_context = CliContext::create(Box::new(cli_adapter), cli_filters, &cli_history_file);
+
+    log::info!("Lappi Lab");
+
     context.init_service::<SettingsManager>();
     context.init_service::<Settings>();
     context.init_service::<FileManager>();
@@ -73,12 +76,9 @@ fn main() {
 
     let server = RpcServer::run(&context);
 
-    let cmd_manager = context.get_service::<CmdManager>();
-    let cli_adapter = CmdManagerCliAdapter::new(cmd_manager.deref());
-
     log::info!("Initializing complete");
 
-    cli_adapter.run();
+    cli_context.run();
 
     log::info!("Closing application");
 
