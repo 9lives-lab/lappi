@@ -48,7 +48,8 @@ pub struct Playback {
 impl Playback {
     pub fn play_item(&self, item_id: ItemId) {
         let file = self.collection.music().get_external_src_files(item_id).get(0).unwrap().path.clone();
-        let source = Box::new(sources::PlaybackSource::LocalFile(file.clone()));
+        let name = self.collection.music().get_item_description(item_id).name;
+        let source = sources::PlaybackSource::local_file(name, file.clone());
         let playlist = Box::new(playlists::SingleSourcePlaylist::new(source));
         self.play_playlist(playlist);
     }

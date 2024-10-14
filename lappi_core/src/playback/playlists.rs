@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::playback::sources::PlaybackSource;
 
 pub trait Playlist: Send + Sync {
@@ -31,11 +30,7 @@ impl Playlist for SingleSourcePlaylist {
     }
 
     fn get_current_title(&self) -> String {
-        match self.source.deref() {
-            PlaybackSource::LocalFile(path) => {
-                path.clone()
-            },
-        }
+        return self.source.get_name().to_string();
     }
 
     fn has_next(&self) -> bool {

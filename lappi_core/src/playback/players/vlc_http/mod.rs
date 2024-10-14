@@ -1,10 +1,9 @@
-use std::ops::Deref;
 use std::path::Path;
 use std::sync::atomic::AtomicI32;
 use amina_core::service::{Context, Service};
 
 use crate::playback::{Player, PlayerFactory, PlayerState};
-use crate::playback::sources::PlaybackSource;
+use crate::playback::sources::{PlaybackSource, SourceType};
 use crate::settings::Settings;
 
 pub mod http_api;
@@ -17,8 +16,8 @@ pub struct VlcHttpPlayer {
 impl Player for VlcHttpPlayer {
 
     fn play(&self, source: Box<PlaybackSource>) {
-        match source.deref() {
-            PlaybackSource::LocalFile(path) => {
+        match source.get_source_type() {
+            SourceType::LocalFile(path) => {
                 let _ = self.api.play_file(Path::new(path));
             },
         }
