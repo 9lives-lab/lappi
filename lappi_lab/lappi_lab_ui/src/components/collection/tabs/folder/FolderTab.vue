@@ -2,8 +2,8 @@
   <div class="q-gutter-md">
     <TabHeader :itemType="folderType" :title="folderName" />
     <PicturesWidget ref="picturesWidget" />
-    <AboutFolderWidget ref="aboutFolderWidget" />
     <ChatExploringWidget ref="chatExploringWidget" />
+    <AboutFolderWidget ref="aboutFolderWidget" />
   </div>
 </template>
 

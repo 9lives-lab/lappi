@@ -2,8 +2,8 @@
   <div class="item-editor col q-gutter-md">
     <TabHeader itemType="" :title="itemName" />
     <TagsWidget ref="tagsWidget"/>
-    <LyricsWidget ref="lyricsWidget" />
     <ChatExploringWidget ref="chatExploringWidget" />
+    <LyricsWidget ref="lyricsWidget" />
     <PlaybackSourcesWidget ref="playbackSourcesWidget" />
   </div>
 </template>

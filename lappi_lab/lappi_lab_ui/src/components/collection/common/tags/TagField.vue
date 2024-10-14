@@ -52,7 +52,7 @@ const text = computed(() => {
 
   .text-field
     height: 35px
-    background-color: #0e1621
+    background-color: $amina-background-primary-color
     padding: 0 10px 0 10px
 
   .icons-bar

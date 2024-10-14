@@ -2,7 +2,7 @@
   <q-layout class="main-layout text-weight-light" view="hHh Lpr lFf">
     <q-header class="header">
       <div class="row items-center">
-        <div class="col-auto text-h6 text-weight-light q-ml-lg q-mr-md">
+        <div class="col-auto text-h4 text-weight-light q-ml-xl q-mr-lg">
           <router-link class="root-link" to="/">Lappi Lab</router-link>
         </div>
         <PlayerPane class="col"></PlayerPane>
@@ -90,10 +90,27 @@ export default defineComponent({
 </script>
 
 <style lang="sass" scoped>
+@font-face
+  font-family: Andika
+  src: url( '~src/css/fonts/Andika-ZW3x.ttf' )
+
+@font-face
+  font-family: Fredoka
+  src: url( '~src/css/fonts/Fredoka-Regular.ttf' )
+
+@font-face
+  font-family: Parisienne
+  src: url( '~src/css/fonts/Parisienne-Regular.ttf' )
+
+.main-layout
+  font-family: 'Fredoka', 'Andika'
+
 .header
   background-color: $amina-primary-color
 
   .root-link
+    font-family: 'Parisienne'
+    text-shadow: 0px 0px 10px rgba(255,255,255,0.6)
     color: white
     text-decoration: none
 

@@ -15,7 +15,7 @@
       <q-input
         class="col"
         v-model="message"
-        placeholder="Ask Lappi spirit anything..."
+        placeholder="Ask Lappi..."
         filled
         autogrow
         @keydown.enter.prevent="sendMessage"

@@ -1,5 +1,5 @@
 <template>
-  <WidgetPane :title="message.role === 'Assistant' ? 'Lappi spirit:' : 'You:'" class="message">
+  <WidgetPane :title="message.role === 'Assistant' ? 'Lappi:' : 'User:'" class="message">
     <div class="message-text q-pa-md" v-html="formatMessageContent(message.content)"></div>
   </WidgetPane>
 </template>

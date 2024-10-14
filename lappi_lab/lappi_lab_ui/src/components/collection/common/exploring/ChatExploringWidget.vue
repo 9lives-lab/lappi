@@ -1,5 +1,5 @@
 <template>
-  <WidgetPane title="Lappi spirit">
+  <WidgetPane title="Lappi">
     <div class="column">
       <q-linear-progress :query="isInProgress" />
       <div class="row q-pa-md q-gutter-md">

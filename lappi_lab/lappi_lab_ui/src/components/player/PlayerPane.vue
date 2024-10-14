@@ -1,12 +1,12 @@
 <template>
   <div class="player-pane row items-center items-stretch">
     <q-btn class="col-auto text-subtitle2" icon="skip_previous" />
-    <q-btn class="col-auto text-subtitle1" :icon="playButtonIcon" @click="tooglePlay()"/>
+    <q-btn class="col-auto text-subtitle1" :icon="playButtonIcon" size="lg" @click="tooglePlay()"/>
     <q-btn class="col-auto text-subtitle2" icon="skip_next" />
     <div class="col q-pr-md q-pl-md q-pt-md">
       <div class="title text-weight-light">{{ title }}</div>
       <q-slider
-        class="col"
+        class="col progress-slider"
         v-model="progress"
         :min="0"
         :max="1000"
@@ -27,7 +27,7 @@ import { getCurrentInstance, onMounted, ref } from 'vue'
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
 const title = ref(' ')
-const playButtonIcon = ref('play_arrow')
+const playButtonIcon = ref('play_circle')
 const progress = ref(0)
 
 async function tooglePlay () {
@@ -43,9 +43,9 @@ onMounted(() => {
     title.value = event.title
     progress.value = event.progress
     if (event.is_playing) {
-      playButtonIcon.value = 'pause'
+      playButtonIcon.value = 'pause_circle'
     } else {
-      playButtonIcon.value = 'play_arrow'
+      playButtonIcon.value = 'play_circle'
     }
   })
 })
@@ -62,5 +62,16 @@ onMounted(() => {
 
   .title
     text-align: center
+
+</style>
+
+<style lang="sass">
+.player-pane
+  .q-icon
+    text-shadow: 0px 0px 10px rgba(255,255,255,0.2)
+
+  .progress-slider
+    .q-slider__track-container
+      cursor: default
 
 </style>
