@@ -1,5 +1,7 @@
 # Lappi
 
+![ui](https://github.com/user-attachments/assets/9ea82d4f-e503-4596-9ac6-6ee8d7c836a9)
+
 Lappi is a research project dedicated to help organize and explore a music collection.
 
 # Structure
