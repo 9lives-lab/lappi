@@ -131,7 +131,7 @@ async function update () {
   await openFolder(currentFolderId)
 }
 
-aminaApi.setEventHandler('lappi.collection.folders.OnFoldersUpdated', (event) => {
+aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', (event) => {
   update()
 })
 

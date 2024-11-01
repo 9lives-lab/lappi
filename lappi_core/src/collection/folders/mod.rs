@@ -1,40 +1,30 @@
+pub mod types;
+pub mod database_api;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::{Serialize, Deserialize};
-use amina_core::events::{Event, EventEmitter};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service};
 
-use crate::collection::database_api::DatabaseApi;
 use crate::collection::storage::local::LocalStorage;
-use crate::collection::types::{FolderId, ItemId, PictureId};
 use crate::database::Database;
 
+use super::folders::database_api::FoldersDbApi;
+use super::music::database_api::MusicDbApi;
+use super::music::MusicItemId;
+
+pub use types::*;
+
 pub struct FolderView {
-    pub content_folders: Vec<(ItemId, String)>,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, FromPrimitive, Serialize, Deserialize)]
-pub enum FolderType {
-    Folder = 0,
-    Artist = 1,
-    Album = 2,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct FolderDescription {
-    pub folder_id: FolderId,
-    pub name: String,
-    pub folder_type: FolderType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_picture_id: Option<PictureId>,
+    pub content_folders: Vec<(MusicItemId, String)>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ItemDescription {
-    pub item_id: ItemId,
+    pub item_id: MusicItemId,
     pub name: String,
 }
 
@@ -50,32 +40,22 @@ pub struct FolderFullContent {
     folders_chain: Vec<FolderDescription>,
 }
 
-#[derive(Default, Clone)]
-#[derive(Serialize, Deserialize)]
-#[derive(Event)]
-#[key = "lappi.collection.folders.OnFoldersUpdated"]
-pub struct OnFoldersUpdated {
-    pub tree_updated: bool,
-}
-
-pub struct FoldersView {
-    event_emitter: Service<EventEmitter>,
+pub struct FoldersCollection {
     local_storage: Service<LocalStorage>,
-    db: Arc<Box<dyn DatabaseApi>>,
+    db: Arc<Box<dyn FoldersDbApi>>,
+    music_db: Arc<Box<dyn MusicDbApi>>,
 }
 
-impl FoldersView {
+impl FoldersCollection {
     pub fn initialize(context: &Context) -> Arc<Self> {
-        let event_emitter = context.get_service::<EventEmitter>();
         let local_storage = context.get_service::<LocalStorage>();
         let rpc: Service<Rpc> = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.collection());
 
         let folders = Arc::new(Self {
-            event_emitter,
             local_storage,
-            db: db_api,
+            db: Arc::new(database.get_folders_api()),
+            music_db: Arc::new(database.get_music_api()),
         });
 
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_description", get_folder_description(folder_id: FolderId));
@@ -121,7 +101,7 @@ impl FoldersView {
         let items_id = self.db.get_music_items_in_folder(folder_id).unwrap();
         let mut items = Vec::new();
         for item_id in items_id {
-            let tag_option = self.db.get_tag(item_id, "title").unwrap();
+            let tag_option = self.music_db.get_tag(item_id, "title").unwrap();
             let tag = tag_option.unwrap();
             items.push(ItemDescription {
                 item_id,
@@ -180,12 +160,6 @@ impl FoldersView {
 
     fn get_description_storage_path(&self, folder_id: FolderId) -> PathBuf {
         return self.local_storage.get_internal_storage_folder("folders/about").join(format!("{}.txt", folder_id));
-    }
-
-    pub fn update_item(&self) {
-        self.event_emitter.emit_event(&OnFoldersUpdated {
-            tree_updated: true,
-        });
     }
 }
 

@@ -1,5 +1,4 @@
 pub mod collection;
-pub mod playlists;
 pub mod database;
 pub mod metadata;
 pub mod playback;
@@ -11,7 +10,6 @@ pub mod py_server_client;
 
 pub mod platform_api;
 pub mod settings;
-pub mod database_api;
 
 pub mod ui;
 pub mod debug;

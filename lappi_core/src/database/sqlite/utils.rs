@@ -1,8 +1,3 @@
-pub mod tags;
-pub mod tree;
-pub mod pictures;
-pub mod lyrics;
-
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use rusqlite::{Connection, OptionalExtension, params, Rows, ToSql};
@@ -10,60 +5,44 @@ use rusqlite::types::FromSql;
 use amina_core::events::EventEmitter;
 use amina_core::service::{Context, Service};
 
-use crate::collection::database_api::OnItemsUpdated;
-use crate::collection::types::{FolderId, ItemId};
-use crate::database_api::{DbExporter, DbImporter, DbResult, DbValue};
+use crate::collection::OnCollectionUpdated;
+use crate::database::api::{DbExporter, DbImporter, DbResult, DbValue};
 
 struct BatchContext {
+    events_emitter: Service<EventEmitter>,
     batch: bool,
-    event: OnItemsUpdated,
+    event: OnCollectionUpdated,
 }
 
 impl BatchContext {
-
-    fn create(batch: bool) -> Box<Self> {
-        Box::new(Self {
-            batch,
-            event: OnItemsUpdated::default(),
-        })
-    }
-
-    fn add_item(&mut self, item_id: ItemId) {
-        if !self.event.items.contains(&item_id) {
-            self.event.items.push(item_id);
-        }
-    }
-
     fn reset(&mut self) {
-        self.event = OnItemsUpdated::default();
+        self.event = OnCollectionUpdated::default();
         self.batch = false;
     }
 
-}
-
-pub struct DatabaseContext<'a> {
-    connection: MutexGuard<'a, Connection>,
-    events_emitter: Service<EventEmitter>,
-    batch_context: MutexGuard<'a, Box<BatchContext>>,
-}
-
-impl DatabaseContext<'_> {
-
-    pub fn on_tags_updated(&mut self, item_id: ItemId) {
-        self.batch_context.add_item(item_id);
-        self.batch_context.event.tags_updated = true;
-        self.on_item_updated();
-    }
-
-    pub fn on_item_updated(&mut self) {
-        if !self.batch_context.batch {
-            self.events_emitter.emit_event(&self.batch_context.event);
-            self.batch_context.reset();
+    pub fn on_collection_updated(&mut self) {
+        if !self.batch {
+            self.events_emitter.emit_event(&self.event);
+            self.reset();
         }
     }
 
-    pub fn on_collection_updated(&mut self) {
-        self.on_item_updated();
+}
+
+pub struct DatabaseContext {
+    connection: Connection,
+    batch_context: BatchContext,
+}
+
+impl DatabaseContext {
+    pub fn on_folders_updated(&mut self) {
+        self.batch_context.event.folders_updated = true;
+        self.batch_context.on_collection_updated();
+    }
+
+    pub fn on_music_updated(&mut self) {
+        self.batch_context.event.music_updated = true;
+        self.batch_context.on_collection_updated();
     }
 
     pub fn start_batch(&mut self) {
@@ -73,7 +52,7 @@ impl DatabaseContext<'_> {
 
     pub fn stop_batch(&mut self) {
         log::debug!("stop_batch");
-        self.events_emitter.emit_event(&self.batch_context.event);
+        self.batch_context.events_emitter.emit_event(&self.batch_context.event);
         self.batch_context.reset();
     }
 
@@ -222,33 +201,24 @@ impl DatabaseContext<'_> {
 
 #[derive(Clone)]
 pub struct DatabaseUtils {
-    connection: Arc<Mutex<Connection>>,
-    events_emitter: Service<EventEmitter>,
-    batch_context: Arc<Mutex<Box<BatchContext>>>,
+    context: Arc<Mutex<DatabaseContext>>,
 }
 
-impl DatabaseUtils {
-
-    pub fn new(context: &Context, connection: Arc<Mutex<Connection>>) -> Self {
+impl<'a> DatabaseUtils {
+    pub fn new(context: &Context, connection: Connection) -> Self {
         Self {
-            connection,
-            events_emitter: context.get_service(),
-            batch_context: Arc::new(Mutex::new(BatchContext::create(false))),
+            context: Arc::new(Mutex::new(DatabaseContext {
+                connection,
+                batch_context: BatchContext {
+                    batch: false,
+                    events_emitter: context.get_service(),
+                    event: OnCollectionUpdated::default(),
+                },
+            })),
         }
     }
 
-    pub fn lock(&self) -> DatabaseContext {
-        let connection = self.connection.lock().unwrap();
-        let batch_context = self.batch_context.lock().unwrap();
-        DatabaseContext {
-            connection,
-            events_emitter: self.events_emitter.clone(),
-            batch_context,
-        }
+    pub fn lock(&'a self) -> MutexGuard<'a, DatabaseContext> {
+        self.context.lock().unwrap()
     }
-
-}
-
-pub fn get_root_folder() -> FolderId {
-    0
 }

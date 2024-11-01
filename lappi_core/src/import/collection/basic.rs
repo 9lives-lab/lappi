@@ -3,7 +3,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use crate::collection::Collection;
-use crate::collection::types::tags::TagsMap;
+use crate::collection::music::TagsMap;
 
 pub struct BasicCollectionImporter {
     collection: Arc<Collection>,

@@ -6,7 +6,7 @@ pub mod events;
 use std::thread;
 use std::time::Duration;
 use std::sync::{Arc, Mutex};
-use std::sync::atomic::{AtomicBool};
+use std::sync::atomic::AtomicBool;
 
 use amina_core::events::EventEmitter;
 use amina_core::register_rpc_handler;
@@ -14,8 +14,8 @@ use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{Task, TaskManager};
 
+use crate::collection::music::MusicItemId;
 use crate::collection::Collection;
-use crate::collection::types::ItemId;
 use crate::playback::events::OnStateUpdated;
 use crate::playback::playlists::Playlist;
 
@@ -46,7 +46,7 @@ pub struct Playback {
 }
 
 impl Playback {
-    pub fn play_item(&self, item_id: ItemId) {
+    pub fn play_item(&self, item_id: MusicItemId) {
         let file = self.collection.music().get_external_src_files(item_id).get(0).unwrap().path.clone();
         let name = self.collection.music().get_item_description(item_id).name;
         let source = sources::PlaybackSource::local_file(name, file.clone());
@@ -171,7 +171,7 @@ impl ServiceInitializer for Playback {
             current_playlist: Mutex::new(None),
         });
 
-        register_rpc_handler!(rpc, playback, "lappi.playback.play_item", play_item(item_id: ItemId));
+        register_rpc_handler!(rpc, playback, "lappi.playback.play_item", play_item(item_id: MusicItemId));
         register_rpc_handler!(rpc, playback, "lappi.playback.toggle", toggle());
         register_rpc_handler!(rpc, playback, "lappi.playback.resume", resume());
         register_rpc_handler!(rpc, playback, "lappi.playback.pause", pause());

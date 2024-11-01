@@ -1,9 +1,8 @@
 use crate::collection::Collection;
 use crate::collection::folders::FolderType;
-use crate::collection::types::{ItemId};
-use crate::collection::types::tags::TagsMap;
+use crate::collection::music::{MusicItemId, TagsMap};
 
-pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<ItemId> {
+pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<MusicItemId> {
     let title = tags.get_string_tag("title");
     let album = tags.get_string_tag("album");
     let artist = tags.get_string_tag("artist");

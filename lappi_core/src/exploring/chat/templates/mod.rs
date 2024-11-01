@@ -2,10 +2,14 @@ mod folder_templates;
 mod music_item_templates;
 
 use std::sync::Arc;
+
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
-use crate::collection::types::{FolderId, MusicItemId};
+
+use crate::collection::folders::FolderId;
+use crate::collection::music::MusicItemId;
+
 use super::ChatService;
 
 pub type TemplateId = i32;

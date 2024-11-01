@@ -4,9 +4,10 @@ use std::path::Path;
 use amina_core::service::Context;
 
 use crate::debug::Debugger;
-use crate::playlists::classic::ClassicPlaylists;
 
-pub fn init_playlists_from_csv(context: &Context, playlists: &ClassicPlaylists) {
+use super::PlaylistsCollection;
+
+pub fn init_playlists_from_csv(context: &Context, playlists: &PlaylistsCollection) {
     let debugger = context.get_service::<Debugger>();
 
     if debugger.config().collection.init {
@@ -21,7 +22,7 @@ pub fn init_playlists_from_csv(context: &Context, playlists: &ClassicPlaylists) 
     }
 }
 
-fn init_classic_playlists(_context: &Context, playlists: &ClassicPlaylists, init_folder: &Path) {
+fn init_classic_playlists(_context: &Context, playlists: &PlaylistsCollection, init_folder: &Path) {
     let playlists_path = init_folder.join("playlists/classic/playlists.csv");
     let mut playlists_reader = csv::ReaderBuilder::new()
         .delimiter(b'|')

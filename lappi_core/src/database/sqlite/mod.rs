@@ -1,20 +1,86 @@
 pub mod utils;
 pub mod init;
 pub mod collection;
-pub mod playlists;
-
-use std::sync::{Mutex, Arc};
 
 use rusqlite::Connection;
 use amina_core::service::Context;
 
-use crate::database::DatabaseApiList;
-use crate::database::sqlite::collection::CollectionDbApi;
-use crate::database::sqlite::playlists::PlaylistsDbApi;
+use crate::collection::database_api::CollectionDbApi;
+use crate::collection::folders::database_api::FoldersDbApi;
+use crate::collection::lyrics::database_api::LyricsDbApi;
+use crate::collection::music::database_api::MusicDbApi;
+use crate::collection::pictures::database_api::PicturesDbApi;
+use crate::collection::playlists::database_api::PlaylistsDbApi;
+use crate::database::api::{DbExporter, DbImporter, DbResult};
 use crate::debug::configuration::database::Mode;
 use crate::debug::Debugger;
 
-pub fn initialize(context: &Context) -> DatabaseApiList {
+use utils::DatabaseUtils;
+use collection::folders::FoldersDb;
+use collection::pictures::PicturesDb;
+use collection::lyrics::LyricsDb;
+use collection::music::MusicDb;
+use collection::playlists::PlaylistsDb;
+
+pub struct SqliteDb {
+    db_utils: DatabaseUtils,
+    folders_api: Box<dyn FoldersDbApi>,
+    pictures_api: Box<dyn PicturesDbApi>,
+    music_api: Box<dyn MusicDbApi>,
+    lyrics_api: Box<dyn LyricsDbApi>,
+    playlists_api: Box<dyn PlaylistsDbApi>,
+}
+
+impl CollectionDbApi for SqliteDb {
+    fn get_folders_api(&self) -> Box<dyn FoldersDbApi> {
+        self.folders_api.clone_api()
+    }
+
+    fn get_lyrics_api(&self) -> Box<dyn LyricsDbApi> {
+        self.lyrics_api.clone_api()
+    }
+
+    fn get_music_api(&self) -> Box<dyn MusicDbApi> {
+        self.music_api.clone_api()
+    }
+
+    fn get_pictures_api(&self) -> Box<dyn PicturesDbApi> {
+        self.pictures_api.clone_api()
+    }
+
+    fn get_playlist(&self) -> Box<dyn PlaylistsDbApi> {
+        self.playlists_api.clone_api()
+    }
+
+    fn start_batch(&self) {
+        self.db_utils.lock().start_batch();
+    }
+
+    fn stop_batch(&self) {
+        self.db_utils.lock().start_batch();
+    }
+ 
+    fn export(&self, exporter: Box<dyn DbExporter>) -> DbResult<()> {
+        let context = self.db_utils.lock();
+        let tables_list = self::init::get_tables_list();
+        for table_name in tables_list {
+            context.export_table(table_name, exporter.as_ref())?;
+        }
+        Ok(())
+    }
+
+    fn import(&self, importer: Box<dyn DbImporter>) -> DbResult<()> {
+        let context = self.db_utils.lock();
+        let tables_list = self::init::get_tables_list();
+        for table_name in tables_list {
+            context.import_table(table_name, importer.as_ref())?;
+            log::debug!("Imported table {}", table_name);
+        }
+        Ok(())
+    }
+}
+
+pub fn initialize(context: &Context) -> SqliteDb {
     let debugger = context.get_service::<Debugger>();
 
     let connection = match debugger.config().database.sqlite_config.mode {
@@ -45,10 +111,14 @@ pub fn initialize(context: &Context) -> DatabaseApiList {
         }
     };
 
-    let connection = Arc::new(Mutex::new(connection));
+    let db_utils = DatabaseUtils::new(context, connection);
 
-    DatabaseApiList {
-        collection_api: Box::new(CollectionDbApi::new(context, connection.clone())),
-        playlists_api: Box::new(PlaylistsDbApi::new(connection.clone())),
+    SqliteDb {
+        db_utils: db_utils.clone(),
+        folders_api: Box::new(FoldersDb::new(db_utils.clone())),
+        pictures_api: Box::new(PicturesDb::new(db_utils.clone())),
+        music_api: Box::new(MusicDb::new(db_utils.clone())),
+        lyrics_api: Box::new(LyricsDb::new(db_utils.clone())),
+        playlists_api: Box::new(PlaylistsDb::new(db_utils.clone())),
     }
 }

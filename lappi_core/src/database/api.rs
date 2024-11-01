@@ -1,4 +1,5 @@
 use rusqlite::ToSql;
+use rusqlite::types::ToSqlOutput;
 
 pub mod error {
     use serde::{Deserialize, Serialize};
@@ -45,9 +46,9 @@ impl Default for DbValue {
 impl ToSql for DbValue {
     fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput<'_>> {
         match self {
-            DbValue::Null => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Null)),
-            DbValue::String(s) => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Text(s.clone()))),
-            DbValue::Number(n) => Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Integer(*n))),
+            DbValue::Null => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Null)),
+            DbValue::String(s) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(s.clone()))),
+            DbValue::Number(n) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Integer(*n))),
         }
     }
 }

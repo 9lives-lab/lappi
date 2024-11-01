@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use amina_core::service::{Context, ServiceApi, ServiceInitializer};
 
-use crate::database_api::{DbExporter, DbImporter, DbTableExporter, DbValue};
+use crate::database::api::{DbExporter, DbImporter, DbTableExporter, DbValue};
 use crate::debug::Debugger;
 use crate::platform_api::PlatformApi;
 

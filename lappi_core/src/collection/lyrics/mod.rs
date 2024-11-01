@@ -1,25 +1,23 @@
+pub mod types;
+pub mod database_api;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service};
 
-use crate::collection::database_api::DatabaseApi;
 use crate::collection::storage::local::LocalStorage;
-use crate::collection::types::{LyricsId, MusicItemId};
 use crate::database::Database;
+use super::music::MusicItemId;
 
-#[derive(Serialize, Deserialize)]
-pub struct LyricsDescription {
-    pub lyrics_id: LyricsId,
-    pub lang_code: String,
-}
+use database_api::LyricsDbApi;
+pub use types::*;
 
 #[derive(Clone)]
 pub struct LyricsCollection {
-    db: Arc<Box<dyn DatabaseApi>>,
+    db: Arc<Box<dyn LyricsDbApi>>,
     local_storage: Service<LocalStorage>,
 }
 
@@ -27,7 +25,7 @@ impl LyricsCollection {
     pub fn initialize(context: &Context) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.collection());
+        let db_api = Arc::new(database.get_lyrics_api());
         let local_storage = context.get_service::<LocalStorage>();
 
         let lyrics = Arc::new(Self {

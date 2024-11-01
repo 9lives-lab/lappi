@@ -6,7 +6,7 @@ use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
 use sources::{lyrics_ovh::LyricsOvhSource, LyricsSource};
 use crate::collection::folders::FolderType;
-use crate::collection::types::MusicItemId;
+use crate::collection::music::MusicItemId;
 use crate::collection::Collection;
 
 use super::{ExploringError, ExploringResult, SourceList};

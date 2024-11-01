@@ -24,7 +24,6 @@ use lappi_core::settings::Settings;
 use lappi_core::exploring::lyrics::LyricsExplorer;
 use lappi_core::file_manager::FileManager;
 use lappi_core::file_manager::search::FilesExplorer;
-use lappi_core::playlists::classic::ClassicPlaylists;
 use lappi_core::py_server_client::PyServerClient;
 use log::LevelFilter;
 
@@ -62,7 +61,6 @@ fn main() {
     context.init_service::<Database>();
     context.init_service::<LocalStorage>();
     context.init_service::<Collection>();
-    context.init_service::<ClassicPlaylists>();
     context.init_service::<Playback>();
     context.init_service::<CollectionImporter>();
     context.init_service::<PyServerClient>();

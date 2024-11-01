@@ -1,4 +1,4 @@
-use rusqlite::{Connection};
+use rusqlite::Connection;
 
 pub fn get_tables_list() -> Vec<&'static str> {
     return vec![
