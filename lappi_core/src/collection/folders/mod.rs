@@ -61,6 +61,8 @@ impl FoldersCollection {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_description", get_folder_description(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_content", get_folder_full_content(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_name", set_folder_name(folder_id: FolderId, name: String));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_type", set_folder_type(folder_id: FolderId, folder_type: FolderType));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
@@ -84,6 +86,14 @@ impl FoldersCollection {
         self.db.get_folder_description(folder_id).unwrap()
     }
 
+    pub fn set_folder_name(&self, folder_id: FolderId, name: String) {
+        self.db.set_folder_name(folder_id, &name).unwrap();
+    }
+
+    pub fn set_folder_type(&self, folder_id: FolderId, folder_type: FolderType) {
+        self.db.set_folder_type(folder_id, folder_type).unwrap();
+    }
+
     pub fn find_or_add_folder(&self, parent_id: FolderId, folder_name: String, folder_type: FolderType) -> FolderId {
         self.db.find_or_add_folder(parent_id, folder_name.as_str(), folder_type).unwrap()
     }
@@ -101,11 +111,10 @@ impl FoldersCollection {
         let items_id = self.db.get_music_items_in_folder(folder_id).unwrap();
         let mut items = Vec::new();
         for item_id in items_id {
-            let tag_option = self.music_db.get_tag(item_id, "title").unwrap();
-            let tag = tag_option.unwrap();
+            let name = self.music_db.get_music_item_description(item_id).unwrap().name;
             items.push(ItemDescription {
                 item_id,
-                name: tag.get_string().unwrap(),
+                name,
             })
         }
 

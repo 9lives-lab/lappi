@@ -22,22 +22,33 @@
           </q-virtual-scroll>
         </AbsoluteWrapper>
         <ToolPane class="col-auto">
-          <q-btn label="Add Artist" @click="prompt = true" ></q-btn>
-          <q-btn label="Add Item" />
-
-          <q-dialog v-model="prompt" persistent>
+          <q-btn label="Add Item" @click="isNewItemDialogOpened = true" />
+          <q-dialog v-model="isNewItemDialogOpened" persistent>
             <q-card style="min-width: 350px">
               <q-card-section>
-                <div class="text-h7">Add artist</div>
+                <div class="text-h7">Add item</div>
               </q-card-section>
-
               <q-card-section class="q-pt-none">
-                <q-input dense v-model="newArtistName" autofocus @keyup.enter="prompt = false" />
+                <q-input dense v-model="newItemName" autofocus @keyup.enter="isNewItemDialogOpened = false" />
               </q-card-section>
-
               <q-card-actions align="right" class="text-primary">
                 <q-btn flat label="Cancel" v-close-popup />
-                <q-btn flat label="Add artist" v-close-popup @click="addArtist()" />
+                <q-btn flat label="Add item" v-close-popup @click="addItem()" />
+              </q-card-actions>
+            </q-card>
+          </q-dialog>
+          <q-btn label="Add Folder" @click="isNewFolderDialogOpened = true" ></q-btn>
+          <q-dialog v-model="isNewFolderDialogOpened" persistent>
+            <q-card style="min-width: 350px">
+              <q-card-section>
+                <div class="text-h7">Add folder</div>
+              </q-card-section>
+              <q-card-section class="q-pt-none">
+                <q-input dense v-model="newFolderName" autofocus @keyup.enter="isNewFolderDialogOpened = false" />
+              </q-card-section>
+              <q-card-actions align="right" class="text-primary">
+                <q-btn flat label="Cancel" v-close-popup />
+                <q-btn flat label="Add folder" v-close-popup @click="addFolder()" />
               </q-card-actions>
             </q-card>
           </q-dialog>
@@ -58,13 +69,16 @@ import CollectionTabs from 'src/components/collection/tabs/CollectionTabs.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
-const prompt = ref(false)
+const isNewFolderDialogOpened = ref(false)
+const isNewItemDialogOpened = ref(false)
 
 const navigationBar = ref(null)
 const collectionTabs = ref(null)
 const listItems = ref([])
-const newArtistName = ref('')
+const newItemName = ref('')
+const newFolderName = ref('')
 let currentFolderId = 0
+let currentItemId = -1
 
 async function getFolderItem (id, folderDescription) {
   const item = {
@@ -99,7 +113,7 @@ async function getFolderItem (id, folderDescription) {
   return item
 }
 
-async function openFolder (folderId) {
+async function updateFolders (folderId) {
   const { content } = await aminaApi.sendRequest('lappi.collection.folders.get_folder_content', { folder_id: folderId })
 
   const folders = await Promise.all(content.folders.map(async (folder, id) => (await getFolderItem(id, folder))))
@@ -115,30 +129,47 @@ async function openFolder (folderId) {
 
   listItems.value = [...folders, ...items]
   navigationBar.value.update(folderId)
+}
+
+async function openFolder (folderId) {
+  await updateFolders(folderId)
   collectionTabs.value.setFolder(folderId)
   currentFolderId = folderId
+  currentItemId = -1
+}
+
+async function updateItem (itemId) {
+  collectionTabs.value.setItem(itemId)
 }
 
 async function onItemClicked (item) {
   if ('folder_id' in item) {
     await openFolder(item.folder_id)
   } else {
-    collectionTabs.value.setItem(item.item_id)
+    await updateItem(item.item_id)
+    currentItemId = item.item_id
   }
 }
 
 async function update () {
-  await openFolder(currentFolderId)
+  await updateFolders(currentFolderId)
+  if (currentItemId >= 0) {
+    await updateItem(currentItemId)
+  }
 }
 
 aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', (event) => {
   update()
 })
 
-async function addArtist () {
-  const newFolderId = await aminaApi.sendRequest('lappi.collection.folders.find_or_add_folder', { parent_id: currentFolderId, folder_name: newArtistName.value, folder_type: 'Artist' })
-  newArtistName.value = ''
-  console.log(newFolderId)
+async function addItem () {
+  await aminaApi.sendRequest('lappi.collection.music.create_item', { name: newItemName.value, folder_id: currentFolderId })
+  newItemName.value = ''
+}
+
+async function addFolder () {
+  await aminaApi.sendRequest('lappi.collection.folders.find_or_add_folder', { parent_id: currentFolderId, folder_name: newFolderName.value, folder_type: 'Folder' })
+  newFolderName.value = ''
 }
 
 onMounted(() => {

@@ -1,8 +1,12 @@
 use std::collections::HashMap;
+
 use serde::{Serialize, Deserialize};
+use num_derive::FromPrimitive;
+
 use crate::collection::folders::FolderId;
 
 pub type MusicItemId = i64;
+pub type MusicSourceFileId = i64;
 
 #[derive(Serialize, Deserialize)]
 pub struct MusicItemDescription {
@@ -11,11 +15,17 @@ pub struct MusicItemDescription {
     pub folder_id: FolderId,
 }
 
-#[derive(Clone, Debug)]
-#[derive(Serialize, Deserialize)]
-pub struct ExternalSrcFileDesc {
-    pub id: MusicItemId,
+#[derive(Copy, Clone, Debug, PartialEq, Eq, FromPrimitive, Serialize, Deserialize)]
+pub enum SourceType {
+    CollectionFile = 0,
+    LocalFile = 1,
+    Url = 2,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SourceFileDesc {
+    pub id: MusicSourceFileId,
     pub path: String,
+    pub source_type: SourceType,
 }
 
 #[derive(Clone, Debug)]
@@ -58,7 +68,7 @@ impl Tag {
     pub fn get_string(&self) -> Option<String> {
         match &self.value {
             TagValue::String(string_value) => Some(string_value.clone()),
-            TagValue::Number(_) => None
+            TagValue::Number(_) => None,
         }
     }
 }

@@ -9,7 +9,7 @@ pub fn get_tables_list() -> Vec<&'static str> {
         "tags_names",
         "tags_values",
         "music_items_tags",
-        "external_src_files",
+        "music_src_files",
     ];
 }
 
@@ -84,11 +84,12 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     )?;
 
     connection.execute(
-        "CREATE TABLE external_src_files (
+        "CREATE TABLE music_src_files (
                 id                      INTEGER NOT NULL PRIMARY KEY,
-                item_id                 INTEGER NOT NULL,
+                music_item_id           INTEGER NOT NULL,
+                source_type             INTEGER NOT NULL,
                 path                    TEXT    NOT NULL,
-                FOREIGN KEY(item_id)    REFERENCES music_items(id)
+                FOREIGN KEY(music_item_id) REFERENCES music_items(id)
         )",
         [],
     )?;

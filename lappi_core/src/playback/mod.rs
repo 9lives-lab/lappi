@@ -47,11 +47,16 @@ pub struct Playback {
 
 impl Playback {
     pub fn play_item(&self, item_id: MusicItemId) {
-        let file = self.collection.music().get_external_src_files(item_id).get(0).unwrap().path.clone();
-        let name = self.collection.music().get_item_description(item_id).name;
-        let source = sources::PlaybackSource::local_file(name, file.clone());
-        let playlist = Box::new(playlists::SingleSourcePlaylist::new(source));
-        self.play_playlist(playlist);
+        let files = self.collection.music().get_source_files(item_id);
+        if files.len() > 0 {
+            let file = files.get(0).unwrap().path.clone();
+            let name = self.collection.music().get_item_description(item_id).name;
+            let source = sources::PlaybackSource::local_file(name, file.clone());
+            let playlist = Box::new(playlists::SingleSourcePlaylist::new(source));
+            self.play_playlist(playlist);
+        } else {
+            log::debug!("No source files for music item {}", item_id);
+        }
     }
 
     pub fn play_playlist(&self, playlist: Box<dyn Playlist>) {

@@ -84,6 +84,20 @@ impl FoldersDbApi for FoldersDb {
         self.get_folder_description(&context, folder_id)
     }
 
+    fn set_folder_name(&self, folder_id: FolderId, name: &str) -> DbResult<()> {
+        let mut context = self.db_utils.lock();
+        context.set_field_value(folder_id, "folders", "name", name)?;
+        context.on_folders_updated(); // Notify any observers of the change
+        Ok(())
+    }
+
+    fn set_folder_type(&self, folder_id: FolderId, folder_type: FolderType) -> DbResult<()> {
+        let mut context = self.db_utils.lock();
+        context.set_field_value(folder_id, "folders", "folder_type", folder_type as i32)?;
+        context.on_folders_updated(); // Notify any observers of the change
+        Ok(())
+    }
+
     fn find_or_add_folder(&self, parent_id: FolderId, folder_name: &str, folder_type: FolderType) -> DbResult<FolderId> {
         let mut context = self.db_utils.lock();
 

@@ -60,6 +60,12 @@ impl DatabaseContext {
         &self.connection
     }
 
+    pub fn set_field_value<T: ToSql>(&self, row_id: i64, table_name: &str, field_name: &str, value: T) -> DbResult<()>  {
+        let query = format!("UPDATE {} SET {} = ?1 WHERE id = ?2", table_name, field_name);
+        self.connection.execute(&query, params![value, row_id])?;
+        Ok(())
+    }
+
     pub fn get_field_value<T: FromSql>(&self, row_id: i64, table_name: &str, field_name: &str) -> DbResult<T> {
         let query = format!("SELECT {} FROM {} WHERE id=(?1)", field_name, table_name);
         let result = self.connection.query_row(&query, params![row_id], |row| row.get::<_, T>(0))?;

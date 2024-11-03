@@ -14,7 +14,7 @@ pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<MusicItemI
     let artist_id = folders.find_or_add_folder(folders.get_root_folder(), artist.unwrap().clone(), FolderType::Artist);
     let album_id = folders.find_or_add_folder(artist_id, album.unwrap().clone(), FolderType::Album);
 
-    let item_id = collection.music().create_item(title.unwrap(), album_id);
+    let item_id = collection.music().create_item(title.unwrap().clone(), album_id);
 
     collection.music().add_tag(item_id, "title", title.unwrap());
     collection.music().add_tag(item_id, "album", album.unwrap());
