@@ -7,6 +7,7 @@ pub mod file_manager;
 pub mod import;
 pub mod exploring;
 pub mod py_server_client;
+pub mod scripting_engine;
 
 pub mod platform_api;
 pub mod settings;

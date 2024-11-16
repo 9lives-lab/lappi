@@ -38,7 +38,7 @@ impl LyricsExplorer {
                 Ok(mut lyrics_text) => {
                     log::info!("Lyrics found on {}", source.source_name());
                     let footer = format!("\n\n[Lyrics from {}]", source.source_name());
-                    lyrics_text = lyrics_text + &footer;
+                    lyrics_text = lyrics_text + footer.as_str();
                     return Ok(lyrics_text)
                 },
                 Err(err) => {

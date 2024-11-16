@@ -6,6 +6,7 @@
     <LyricsWidget ref="lyricsWidget" />
     <PlaybackSourcesWidget ref="playbackSourcesWidget" />
     <MusicItemSummaryWidget ref="musicItemSummaryWidget" />
+    <ScriptsWidget ref="scriptsWidget" />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import MusicItemSummaryWidget from 'src/components/collection/tabs/music_item/Mu
 import PlaybackSourcesWidget from 'src/components/collection/tabs/music_item/PlaybackSourcesWidget.vue'
 import LyricsWidget from 'src/components/collection/tabs/music_item/lyrics/LyricsWidget.vue'
 import ChatExploringWidget from 'src/components/collection/common/exploring/ChatExploringWidget.vue'
+import ScriptsWidget from 'src/components/collection/common/ScriptsWidget.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
@@ -25,6 +27,7 @@ const musicItemSummaryWidget = ref(null)
 const lyricsWidget = ref(null)
 const playbackSourcesWidget = ref(null)
 const chatExploringWidget = ref(null)
+const scriptsWidget = ref(null)
 
 const itemName = ref('null')
 
@@ -37,6 +40,7 @@ async function updateItem (itemId) {
   await lyricsWidget.value.updateItem(itemId)
   await chatExploringWidget.value.update({ MusicItem: itemId })
   await playbackSourcesWidget.value.updateItem(itemId)
+  await scriptsWidget.value.setMusicItem(itemId)
 }
 
 defineExpose({

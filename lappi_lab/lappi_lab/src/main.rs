@@ -6,9 +6,9 @@ use amina_core::rpc::Rpc;
 use amina_core::tasks::TaskManager;
 use amina_core::cmd_manager::CmdManager;
 use amina_core::settings::SettingsManager;
+use amina_server::cli::SimpleCliContext;
 use amina_server::rpc_web_gate::RpcServer;
 use amina_server::cli::adapters::cmd_manager_adapter::CmdManagerAdapter;
-use amina_server::cli::CliContext;
 
 use lappi_core::platform_api::PlatformApi;
 use lappi_core::platform_api::FileSystemApi;
@@ -20,6 +20,7 @@ use lappi_core::database::Database;
 use lappi_core::exploring::chat::ChatService;
 use lappi_core::exploring::chat::templates::ChatTemplates;
 use lappi_core::import::collection::CollectionImporter;
+use lappi_core::scripting_engine::ScriptingEngine;
 use lappi_core::settings::Settings;
 use lappi_core::exploring::lyrics::LyricsExplorer;
 use lappi_core::file_manager::FileManager;
@@ -50,12 +51,13 @@ fn main() {
         ("hyper".to_string(), LevelFilter::Info),
         ("reqwest".to_string(), LevelFilter::Info)
     ];
-    let mut cli_context = CliContext::create(Box::new(cli_adapter), cli_filters, &cli_history_file);
+    let mut cli_context = SimpleCliContext::create(Box::new(cli_adapter), cli_filters, &cli_history_file);
 
     log::info!("Lappi Lab");
 
     context.init_service::<SettingsManager>();
     context.init_service::<Settings>();
+    context.init_service::<ScriptingEngine>();
     context.init_service::<FileManager>();
     context.init_service::<FilesExplorer>();
     context.init_service::<Database>();
