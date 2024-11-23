@@ -4,6 +4,7 @@
     <TagsWidget ref="tagsWidget"/>
     <ChatExploringWidget ref="chatExploringWidget" />
     <LyricsWidget ref="lyricsWidget" />
+    <AddToPlaylistWidget ref="addToPlaylistWidget" />
     <PlaybackSourcesWidget ref="playbackSourcesWidget" />
     <MusicItemSummaryWidget ref="musicItemSummaryWidget" />
     <ScriptsWidget ref="scriptsWidget" />
@@ -17,6 +18,7 @@ import TagsWidget from 'src/components/collection/common/tags/TagsWidget.vue'
 import MusicItemSummaryWidget from 'src/components/collection/tabs/music_item/MusicItemSummaryWidget.vue'
 import PlaybackSourcesWidget from 'src/components/collection/tabs/music_item/PlaybackSourcesWidget.vue'
 import LyricsWidget from 'src/components/collection/tabs/music_item/lyrics/LyricsWidget.vue'
+import AddToPlaylistWidget from 'src/components/collection/common/AddToPlaylistWidget.vue'
 import ChatExploringWidget from 'src/components/collection/common/exploring/ChatExploringWidget.vue'
 import ScriptsWidget from 'src/components/collection/common/ScriptsWidget.vue'
 
@@ -25,6 +27,7 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 const tagsWidget = ref(null)
 const musicItemSummaryWidget = ref(null)
 const lyricsWidget = ref(null)
+const addToPlaylistWidget = ref(null)
 const playbackSourcesWidget = ref(null)
 const chatExploringWidget = ref(null)
 const scriptsWidget = ref(null)
@@ -38,6 +41,7 @@ async function updateItem (itemId) {
   await tagsWidget.value.updateItem(itemId)
   await musicItemSummaryWidget.value.update(itemId)
   await lyricsWidget.value.updateItem(itemId)
+  await addToPlaylistWidget.value.setMusicItem(itemId)
   await chatExploringWidget.value.update({ MusicItem: itemId })
   await playbackSourcesWidget.value.updateItem(itemId)
   await scriptsWidget.value.setMusicItem(itemId)

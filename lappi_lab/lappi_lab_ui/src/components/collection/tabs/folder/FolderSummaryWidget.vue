@@ -24,7 +24,12 @@
       </div>
       <div class="column col q-pa-md q-gutter-md">
         <div class="row items-center">
-          <div class="col-auto q-pr-md">Folder ID: {{ folderId }}</div>
+          <div class="col-auto q-pr-md">Folder ID:</div>
+          <q-input
+            dense square filled readonly
+            class="col"
+            v-model="folderId"
+          />
         </div>
       </div>
     </div>

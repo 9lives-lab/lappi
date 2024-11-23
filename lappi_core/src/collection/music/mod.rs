@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::Context;
+use amina_core::service::{Context, ServiceApi, ServiceInitializer};
 
 use crate::collection::folders::FolderId;
 use crate::database::Database;
@@ -66,28 +66,6 @@ pub struct MusicCollection {
 }
 
 impl MusicCollection {
-
-    pub fn initialize(context: &Context) -> Arc<Self> {
-        let rpc = context.get_service::<Rpc>();
-        let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.get_music_api());
-
-        let music = Arc::new(Self {
-            db: db_api,
-        });
-
-        register_rpc_handler!(rpc, music, "lappi.collection.get_tags", get_tags(item_id: MusicItemId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.create_item", create_item(name: String, folder_id: FolderId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.set_item_name", set_item_name(item_id: MusicItemId, name: String));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.add_source_file", add_source_file(item_id: MusicItemId, source_type: SourceType, path: String));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.delete_source_file", delete_source_file(source_id: MusicSourceFileId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.set_source_file_path", set_source_file_path(source_id: MusicSourceFileId, path: String));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.get_source_files", get_source_files(item_id: MusicItemId));
-
-        return music;
-    }
-
     pub fn batch(db: Arc<Box<dyn MusicDbApi>>) -> Arc<Self> {
         Arc::new(Self {
             db,
@@ -139,3 +117,29 @@ impl MusicCollection {
 
 }
 
+impl ServiceApi for MusicCollection {
+
+}
+
+impl ServiceInitializer for MusicCollection {
+    fn initialize(context: &Context) -> Arc<Self> {
+        let rpc = context.get_service::<Rpc>();
+        let database = context.get_service::<Database>();
+        let db_api = Arc::new(database.get_music_api());
+
+        let music = Arc::new(Self {
+            db: db_api,
+        });
+
+        register_rpc_handler!(rpc, music, "lappi.collection.get_tags", get_tags(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.create_item", create_item(name: String, folder_id: FolderId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.set_item_name", set_item_name(item_id: MusicItemId, name: String));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.add_source_file", add_source_file(item_id: MusicItemId, source_type: SourceType, path: String));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.delete_source_file", delete_source_file(source_id: MusicSourceFileId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.set_source_file_path", set_source_file_path(source_id: MusicSourceFileId, path: String));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_source_files", get_source_files(item_id: MusicItemId));
+
+        return music;
+    }
+}

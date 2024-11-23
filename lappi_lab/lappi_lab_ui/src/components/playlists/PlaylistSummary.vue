@@ -3,22 +3,22 @@
     <div class="row">
       <div class="column col q-pa-md q-gutter-md">
         <div class="row items-center">
-          <div class="col-auto q-pr-md">Item name:</div>
+          <div class="col-auto q-pr-md">Playlist name:</div>
           <q-input
             dense square filled
             class="col"
-            v-model="itemName"
+            v-model="playlistName"
             @update:model-value="setName"
           />
         </div>
       </div>
       <div class="column col q-pa-md q-gutter-md">
         <div class="row items-center">
-          <div class="col-auto q-pr-md">Music item ID:</div>
+          <div class="col-auto q-pr-md">Playlist ID</div>
           <q-input
             dense square filled readonly
             class="col"
-            v-model="itemId"
+            v-model="playlistId"
           />
         </div>
       </div>
@@ -32,17 +32,17 @@ import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
-const itemId = ref(0)
-const itemName = ref('')
+const playlistId = ref(0)
+const playlistName = ref('')
 
-async function update (newItemId) {
-  itemId.value = newItemId
-  const folderDescription = await aminaApi.sendRequest('lappi.collection.music.get_item_description', { item_id: newItemId })
-  itemName.value = folderDescription.name
+async function update (newPlaylistId) {
+  playlistId.value = newPlaylistId
+  const playlistDescription = await aminaApi.sendRequest('lappi.playlists.get_playlist_description', { playlist_id: newPlaylistId })
+  playlistName.value = playlistDescription.name
 }
 
 async function setName (newName) {
-  await aminaApi.sendRequest('lappi.collection.music.set_item_name', { item_id: itemId.value, name: newName })
+  await aminaApi.sendRequest('lappi.playlists.set_playlist_name', { playlist_id: playlistId.value, name: newName })
 }
 
 defineExpose({

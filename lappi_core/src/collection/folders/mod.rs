@@ -7,7 +7,7 @@ use std::sync::Arc;
 use serde::{Serialize, Deserialize};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service};
+use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
 use crate::collection::storage::local::LocalStorage;
 use crate::database::Database;
@@ -47,29 +47,6 @@ pub struct FoldersCollection {
 }
 
 impl FoldersCollection {
-    pub fn initialize(context: &Context) -> Arc<Self> {
-        let local_storage = context.get_service::<LocalStorage>();
-        let rpc: Service<Rpc> = context.get_service::<Rpc>();
-        let database = context.get_service::<Database>();
-
-        let folders = Arc::new(Self {
-            local_storage,
-            db: Arc::new(database.get_folders_api()),
-            music_db: Arc::new(database.get_music_api()),
-        });
-
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_description", get_folder_description(folder_id: FolderId));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_content", get_folder_full_content(folder_id: FolderId));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_name", set_folder_name(folder_id: FolderId, name: String));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_type", set_folder_type(folder_id: FolderId, folder_type: FolderType));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
-
-        return folders;
-    }
-
     pub fn get_root_folder(&self) -> FolderId {
         self.db.get_root_folder()
     }
@@ -169,6 +146,35 @@ impl FoldersCollection {
 
     fn get_description_storage_path(&self, folder_id: FolderId) -> PathBuf {
         return self.local_storage.get_internal_storage_folder("folders/about").join(format!("{}.txt", folder_id));
+    }
+}
+
+impl ServiceApi for FoldersCollection {
+
+}
+
+impl ServiceInitializer for FoldersCollection {
+    fn initialize(context: &Context) -> Arc<Self> {
+        let local_storage = context.get_service::<LocalStorage>();
+        let rpc: Service<Rpc> = context.get_service::<Rpc>();
+        let database = context.get_service::<Database>();
+
+        let folders = Arc::new(Self {
+            local_storage,
+            db: Arc::new(database.get_folders_api()),
+            music_db: Arc::new(database.get_music_api()),
+        });
+
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_description", get_folder_description(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_content", get_folder_full_content(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_name", set_folder_name(folder_id: FolderId, name: String));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_type", set_folder_type(folder_id: FolderId, folder_type: FolderType));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
+
+        return folders;
     }
 }
 

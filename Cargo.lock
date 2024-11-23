@@ -923,6 +923,7 @@ dependencies = [
  "minimp3",
  "num-derive",
  "num-traits",
+ "rand",
  "reqwest",
  "rhai",
  "rusqlite",

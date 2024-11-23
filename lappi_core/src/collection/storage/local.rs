@@ -123,8 +123,12 @@ impl LocalStorage {
         return self.storage_available;
     }
 
+    pub fn get_collection_base_path(&self) -> PathBuf {
+        return self.storage_path.clone();
+    }
+
     pub fn get_internal_storage_path(&self) -> PathBuf {
-        return self.storage_path.join(".lappi");
+        return self.get_collection_base_path().join(".lappi");
     }
 
     pub fn get_internal_storage_folder(&self, folder_name: &str) -> PathBuf {

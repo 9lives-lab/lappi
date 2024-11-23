@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service};
+use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
 use crate::collection::storage::local::LocalStorage;
 use crate::database::Database;
@@ -22,25 +22,6 @@ pub struct LyricsCollection {
 }
 
 impl LyricsCollection {
-    pub fn initialize(context: &Context) -> Arc<Self> {
-        let rpc = context.get_service::<Rpc>();
-        let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.get_lyrics_api());
-        let local_storage = context.get_service::<LocalStorage>();
-
-        let lyrics = Arc::new(Self {
-            db: db_api,
-            local_storage,
-        });
-
-        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.add_lyrics_item", add_lyrics_item(music_item_id: MusicItemId, lang_code: String));
-        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.get_lyrics_list", get_lyrics_list(music_id: MusicItemId));
-        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.save_lyrics", save_lyrics(lyrics_id: LyricsId, text: String));
-        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.get_lyrics", get_lyrics(lyrics_id: LyricsId));
-
-        return lyrics;
-    }
-
     pub fn add_lyrics_item(&self, music_item_id: MusicItemId, lang_code: String) -> LyricsId {
         let lyrics_id = self.db.add_lyrics_item(music_item_id, &lang_code).unwrap();
         self.save_lyrics(lyrics_id, "".to_string());
@@ -64,6 +45,31 @@ impl LyricsCollection {
 
     fn get_lyrics_storage_path(&self, lyrics_id: LyricsId) -> PathBuf {
         return self.local_storage.get_internal_storage_folder("lyrics").join(format!("{}.txt", lyrics_id));
+    }
+}
+
+impl ServiceApi for LyricsCollection {
+
+}
+
+impl ServiceInitializer for LyricsCollection {
+    fn initialize(context: &Context) -> Arc<Self> {
+        let rpc = context.get_service::<Rpc>();
+        let database = context.get_service::<Database>();
+        let db_api = Arc::new(database.get_lyrics_api());
+        let local_storage = context.get_service::<LocalStorage>();
+
+        let lyrics = Arc::new(Self {
+            db: db_api,
+            local_storage,
+        });
+
+        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.add_lyrics_item", add_lyrics_item(music_item_id: MusicItemId, lang_code: String));
+        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.get_lyrics_list", get_lyrics_list(music_id: MusicItemId));
+        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.save_lyrics", save_lyrics(lyrics_id: LyricsId, text: String));
+        register_rpc_handler!(rpc, lyrics, "lappi.collection.lyrics.get_lyrics", get_lyrics(lyrics_id: LyricsId));
+
+        return lyrics;
     }
 }
 

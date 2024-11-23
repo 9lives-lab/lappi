@@ -45,6 +45,11 @@ impl DatabaseContext {
         self.batch_context.on_collection_updated();
     }
 
+    pub fn on_playlists_updated(&mut self) {
+        self.batch_context.event.music_updated = true;
+        self.batch_context.on_collection_updated();
+    }
+
     pub fn start_batch(&mut self) {
         log::debug!("start_batch");
         self.batch_context.batch = true;
@@ -82,6 +87,12 @@ impl DatabaseContext {
         let query = format!("INSERT INTO {} DEFAULT VALUES", table_name);
         self.connection.execute(&query, [])?;
         Ok(self.connection.last_insert_rowid())
+    }
+
+    pub fn remove_row(&self, table_name: &str, row_id: i64) -> DbResult<()> {
+        let query = format!("DELETE FROM {} WHERE id=(?1)", table_name);
+        self.connection.execute(&query, params![row_id])?;
+        Ok(())
     }
 
     pub fn find_or_add_string_row(&self, table_name: &str, field_name: &str, value: &str) -> DbResult<i64> {

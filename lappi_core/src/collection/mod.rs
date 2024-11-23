@@ -16,16 +16,18 @@ use crate::collection::folders::FoldersCollection;
 use crate::collection::lyrics::LyricsCollection;
 use crate::collection::music::MusicCollection;
 use crate::collection::pictures::PicturesCollection;
+use crate::collection::playlists::PlaylistsCollection;
 use crate::collection::storage::local::LocalStorage;
 
 pub use crate::collection::database_api::OnCollectionUpdated;
 
 pub struct Collection {
     local_storage: Service<LocalStorage>,
-    music: Arc<MusicCollection>,
-    lyrics: Arc<LyricsCollection>,
-    pictures: Arc<PicturesCollection>,
-    folders: Arc<FoldersCollection>,
+    music: Service<MusicCollection>,
+    lyrics: Service<LyricsCollection>,
+    pictures: Service<PicturesCollection>,
+    folders: Service<FoldersCollection>,
+    playlists: Service<PlaylistsCollection>,
     db: Service<Database>,
 }
 
@@ -45,6 +47,10 @@ impl Collection {
 
     pub fn folders(&self) -> &FoldersCollection {
         &self.folders
+    }
+
+    pub fn playlists(&self) -> &PlaylistsCollection {
+        &self.playlists
     }
     
     pub fn start_batch(&self) {
@@ -77,12 +83,19 @@ impl ServiceInitializer for Collection {
         let database = context.get_service::<Database>();
         let local_storage = context.get_service::<LocalStorage>();
 
+        context.init_service::<MusicCollection>();
+        context.init_service::<LyricsCollection>();
+        context.init_service::<PicturesCollection>();
+        context.init_service::<FoldersCollection>();
+        context.init_service::<PlaylistsCollection>();
+
         let collection = Arc::new(Self {
             local_storage,
-            music: MusicCollection::initialize(context),
-            lyrics: LyricsCollection::initialize(context),
-            pictures: PicturesCollection::initialize(context),
-            folders: FoldersCollection::initialize(context),
+            music: context.get_service::<MusicCollection>(),
+            lyrics: context.get_service::<LyricsCollection>(),
+            pictures: context.get_service::<PicturesCollection>(),
+            folders: context.get_service::<FoldersCollection>(),
+            playlists: context.get_service::<PlaylistsCollection>(),
             db: database,
         });
 

@@ -15,6 +15,7 @@ use crate::database::api::{DbExporter, DbImporter, DbResult};
 pub struct OnCollectionUpdated {
     pub folders_updated: bool,
     pub music_updated: bool,
+    pub plalists_updated: bool,
 }
 
 pub trait CollectionDbApi: Send + Sync {

@@ -1,13 +1,13 @@
 <template>
-  <q-page class="flex flex-center">
-    PlaylistsPage
+  <q-page class="row">
+    <PlaylistsPane class="col"/>
   </q-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import PlaylistsPane from 'src/components/playlists/PlaylistsPane.vue'
 
-export default defineComponent({
-  name: 'PlaylistsPage'
-})
 </script>
+
+<style lang="sass" scoped>
+</style>

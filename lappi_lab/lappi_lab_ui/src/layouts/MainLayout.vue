@@ -40,7 +40,7 @@ const linksList = [
   {
     title: 'Playlists',
     caption: '',
-    icon: 'headphones',
+    icon: 'queue_music',
     color_style: 'color: #72ba85;',
     link: '/playlists'
   },

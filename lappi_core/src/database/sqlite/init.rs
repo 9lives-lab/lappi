@@ -95,7 +95,7 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     )?;
 
     connection.execute(
-        "CREATE TABLE classic_playlists (
+        "CREATE TABLE playlists (
                 id                      INTEGER NOT NULL PRIMARY KEY,
                 name                    TEXT    NOT NULL UNIQUE
         )",
@@ -103,11 +103,11 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     )?;
 
     connection.execute(
-        "CREATE TABLE classic_playlist_items (
+        "CREATE TABLE playlist_items (
                 id                      INTEGER NOT NULL PRIMARY KEY,
                 playlist_id             INTEGER NOT NULL,
                 music_item_id           INTEGER,
-                FOREIGN KEY(playlist_id) REFERENCES classic_playlists(id)
+                FOREIGN KEY(playlist_id) REFERENCES playlists(id)
         )",
         [],
     )?;
