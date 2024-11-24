@@ -10,6 +10,8 @@ pub fn get_tables_list() -> Vec<&'static str> {
         "tags_values",
         "music_items_tags",
         "music_src_files",
+        "playlists",
+        "playlist_items"
     ];
 }
 

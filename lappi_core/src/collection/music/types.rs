@@ -24,6 +24,7 @@ pub enum SourceType {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SourceFileDesc {
     pub id: MusicSourceFileId,
+    pub music_item_id: MusicItemId,
     pub path: String,
     pub source_type: SourceType,
 }

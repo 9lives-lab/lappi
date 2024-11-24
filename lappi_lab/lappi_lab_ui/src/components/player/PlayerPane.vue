@@ -1,8 +1,8 @@
 <template>
   <div class="player-pane row items-center items-stretch">
-    <q-btn class="col-auto text-subtitle2" icon="skip_previous" />
+    <q-btn class="col-auto text-subtitle2" icon="skip_previous" @click="playPrevious" />
     <q-btn class="col-auto text-subtitle1" :icon="playButtonIcon" size="lg" @click="tooglePlay()"/>
-    <q-btn class="col-auto text-subtitle2" icon="skip_next" />
+    <q-btn class="col-auto text-subtitle2" icon="skip_next" @click="playNext"/>
     <div class="col q-pr-md q-pl-md q-pt-md">
       <div class="title text-weight-light">{{ title }}</div>
       <q-slider
@@ -29,6 +29,14 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 const title = ref(' ')
 const playButtonIcon = ref('play_circle')
 const progress = ref(0)
+
+async function playPrevious () {
+  await aminaApi.sendRequest('lappi.playback.play_previous')
+}
+
+async function playNext () {
+  await aminaApi.sendRequest('lappi.playback.play_next')
+}
 
 async function tooglePlay () {
   await aminaApi.sendRequest('lappi.playback.toggle')

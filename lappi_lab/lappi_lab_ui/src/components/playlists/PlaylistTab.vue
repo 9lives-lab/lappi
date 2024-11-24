@@ -10,6 +10,7 @@
         :columns="playlistItemsColumns"
         row-key="music_item_id"
         :rows-per-page-options="[0]"
+        @row-click="playItem"
       />
     </WidgetPane>
     <PlaylistSummary ref="playlistSummary" />
@@ -51,10 +52,16 @@ const playlistItemsColumns = [
   }
 ]
 
+let currentPlaylistId = -1
 const playlistItems = ref([])
 const playlistName = ref(null)
 
+async function playItem (evt, row) {
+  await aminaApi.sendRequest('lappi.playback.play_playlist', { playlist_id: currentPlaylistId, playlist_item: row.id })
+}
+
 async function updatePlaylist (newPlaylistId) {
+  currentPlaylistId = newPlaylistId
   const playlistDescription = await aminaApi.sendRequest('lappi.playlists.get_playlist_description', { playlist_id: newPlaylistId })
   playlistName.value = playlistDescription.name
   playlistSummary.value.update(newPlaylistId)

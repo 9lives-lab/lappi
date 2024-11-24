@@ -1,6 +1,5 @@
 mod platform_impl;
 
-use amina_core::service::Context;
 use amina_core::events::EventEmitter;
 use amina_core::rpc::Rpc;
 use amina_core::tasks::TaskManager;
@@ -35,7 +34,7 @@ fn main() {
         file_system: file_system_api.clone(),
     };
 
-    let context = Context::new();
+    let context = lappi_core::context();
 
     context.add_service(platform_api);
     context.init_service::<Debugger>();
@@ -74,7 +73,7 @@ fn main() {
 
     log::debug!("Core initializing complete");
 
-    let server = RpcServer::run(&context);
+    let server = RpcServer::run(context);
 
     log::info!("Initializing complete");
 

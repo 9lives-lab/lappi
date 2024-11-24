@@ -1,5 +1,6 @@
 use std::path::Path;
-use std::sync::atomic::AtomicI32;
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+
 use amina_core::service::{Context, Service};
 
 use crate::playback::{Player, PlayerFactory, PlayerState};
@@ -11,6 +12,7 @@ pub mod http_api;
 pub struct VlcHttpPlayer {
     api: http_api::VlcHttpApi,
     current_length: AtomicI32,
+    is_playing: AtomicBool,
 }
 
 impl Player for VlcHttpPlayer {
@@ -19,20 +21,23 @@ impl Player for VlcHttpPlayer {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
                 let _ = self.api.play_file(Path::new(path));
+                self.is_playing.store(true, Ordering::Relaxed);
             },
         }
     }
 
     fn resume(&self) {
         let _ = self.api.resume();
+        self.is_playing.store(true, Ordering::Relaxed);
     }
 
     fn pause(&self) {
         let _ = self.api.pause();
+        self.is_playing.store(false, Ordering::Relaxed);
     }
 
     fn seek(&self, progress: f32) {
-        let length = self.current_length.load(std::sync::atomic::Ordering::Relaxed);
+        let length = self.current_length.load(Ordering::Relaxed);
         let _ = self.api.seek((length as f32 * progress) as i32);
     }
 
@@ -40,11 +45,17 @@ impl Player for VlcHttpPlayer {
         let status = self.api.get_status();
         match status {
             Ok(status) => {
-                self.current_length.store(status.length, std::sync::atomic::Ordering::Relaxed);
+                self.current_length.store(status.length, Ordering::Relaxed);
                 match status.state.as_str() {
                     "playing" => PlayerState::Playing(status.position as f32),
                     "paused" => PlayerState::Paused(status.position as f32),
-                    "stopped" => PlayerState::Stopped,
+                    "stopped" => {
+                        if self.is_playing.load(Ordering::Relaxed) {
+                            PlayerState::PlaybackFinished
+                        } else {
+                            PlayerState::Stopped
+                        }
+                    }
                     _ => panic!("Unknown state: {}", status.state),
                 }
             },
@@ -59,6 +70,7 @@ impl VlcHttpPlayer {
         VlcHttpPlayer {
             api: http_api::VlcHttpApi::new(settings),
             current_length: AtomicI32::new(0),
+            is_playing: AtomicBool::new(false),
         }
     }
 }

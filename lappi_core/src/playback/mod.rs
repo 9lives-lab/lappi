@@ -1,5 +1,5 @@
 pub mod players;
-pub mod playlists;
+pub mod play_queue;
 pub mod sources;
 pub mod events;
 
@@ -13,17 +13,22 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{Task, TaskManager};
+use play_queue::playlist_queue::PlaylistQueue;
+use sources::PlaybackSource;
 
 use crate::collection::music::MusicItemId;
-use crate::collection::Collection;
+use crate::collection::playlists::types::{PlaylistId, PlaylistItemId};
+use crate::collection::OnCollectionUpdated;
 use crate::playback::events::OnStateUpdated;
-use crate::playback::playlists::Playlist;
+
+use play_queue::{PlayQueue, SingleSourceQueue};
 
 #[derive(Debug)]
 pub enum PlayerState {
     Playing(f32),
     Paused(f32),
     Stopped,
+    PlaybackFinished
 }
 
 pub trait Player: Send + Sync {
@@ -39,29 +44,28 @@ pub trait PlayerFactory {
 }
 
 pub struct Playback {
-    collection: Service<Collection>,
     event_emitter: Service<EventEmitter>,
     current_player: Box<dyn Player>,
-    current_playlist: Mutex<Option<Box<dyn Playlist>>>
+    current_queue: Mutex<Option<Box<dyn PlayQueue>>>
 }
 
 impl Playback {
     pub fn play_item(&self, item_id: MusicItemId) {
-        let files = self.collection.music().get_source_files(item_id);
-        if files.len() > 0 {
-            let file = files.get(0).unwrap().path.clone();
-            let name = self.collection.music().get_item_description(item_id).name;
-            let source = sources::PlaybackSource::local_file(name, file.clone());
-            let playlist = Box::new(playlists::SingleSourcePlaylist::new(source));
-            self.play_playlist(playlist);
+        if let Some(source) = PlaybackSource::default_from_music_item(item_id) {
+            self.play_queue(Box::new(SingleSourceQueue::new(source)));
         } else {
             log::debug!("No source files for music item {}", item_id);
         }
     }
 
-    pub fn play_playlist(&self, playlist: Box<dyn Playlist>) {
-        let source = playlist.get_current_source();
-        self.current_playlist.lock().unwrap().replace(playlist);
+    pub fn play_playlist(&self, playlist_id: PlaylistId, playlist_item: PlaylistItemId) {
+        let play_queue = PlaylistQueue::create(playlist_id, playlist_item);
+        self.play_queue(Box::new(play_queue));
+    }
+
+    pub fn play_queue(&self, play_queue: Box<dyn PlayQueue>) {
+        let source = play_queue.get_current_source();
+        self.current_queue.lock().unwrap().replace(play_queue);
         self.current_player.play(source);
     }
 
@@ -83,6 +87,7 @@ impl Playback {
                 self.current_player.resume();
             },
             PlayerState::Stopped => { },
+            PlayerState::PlaybackFinished => { },     
         }
     }
 
@@ -91,23 +96,32 @@ impl Playback {
     }
 
     pub fn play_next(&self) {
-        todo!()
+        let mut play_queue = self.current_queue.lock().unwrap();
+        if let Some(play_queue) = play_queue.as_mut() {
+            play_queue.switch_to_next();
+            self.current_player.play(play_queue.get_current_source());
+        }
     }
 
     pub fn play_previous(&self) {
-        todo!()
+        let mut play_queue = self.current_queue.lock().unwrap();
+        if let Some(play_queue) = play_queue.as_mut() {
+            play_queue.switch_to_previous();
+            self.current_player.play(play_queue.get_current_source());
+        } 
     }
 
     fn run_task(&self) {
         let state = self.current_player.get_state();
         let mut event = OnStateUpdated::stopped();
 
-        let playlist = self.current_playlist.lock().unwrap();
-        if let Some(playlist) = playlist.as_ref() {
-            event.title = playlist.get_current_title();
+        let queue = self.current_queue.lock().unwrap();
+        if let Some(queue) = queue.as_ref() {
+            event.title = queue.get_current_title().to_string();
         } else {
             event.title = "Playback stopped".to_string();
         }
+        drop(queue);
 
         match state {
             PlayerState::Playing(position) => {
@@ -121,9 +135,20 @@ impl Playback {
             PlayerState::Stopped => {
                 event.is_playing = false;
                 event.progress = 0;
+            }
+            PlayerState::PlaybackFinished => {
+                event.is_playing = true;
+                event.progress = 0;
+                self.play_next();
             },
         }
         self.event_emitter.emit_event(&event);
+    }
+
+    fn on_collection_updated(&self, _event: &OnCollectionUpdated) {
+        if let Some(queue) = self.current_queue.lock().unwrap().as_mut() {
+            queue.refresh();
+        }
     }
 }
 
@@ -162,7 +187,6 @@ impl Task for PlaybackTask {
 
 impl ServiceInitializer for Playback {
     fn initialize(context: &Context) -> Arc<Self> {
-        let collection = context.get_service::<Collection>();
         let event_emitter = context.get_service::<EventEmitter>();
         let task_manager = context.get_service::<TaskManager>();
         let rpc = context.get_service::<Rpc>();
@@ -170,19 +194,24 @@ impl ServiceInitializer for Playback {
         let vlc_http_player_factory = players::vlc_http::VlcHttpPlayerFactory::new(context);
 
         let playback = Arc::new(Self {
-            collection,
-            event_emitter,
+            event_emitter: event_emitter.clone(),
             current_player: vlc_http_player_factory.create_player(),
-            current_playlist: Mutex::new(None),
+            current_queue: Mutex::new(None),
         });
 
         register_rpc_handler!(rpc, playback, "lappi.playback.play_item", play_item(item_id: MusicItemId));
+        register_rpc_handler!(rpc, playback, "lappi.playback.play_playlist", play_playlist(playlist_id: PlaylistId, playlist_item: PlaylistItemId));
         register_rpc_handler!(rpc, playback, "lappi.playback.toggle", toggle());
         register_rpc_handler!(rpc, playback, "lappi.playback.resume", resume());
         register_rpc_handler!(rpc, playback, "lappi.playback.pause", pause());
         register_rpc_handler!(rpc, playback, "lappi.playback.seek", seek(progress: i32));
         register_rpc_handler!(rpc, playback, "lappi.playback.play_next", play_next());
         register_rpc_handler!(rpc, playback, "lappi.playback.play_previous", play_previous());
+
+        let playback_clone = playback.clone();
+        event_emitter.on_event_fn(move |event: &OnCollectionUpdated| {
+            playback_clone.on_collection_updated(event);
+        });
 
         let playback_task = PlaybackTask::new(playback.clone());
         task_manager.run_generic(Box::new(playback_task));

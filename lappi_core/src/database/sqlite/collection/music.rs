@@ -189,14 +189,15 @@ impl MusicDbApi for MusicDb {
     fn get_source_files(&self, item_id: MusicItemId) -> DbResult<Vec<SourceFileDesc>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare(
-            "SELECT id, path, source_type FROM music_src_files WHERE music_item_id=(?1)"
+            "SELECT id, music_item_id, path, source_type FROM music_src_files WHERE music_item_id=(?1)"
         )?;
         let rows = stmt.query_map(
             params![item_id], |row| Ok(
                 SourceFileDesc {
                     id: row.get::<_, i32>(0)? as MusicItemId,
-                    path: row.get::<_, String>(1)?,
-                    source_type: SourceType::from_i32(row.get::<_, i32>(2)?).unwrap(),
+                    music_item_id: row.get::<_, i32>(1)? as MusicItemId,
+                    path: row.get::<_, String>(2)?,
+                    source_type: SourceType::from_i32(row.get::<_, i32>(3)?).unwrap(),
                 }
             )
         )?;

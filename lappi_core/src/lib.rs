@@ -20,3 +20,13 @@ extern crate num_derive;
 
 #[macro_use]
 extern crate amina_core_derive;
+
+use once_cell::sync::Lazy;
+use amina_core::service::Context;
+
+pub fn context() -> &'static Context {
+    static INSTANCE: Lazy<Context> = Lazy::new(|| {
+        Context::new()
+    });
+    &INSTANCE
+}
