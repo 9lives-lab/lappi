@@ -3,27 +3,36 @@ pub mod play_queue;
 pub mod sources;
 pub mod events;
 
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
 use std::time::Duration;
-use std::sync::{Arc, Mutex};
-use std::sync::atomic::AtomicBool;
+use std::sync::{Arc, Mutex, RwLock};
 
 use amina_core::events::EventEmitter;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
-use amina_core::tasks::{Task, TaskManager};
-use play_queue::playlist_queue::PlaylistQueue;
-use sources::PlaybackSource;
+use amina_core::tasks::{TaskContext, TaskManager};
 
 use crate::collection::music::MusicItemId;
 use crate::collection::playlists::types::{PlaylistId, PlaylistItemId};
 use crate::collection::OnCollectionUpdated;
+use crate::platform_api::PlatformApi;
 use crate::playback::events::OnStateUpdated;
 
+use sources::PlaybackSource;
 use play_queue::{PlayQueue, SingleSourceQueue};
+use play_queue::playlist_queue::PlaylistQueue;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+enum PlayerCommand {
+    Play(Box<PlaybackSource>),
+    Pause,
+    Resume,
+    Seek(f32),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PlayerState {
     Playing(f32),
     Paused(f32),
@@ -31,7 +40,7 @@ pub enum PlayerState {
     PlaybackFinished
 }
 
-pub trait Player: Send + Sync {
+pub trait Player {
     fn play(&self, source: Box<sources::PlaybackSource>);
     fn resume(&self);
     fn pause(&self);
@@ -45,7 +54,8 @@ pub trait PlayerFactory {
 
 pub struct Playback {
     event_emitter: Service<EventEmitter>,
-    current_player: Box<dyn Player>,
+    commands_sender: SyncSender<PlayerCommand>,
+    player_state: Arc<RwLock<PlayerState>>,
     current_queue: Mutex<Option<Box<dyn PlayQueue>>>
 }
 
@@ -66,25 +76,25 @@ impl Playback {
     pub fn play_queue(&self, play_queue: Box<dyn PlayQueue>) {
         let source = play_queue.get_current_source();
         self.current_queue.lock().unwrap().replace(play_queue);
-        self.current_player.play(source);
+        self.commands_sender.send(PlayerCommand::Play(source)).unwrap();
     }
 
     pub fn resume(&self) {
-        self.current_player.resume();
+        self.commands_sender.send(PlayerCommand::Resume).unwrap();
     }
 
     pub fn pause(&self) {
-        self.current_player.pause();
+        self.commands_sender.send(PlayerCommand::Pause).unwrap();
     }
 
     pub fn toggle(&self) {
-        let state = self.current_player.get_state();
+        let state = *self.player_state.read().unwrap();
         match state {
             PlayerState::Playing(_) => {
-                self.current_player.pause();
+                self.pause();
             },
             PlayerState::Paused(_) => {
-                self.current_player.resume();
+                self.resume();
             },
             PlayerState::Stopped => { },
             PlayerState::PlaybackFinished => { },     
@@ -92,57 +102,100 @@ impl Playback {
     }
 
     pub fn seek(&self, progress: i32) {
-        self.current_player.seek((progress as f32) / 1000.);
+        self.commands_sender.send(PlayerCommand::Seek((progress as f32) / 1000.)).unwrap();
     }
 
     pub fn play_next(&self) {
         let mut play_queue = self.current_queue.lock().unwrap();
         if let Some(play_queue) = play_queue.as_mut() {
-            play_queue.switch_to_next();
-            self.current_player.play(play_queue.get_current_source());
+            if play_queue.has_next() {
+                play_queue.switch_to_next();
+                self.commands_sender.send(PlayerCommand::Play(play_queue.get_current_source())).unwrap();
+            }
         }
     }
 
     pub fn play_previous(&self) {
         let mut play_queue = self.current_queue.lock().unwrap();
         if let Some(play_queue) = play_queue.as_mut() {
-            play_queue.switch_to_previous();
-            self.current_player.play(play_queue.get_current_source());
+            if play_queue.has_previous() {
+                play_queue.switch_to_previous();
+                self.commands_sender.send(PlayerCommand::Play(play_queue.get_current_source())).unwrap();
+            }
         } 
     }
 
-    fn run_task(&self) {
-        let state = self.current_player.get_state();
-        let mut event = OnStateUpdated::stopped();
+    fn run_task(&self, task_context: &TaskContext, cmd_receiver: Receiver<PlayerCommand>) {
+        let platform_api = crate::context().get_service::<PlatformApi>();
+        let player = platform_api.player.create_platform_player();
 
-        let queue = self.current_queue.lock().unwrap();
-        if let Some(queue) = queue.as_ref() {
-            event.title = queue.get_current_title().to_string();
-        } else {
-            event.title = "Playback stopped".to_string();
-        }
-        drop(queue);
+        while !task_context.is_interrupted() {
+            match cmd_receiver.try_recv() {
+                Ok(cmd) => {
+                    match cmd {
+                        PlayerCommand::Play(source) => {
+                            log::debug!("Playing source {:?}", source);
+                            player.play(source);
+                        },
+                        PlayerCommand::Pause => {
+                            log::debug!("Pausing playback");
+                            player.pause();
+                        },
+                        PlayerCommand::Resume => {
+                            log::debug!("Resuming playback");
+                            player.resume();
+                        }
+                        PlayerCommand::Seek(progress) => {
+                            log::debug!("Seeking to {}", progress);
+                            player.seek(progress);
+                        }
+                    }
+                },
+                Err(TryRecvError::Empty) => { },
+                Err(TryRecvError::Disconnected) => {
+                    log::debug!("Player command channel disconnected");
+                    break;
+                }
+            };
 
-        match state {
-            PlayerState::Playing(position) => {
-                event.is_playing = true;
-                event.progress = (position * 1000.) as i32;
-            },
-            PlayerState::Paused(position) => {
-                event.is_playing = false;
-                event.progress = (position * 1000.) as i32;
-            },
-            PlayerState::Stopped => {
-                event.is_playing = false;
-                event.progress = 0;
+            let state = player.get_state();
+            let mut player_state = self.player_state.write().unwrap();
+            *player_state = state;
+            drop(player_state);
+
+            let mut event = OnStateUpdated::stopped();
+
+            let queue = self.current_queue.lock().unwrap();
+            if let Some(queue) = queue.as_ref() {
+                event.title = queue.get_current_title().to_string();
+            } else {
+                event.title = "Playback stopped".to_string();
             }
-            PlayerState::PlaybackFinished => {
-                event.is_playing = true;
-                event.progress = 0;
-                self.play_next();
-            },
+            drop(queue);
+
+            match state {
+                PlayerState::Playing(position) => {
+                    event.is_playing = true;
+                    event.progress = (position * 1000.) as i32;
+                },
+                PlayerState::Paused(position) => {
+                    event.is_playing = false;
+                    event.progress = (position * 1000.) as i32;
+                },
+                PlayerState::Stopped => {
+                    event.is_playing = false;
+                    event.progress = 0;
+                }
+                PlayerState::PlaybackFinished => {
+                    event.is_playing = true;
+                    event.progress = 0;
+                    self.play_next();
+                },
+            }
+            self.event_emitter.emit_event(&event);
+
+            thread::sleep(Duration::from_millis(200));
         }
-        self.event_emitter.emit_event(&event);
     }
 
     fn on_collection_updated(&self, _event: &OnCollectionUpdated) {
@@ -158,44 +211,19 @@ impl ServiceApi for Playback {
     }
 }
 
-struct PlaybackTask {
-    playback: Arc<Playback>,
-    is_interrupted: AtomicBool,
-}
-
-impl PlaybackTask {
-    pub fn new(playback: Arc<Playback>) -> Self {
-        Self {
-            playback,
-            is_interrupted: AtomicBool::new(false),
-        }
-    }
-}
-
-impl Task for PlaybackTask {
-    fn run(&self) {
-        while !self.is_interrupted.load(std::sync::atomic::Ordering::Relaxed) {
-            self.playback.run_task();
-            thread::sleep(Duration::from_millis(1000));
-        }
-    }
-
-    fn stop(&self) {
-        self.is_interrupted.store(true, std::sync::atomic::Ordering::Relaxed);
-    }
-}
-
 impl ServiceInitializer for Playback {
     fn initialize(context: &Context) -> Arc<Self> {
         let event_emitter = context.get_service::<EventEmitter>();
         let task_manager = context.get_service::<TaskManager>();
         let rpc = context.get_service::<Rpc>();
 
-        let vlc_http_player_factory = players::vlc_http::VlcHttpPlayerFactory::new(context);
+        let (commands_sender, cmd_reciver) = sync_channel(1);
+        let player_state = Arc::new(RwLock::new(PlayerState::Stopped));
 
         let playback = Arc::new(Self {
             event_emitter: event_emitter.clone(),
-            current_player: vlc_http_player_factory.create_player(),
+            player_state: player_state.clone(), 
+            commands_sender,
             current_queue: Mutex::new(None),
         });
 
@@ -213,8 +241,10 @@ impl ServiceInitializer for Playback {
             playback_clone.on_collection_updated(event);
         });
 
-        let playback_task = PlaybackTask::new(playback.clone());
-        task_manager.run_generic(Box::new(playback_task));
+        let playback_clone = playback.clone();
+        task_manager.run(move |task_context| {
+            playback_clone.run_task(&task_context, cmd_reciver);
+        });
 
         return playback;
     }

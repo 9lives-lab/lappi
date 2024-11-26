@@ -10,6 +10,7 @@ log = "0.4.19"
 directories = "5.0.1"
 serde = "1.0.183"
 serde_json = "1.0.104"
+rodio = "0.20.1"
 amina_core = { path = "../../amina/amina_core" }
 amina_server = { path = "../../amina/amina_server" }
 lappi_core = { path = "../../lappi_core" }

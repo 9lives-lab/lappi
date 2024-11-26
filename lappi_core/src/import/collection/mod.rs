@@ -12,7 +12,7 @@ use amina_core::cmd_manager::{ArgDescription, ArgType, CmdDescription, CmdManage
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
-use amina_core::tasks::{TaskFeedback, TaskManager};
+use amina_core::tasks::{TaskContext, TaskManager};
 
 use crate::collection::Collection;
 use crate::collection::music::{SourceType, TagsMap};
@@ -116,7 +116,7 @@ impl ImportTask {
         }
     }
 
-    pub fn run(&self, _task_feedback: &TaskFeedback) {
+    pub fn run(&self, _: &TaskContext) {
         log::debug!("Import start");
 
         let mut logger: Box<dyn ImportLogger> = match self.log_path.as_ref() {

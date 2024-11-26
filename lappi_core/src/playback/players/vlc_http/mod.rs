@@ -1,5 +1,5 @@
+use std::cell::Cell;
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
 use amina_core::service::{Context, Service};
 
@@ -11,8 +11,8 @@ pub mod http_api;
 
 pub struct VlcHttpPlayer {
     api: http_api::VlcHttpApi,
-    current_length: AtomicI32,
-    is_playing: AtomicBool,
+    current_length: Cell<i32>,
+    is_playing: Cell<bool>,
 }
 
 impl Player for VlcHttpPlayer {
@@ -21,36 +21,39 @@ impl Player for VlcHttpPlayer {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
                 let _ = self.api.play_file(Path::new(path));
-                self.is_playing.store(true, Ordering::Relaxed);
+                self.is_playing.set(true);
             },
         }
     }
 
     fn resume(&self) {
         let _ = self.api.resume();
-        self.is_playing.store(true, Ordering::Relaxed);
+        self.is_playing.set(true);
     }
 
     fn pause(&self) {
         let _ = self.api.pause();
-        self.is_playing.store(false, Ordering::Relaxed);
+        self.is_playing.set(false);
     }
 
     fn seek(&self, progress: f32) {
-        let length = self.current_length.load(Ordering::Relaxed);
-        let _ = self.api.seek((length as f32 * progress) as i32);
+        self.get_state();
+        let length = self.current_length.get();
+        let vlc_progress = (length as f32 * progress) as i32;
+        log::debug!("Seeking to {} - {}/{}", progress, vlc_progress, length);
+        let _ = self.api.seek(vlc_progress);
     }
 
     fn get_state(&self) -> PlayerState {
         let status = self.api.get_status();
         match status {
             Ok(status) => {
-                self.current_length.store(status.length, Ordering::Relaxed);
+                self.current_length.set(status.length);
                 match status.state.as_str() {
                     "playing" => PlayerState::Playing(status.position as f32),
                     "paused" => PlayerState::Paused(status.position as f32),
                     "stopped" => {
-                        if self.is_playing.load(Ordering::Relaxed) {
+                        if self.is_playing.get() {
                             PlayerState::PlaybackFinished
                         } else {
                             PlayerState::Stopped
@@ -69,8 +72,8 @@ impl VlcHttpPlayer {
     pub fn new(settings: Service<Settings>) -> Self {
         VlcHttpPlayer {
             api: http_api::VlcHttpApi::new(settings),
-            current_length: AtomicI32::new(0),
-            is_playing: AtomicBool::new(false),
+            current_length: Cell::new(0),
+            is_playing: Cell::new(false),
         }
     }
 }

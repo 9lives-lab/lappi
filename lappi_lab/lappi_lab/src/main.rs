@@ -29,9 +29,11 @@ use log::LevelFilter;
 
 fn main() {
     let file_system_api = platform_impl::file_system::initialize();
+    let player_api = platform_impl::platform_player::initialize();
 
     let platform_api = PlatformApi {
         file_system: file_system_api.clone(),
+        player: player_api,
     };
 
     let context = lappi_core::context();

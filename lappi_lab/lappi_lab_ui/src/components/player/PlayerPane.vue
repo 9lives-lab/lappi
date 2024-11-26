@@ -15,7 +15,7 @@
         inner-track-color="transparent"
         track-size="6px"
         thumb-size="0px"
-        @change="onProgressChange"
+        @update:model-value="onProgressChange"
       />
     </div>
   </div>
@@ -29,6 +29,7 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 const title = ref(' ')
 const playButtonIcon = ref('play_circle')
 const progress = ref(0)
+let isProgressChanged = false
 
 async function playPrevious () {
   await aminaApi.sendRequest('lappi.playback.play_previous')
@@ -43,17 +44,23 @@ async function tooglePlay () {
 }
 
 async function onProgressChange (value) {
+  isProgressChanged = true
   await aminaApi.sendRequest('lappi.playback.seek', { progress: value })
 }
 
 onMounted(() => {
   aminaApi.setEventHandler('lappi.playback.OnStateUpdated', (event) => {
-    title.value = event.title
-    progress.value = event.progress
-    if (event.is_playing) {
-      playButtonIcon.value = 'pause_circle'
+    if (isProgressChanged === false) {
+      title.value = event.title
+      progress.value = event.progress
+      if (event.is_playing) {
+        playButtonIcon.value = 'pause_circle'
+      } else {
+        playButtonIcon.value = 'play_circle'
+      }
     } else {
-      playButtonIcon.value = 'play_circle'
+      // skip progress change event
+      isProgressChanged = false
     }
   })
 })
