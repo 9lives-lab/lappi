@@ -9,6 +9,8 @@ use crate::settings::Settings;
 
 pub mod http_api;
 
+static VLC_HTTP_PLAYER_NAME: &str = "VLC Remote";
+
 pub struct VlcHttpPlayer {
     api: http_api::VlcHttpApi,
     current_length: Cell<i32>,
@@ -16,6 +18,9 @@ pub struct VlcHttpPlayer {
 }
 
 impl Player for VlcHttpPlayer {
+    fn get_name(&self) -> &str {
+        VLC_HTTP_PLAYER_NAME
+    }
 
     fn play(&self, source: Box<PlaybackSource>) {
         match source.get_source_type() {
@@ -83,6 +88,10 @@ pub struct VlcHttpPlayerFactory {
 }
 
 impl PlayerFactory for VlcHttpPlayerFactory {
+    fn get_name(&self) -> String {
+        VLC_HTTP_PLAYER_NAME.to_string()
+    }
+
     fn create_player(&self) -> Box<dyn Player> {
         Box::new(VlcHttpPlayer::new(self.settings.clone()))
     }

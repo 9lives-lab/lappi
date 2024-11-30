@@ -49,7 +49,7 @@ async function onProgressChange (value) {
 }
 
 onMounted(() => {
-  aminaApi.setEventHandler('lappi.playback.OnStateUpdated', (event) => {
+  aminaApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane', (event) => {
     if (isProgressChanged === false) {
       title.value = event.title
       progress.value = event.progress

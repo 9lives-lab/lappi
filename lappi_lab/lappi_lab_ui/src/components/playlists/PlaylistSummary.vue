@@ -14,7 +14,7 @@
       </div>
       <div class="column col q-pa-md q-gutter-md">
         <div class="row items-center">
-          <div class="col-auto q-pr-md">Playlist ID</div>
+          <div class="col-auto q-pr-md">Playlist ID:</div>
           <q-input
             dense square filled readonly
             class="col"

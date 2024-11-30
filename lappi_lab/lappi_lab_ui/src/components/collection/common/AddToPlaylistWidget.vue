@@ -86,11 +86,11 @@ defineExpose({
   text-align: center
   cursor: pointer
   &:hover
-    background-color: $amina-primary-color
+    background-color: $primary
 
 .playlist-item-selected
   background-color: $amina-primary-color !important
-  border: 1px solid $amina-positive
+  border: 1px solid $primary
 
 .icon-added-to-playlist
   color: $amina-positive

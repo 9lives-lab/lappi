@@ -1,5 +1,5 @@
 <template>
-  <q-layout class="main-layout text-weight-light" view="hHh Lpr lFf">
+  <q-layout class="main-layout text-weight-light" view="hHh Lpr fFf">
     <q-header class="header">
       <div class="row items-center">
         <div class="col-auto text-h4 text-weight-light q-ml-xl q-mr-lg">
@@ -20,7 +20,9 @@
       <router-view />
     </q-page-container>
 
-    <q-footer class="footer q-pa-sm"></q-footer>
+    <q-footer class="footer">
+      <FooterToolbar></FooterToolbar>
+    </q-footer>
   </q-layout>
 </template>
 
@@ -28,6 +30,7 @@
 import { defineComponent, ref } from 'vue'
 import RouterIcon from 'src/amina_ui/components/RouterIcon.vue'
 import PlayerPane from 'src/components/player/PlayerPane.vue'
+import FooterToolbar from 'src/components/footer/FooterToolbar.vue'
 
 const linksList = [
   {
@@ -72,7 +75,8 @@ export default defineComponent({
 
   components: {
     RouterIcon,
-    PlayerPane
+    PlayerPane,
+    FooterToolbar
   },
 
   setup () {
@@ -115,6 +119,7 @@ export default defineComponent({
     text-decoration: none
 
 .footer
-  background-color: transparent
+  height: 27px
+  background-color: $amina-primary-color
 
 </style>

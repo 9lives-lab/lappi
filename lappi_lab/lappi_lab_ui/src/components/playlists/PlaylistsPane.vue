@@ -52,7 +52,7 @@ async function update () {
   }
 }
 
-aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', (event) => {
+aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'PlaylistPane', (event) => {
   update()
 })
 

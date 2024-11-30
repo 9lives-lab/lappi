@@ -1,15 +1,18 @@
 use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
 use std::io::BufReader;
 use std::sync::Arc;
 use std::time::Duration;
 
-use lappi_core::platform_api::PlayerApi;
 use rodio::{OutputStream, OutputStreamHandle, Sink, Source};
 
-use lappi_core::playback::{Player, PlayerState};
+use lappi_core::platform_api::PlaybackApi;
+use lappi_core::playback::{Player, PlayerFactory, PlayerState};
 use lappi_core::playback::sources::{SourceType, PlaybackSource};
 
-pub struct PlatformPlayer {
+static EMBEDDED_PLAYER_NAME: &str = "Current device";
+
+pub struct EmbeddedPlayer {
     _stream: OutputStream,
     _stream_handle: OutputStreamHandle,
     sink: RefCell<Sink>,
@@ -17,7 +20,7 @@ pub struct PlatformPlayer {
     is_playing: Cell<bool>,
 }
 
-impl PlatformPlayer {
+impl EmbeddedPlayer {
     pub fn create() -> Self {
         let (stream, stream_handle) = OutputStream::try_default().unwrap();
         let sink: Sink = Sink::try_new(&stream_handle).unwrap();
@@ -32,7 +35,11 @@ impl PlatformPlayer {
     }
 }
 
-impl Player for PlatformPlayer{
+impl Player for EmbeddedPlayer{
+    fn get_name(&self) -> &str {
+        EMBEDDED_PLAYER_NAME
+    }
+
     fn play(&self, source: Box<PlaybackSource>) {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
@@ -94,18 +101,46 @@ impl Player for PlatformPlayer{
     }
 }
 
-pub struct DesktopPlayerApi {
-    
+pub struct EmbeddedPlayerFactory {
+
 }
 
-impl PlayerApi for DesktopPlayerApi {
-    fn create_platform_player(&self) -> Box<dyn Player> {
-        return Box::new(PlatformPlayer::create());
+impl PlayerFactory for EmbeddedPlayerFactory {
+    fn get_name(&self) -> String {
+        EMBEDDED_PLAYER_NAME.to_string()
+    }
+
+    fn create_player(&self) -> Box<dyn Player> {
+        return Box::new(EmbeddedPlayer::create());
     }
 }
 
-pub fn initialize() -> Arc<DesktopPlayerApi> {
-    let api = DesktopPlayerApi {
+impl EmbeddedPlayerFactory {
+    pub fn new() -> Self {
+        Self {
+
+        }
+    }
+}
+
+pub struct PlatformPlaybackApi {
+    
+}
+
+impl PlaybackApi for PlatformPlaybackApi {
+    fn get_platform_player_factories(&self) -> HashMap<String, Box<dyn PlayerFactory>> {
+        let mut factories: HashMap<String, Box<dyn PlayerFactory>> = HashMap::new();
+        factories.insert("embedded".to_string(), Box::new(EmbeddedPlayerFactory::new()));
+        return factories;
+    }
+
+    fn get_defaut_player_factory(&self) -> String {
+        return "embedded".to_string();
+    }
+}
+
+pub fn initialize() -> Arc<PlatformPlaybackApi> {
+    let api = PlatformPlaybackApi {
 
     };
     return Arc::new(api);
