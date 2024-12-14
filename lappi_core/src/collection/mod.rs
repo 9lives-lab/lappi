@@ -4,6 +4,7 @@ pub mod storage;
 pub mod debug;
 pub mod pictures;
 pub mod folders;
+pub mod tags;
 pub mod lyrics;
 pub mod playlists;
 
@@ -83,10 +84,10 @@ impl ServiceInitializer for Collection {
         let database = context.get_service::<Database>();
         let local_storage = context.get_service::<LocalStorage>();
 
+        context.init_service::<FoldersCollection>();
         context.init_service::<MusicCollection>();
         context.init_service::<LyricsCollection>();
         context.init_service::<PicturesCollection>();
-        context.init_service::<FoldersCollection>();
         context.init_service::<PlaylistsCollection>();
 
         let collection = Arc::new(Self {

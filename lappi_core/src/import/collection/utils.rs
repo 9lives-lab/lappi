@@ -1,6 +1,7 @@
 use crate::collection::Collection;
 use crate::collection::folders::FolderType;
-use crate::collection::music::{MusicItemId, TagsMap};
+use crate::collection::music::MusicItemId;
+use crate::collection::tags::TagsMap;
 
 pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<MusicItemId> {
     let title = tags.get_string_tag("title");
@@ -16,8 +17,8 @@ pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<MusicItemI
 
     let item_id = collection.music().create_item(title.unwrap().clone(), album_id);
 
-    collection.music().add_tag(item_id, "title", title.unwrap());
-    collection.music().add_tag(item_id, "album", album.unwrap());
+    collection.music().set_tag(item_id, "title".to_string(), title.unwrap().to_string());
+    collection.music().set_tag(item_id, "album".to_string(), album.unwrap().to_string());
 
     return Some(item_id);
 }

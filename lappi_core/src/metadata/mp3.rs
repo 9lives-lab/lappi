@@ -2,7 +2,7 @@ use std::io::Read;
 
 use id3::Tag;
 use id3::TagLike;
-use crate::collection::music::{TagsMap, TagValue};
+use crate::collection::tags::{TagsMap, TagValue};
 use crate::metadata::Metadata;
 
 pub fn read(reader: Box<dyn Read>) -> Metadata {

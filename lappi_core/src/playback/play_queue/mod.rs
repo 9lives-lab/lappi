@@ -53,6 +53,6 @@ impl PlayQueue for SingleSourceQueue {
     }
 
     fn refresh(&mut self) {
-        unreachable!()
+
     }
 }

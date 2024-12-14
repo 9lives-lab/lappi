@@ -15,7 +15,8 @@ use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{TaskContext, TaskManager};
 
 use crate::collection::Collection;
-use crate::collection::music::{SourceType, TagsMap};
+use crate::collection::music::SourceType;
+use crate::collection::tags::TagsMap;
 use crate::platform_api::PlatformApi;
 use crate::metadata;
 

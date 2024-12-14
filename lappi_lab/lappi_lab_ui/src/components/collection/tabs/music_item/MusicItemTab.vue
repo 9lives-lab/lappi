@@ -38,7 +38,7 @@ async function updateItem (itemId) {
   const itemDescription = await aminaApi.sendRequest('lappi.collection.music.get_item_description', { item_id: itemId })
   itemName.value = itemDescription.name
 
-  await tagsWidget.value.updateItem(itemId)
+  await tagsWidget.value.setMusicItem(itemId)
   await musicItemSummaryWidget.value.update(itemId)
   await lyricsWidget.value.updateItem(itemId)
   await addToPlaylistWidget.value.setMusicItem(itemId)

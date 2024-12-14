@@ -1,34 +1,36 @@
 <template>
   <div class="tag-field row">
     <div class="tag-span col-auto">
-      {{ item.key }}
+      {{ name }}
     </div>
     <q-input
       dense
       borderless
       class="text-field col"
-      v-model="text"
+      v-model="model"
     />
     <div class="icons-bar col-auto">
-      <q-icon name="clear" />
+      <q-icon name="delete" @clic="deleteTag" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { defineProps, defineModel, defineEmits } from 'vue'
 
-const props = defineProps({
-  item: Object
+defineProps({
+  name: String
 })
 
-const text = computed(() => {
-  return props.item.value.String
-})
+const model = defineModel()
+const emit = defineEmits(['deleteTag'])
+
+async function deleteTag () {
+  emit('deleteTag')
+}
 </script>
 
 <style lang="sass" scoped>
-
 .tag-field
   min-width: 200px
   max-width: 600px

@@ -7,7 +7,7 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, ServiceApi, ServiceInitializer};
 
-use crate::collection::music::TagValue;
+use crate::collection::tags::TagValue;
 use crate::metadata;
 
 #[derive(Serialize)]

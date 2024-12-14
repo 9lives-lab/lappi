@@ -2,6 +2,7 @@ pub mod utils;
 pub mod init;
 pub mod collection;
 
+use collection::tags::TagsDb;
 use rusqlite::Connection;
 use amina_core::service::Context;
 
@@ -11,6 +12,7 @@ use crate::collection::lyrics::database_api::LyricsDbApi;
 use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
+use crate::collection::tags::database_api::TagsDbApi;
 use crate::database::api::{DbExporter, DbImporter, DbResult};
 use crate::debug::configuration::database::Mode;
 use crate::debug::Debugger;
@@ -27,6 +29,7 @@ pub struct SqliteDb {
     folders_api: Box<dyn FoldersDbApi>,
     pictures_api: Box<dyn PicturesDbApi>,
     music_api: Box<dyn MusicDbApi>,
+    tags_api: Box<dyn TagsDbApi>,
     lyrics_api: Box<dyn LyricsDbApi>,
     playlists_api: Box<dyn PlaylistsDbApi>,
 }
@@ -42,6 +45,10 @@ impl CollectionDbApi for SqliteDb {
 
     fn get_music_api(&self) -> Box<dyn MusicDbApi> {
         self.music_api.clone_api()
+    }
+
+    fn get_tags_api(&self) -> Box<dyn TagsDbApi> {
+        self.tags_api.clone_api()
     }
 
     fn get_pictures_api(&self) -> Box<dyn PicturesDbApi> {
@@ -118,6 +125,7 @@ pub fn initialize(context: &Context) -> SqliteDb {
         folders_api: Box::new(FoldersDb::new(db_utils.clone())),
         pictures_api: Box::new(PicturesDb::new(db_utils.clone())),
         music_api: Box::new(MusicDb::new(db_utils.clone())),
+        tags_api: Box::new(TagsDb::new(db_utils.clone())),
         lyrics_api: Box::new(LyricsDb::new(db_utils.clone())),
         playlists_api: Box::new(PlaylistsDb::new(db_utils.clone())),
     }

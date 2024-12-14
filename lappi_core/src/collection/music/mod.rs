@@ -5,16 +5,20 @@ use std::sync::Arc;
 
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, ServiceApi, ServiceInitializer};
+use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
-use crate::collection::folders::FolderId;
 use crate::database::Database;
+
+use super::folders::{FolderId, FoldersCollection};
+use super::tags::database_api::TagsDbApi;
+use super::tags::Tag;
 
 use database_api::MusicDbApi;
 pub use types::*;
 
 pub struct ItemRef {
-    db: Arc<Box<dyn MusicDbApi>>,
+    _music_db: Arc<Box<dyn MusicDbApi>>,
+    tags_db: Arc<Box<dyn TagsDbApi>>,
     id: MusicItemId,
 }
 
@@ -24,22 +28,23 @@ impl ItemRef {
         self.id
     }
 
-    pub fn add_tag(&self, key: &str, value: &str) {
-        self.db.add_tag(self.id, key, value).unwrap();
+    pub fn add_tag(&self, tag_name: &str, value: &str) {
+        self.tags_db.set_add_item_tag(self.id, tag_name, value).unwrap();
     }
 
-    pub fn get_tag(&self, key: &str) -> Option<Tag> {
-        self.db.get_tag(self.id, key).unwrap()
+    pub fn get_tag(&self, tag_name: &str) -> Option<Tag> {
+        self.tags_db.get_item_tag(self.id, tag_name).unwrap()
     }
 
     pub fn get_tags(&self) -> Vec<Tag> {
-        self.db.get_tags(self.id).unwrap()
+        self.tags_db.get_item_tags(self.id).unwrap()
     }
 
 }
 
 pub struct ItemsIterator {
-    db: Arc<Box<dyn MusicDbApi>>,
+    music_db: Arc<Box<dyn MusicDbApi>>,
+    tags_db: Arc<Box<dyn TagsDbApi>>,
     ids: Vec<MusicItemId>,
     index: usize,
 }
@@ -50,7 +55,8 @@ impl Iterator for ItemsIterator {
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.ids.len() {
             let result = Some(ItemRef {
-                db: self.db.clone(),
+                _music_db: self.music_db.clone(),
+                tags_db: self.tags_db.clone(),
                 id: *self.ids.get(self.index).unwrap(),
             });
             self.index += 1;
@@ -62,57 +68,66 @@ impl Iterator for ItemsIterator {
 }
 
 pub struct MusicCollection {
-    db: Arc<Box<dyn MusicDbApi>>,
+    music_db: Arc<Box<dyn MusicDbApi>>,
+    tags_db: Arc<Box<dyn TagsDbApi>>,
+    folders: Service<FoldersCollection>,
 }
 
 impl MusicCollection {
-    pub fn batch(db: Arc<Box<dyn MusicDbApi>>) -> Arc<Self> {
-        Arc::new(Self {
-            db,
-        })
-    }
-
     pub fn create_item(&self, name: String, folder_id: FolderId) -> MusicItemId {
-        return self.db.add_music_item(&name, folder_id)
+        return self.music_db.add_music_item(&name, folder_id)
     }
 
     pub fn set_item_name(&self, item_id: MusicItemId, name: String) {
-        self.db.set_item_name(item_id, &name).unwrap();
+        self.music_db.set_item_name(item_id, &name).unwrap();
     }
 
     pub fn get_item(&self, id: MusicItemId) -> ItemRef {
         ItemRef {
-            db: self.db.clone(),
+            _music_db: self.music_db.clone(),
+            tags_db: self.tags_db.clone(),
             id,
         }
     }
 
     pub fn get_item_description(&self, item_id: MusicItemId) -> MusicItemDescription {
-        self.db.get_music_item_description(item_id).unwrap()
+        self.music_db.get_music_item_description(item_id).unwrap()
     }
 
-    pub fn add_tag(&self, item_id: MusicItemId, key: &str, value: &str) {
-        self.db.add_tag(item_id, key, value).unwrap();
+    pub fn set_tag(&self, item_id: MusicItemId, tag_name: String, tag_value: String) {
+        self.tags_db.set_add_item_tag(item_id, tag_name.as_str(), tag_value.as_str()).unwrap();
     }
 
     pub fn get_tags(&self, item_id: MusicItemId) -> Vec<Tag> {
-        self.get_item(item_id).get_tags()
+        self.tags_db.get_item_tags(item_id).unwrap()
+    }
+
+    pub fn get_inherited_tags(&self, item_id: MusicItemId) -> Vec<Tag> {
+        let mut tags = vec![];
+
+        let decription = self.get_item_description(item_id);
+        let folder_id = decription.folder_id;
+
+        tags.extend(self.folders.get_tags(folder_id));
+        tags.extend(self.folders.get_inherited_tags(folder_id));
+
+        return tags;
     }
 
     pub fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: String) {
-        self.db.add_source_file(item_id, source_type, &path).unwrap();
+        self.music_db.add_source_file(item_id, source_type, &path).unwrap();
     }
 
     pub fn delete_source_file(&self, source_id: MusicSourceFileId) {
-        self.db.delete_source_file(source_id).unwrap();
+        self.music_db.delete_source_file(source_id).unwrap();
     }
 
     pub fn set_source_file_path(&self, source_id: MusicSourceFileId, path: String) {
-        self.db.set_source_file_path(source_id, &path).unwrap();
+        self.music_db.set_source_file_path(source_id, &path).unwrap();
     }
 
     pub fn get_source_files(&self, item_id: MusicItemId) -> Vec<SourceFileDesc> {
-        self.db.get_source_files(item_id).unwrap()
+        self.music_db.get_source_files(item_id).unwrap()
     }
 
 }
@@ -125,13 +140,16 @@ impl ServiceInitializer for MusicCollection {
     fn initialize(context: &Context) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.get_music_api());
 
         let music = Arc::new(Self {
-            db: db_api,
+            music_db: Arc::new(database.get_music_api()),
+            tags_db: Arc::new(database.get_tags_api()),
+            folders: context.get_service::<FoldersCollection>(),
         });
 
-        register_rpc_handler!(rpc, music, "lappi.collection.get_tags", get_tags(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_tags", get_tags(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.set_tag", set_tag(item_id: MusicItemId, tag_name: String, tag_value: String));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_inheirted_tags", get_inherited_tags(item_id: MusicItemId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.create_item", create_item(name: String, folder_id: FolderId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.set_item_name", set_item_name(item_id: MusicItemId, name: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));

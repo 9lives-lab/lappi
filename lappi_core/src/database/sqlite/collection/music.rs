@@ -1,9 +1,9 @@
 use num_traits::FromPrimitive;
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::params;
 
 use crate::collection::folders::FolderId;
 use crate::collection::music::database_api::MusicDbApi;
-use crate::collection::music::{MusicItemDescription, MusicItemId, MusicSourceFileId, SourceFileDesc, SourceType, Tag};
+use crate::collection::music::{MusicItemDescription, MusicItemId, MusicSourceFileId, SourceFileDesc, SourceType};
 use crate::database::sqlite::utils::DatabaseUtils;
 use crate::database::api::DbResult;
 
@@ -16,56 +16,6 @@ impl MusicDb {
         Self {
             db_utils,
         }
-    }
-
-    pub fn add_tag_to_item(&self, conn: &Connection, collection_item_id: i64, tag_value_id: i64) -> DbResult<()> {
-        conn.execute(
-            "INSERT INTO music_items_tags (item_id, tag_id) VALUES (?1, ?2)",
-            params![collection_item_id, tag_value_id],
-        )?;
-        Ok(())
-    }
-    
-    pub fn get_add_tag_value(&self, conn: &Connection, name_id: i64, value: &str) -> DbResult<i64> {
-        let result = conn.query_row(
-            "SELECT id FROM tags_values WHERE name_id=(?1) AND value=(?2)",
-            params![name_id, value],
-            |row| row.get::<_, i64>(0),
-        ).optional()?;
-        let value_id = match result {
-            Some(id) => id,
-            None => {
-                conn.execute(
-                    "INSERT INTO tags_values (name_id, value) VALUES (?1, ?2)",
-                    params![name_id, value],
-                )?;
-                conn.last_insert_rowid()
-            }
-        };
-        Ok(value_id)
-    }
-    
-    pub fn get_tag_name_id(&self, conn: &Connection, name: &str) -> DbResult<Option<i64>> {
-        let result = conn.query_row(
-            "SELECT id FROM tags_names WHERE name=(?1)",
-            params![name],
-            |row| row.get::<_, i64>(0),
-        ).optional()?;
-        Ok(result)
-    }
-    
-    pub fn get_add_tag_name(&self, conn: &Connection, name: &str) -> DbResult<i64> {
-        let name_id = match self.get_tag_name_id(conn, name)? {
-            Some(id) => id,
-            None => {
-                conn.execute(
-                    "INSERT INTO tags_names (name) VALUES (?1)",
-                    params![name],
-                )?;
-                conn.last_insert_rowid()
-            }
-        };
-        Ok(name_id)
     }
 }
 
@@ -115,47 +65,6 @@ impl MusicDbApi for MusicDb {
 
     fn get_music_item_folder(&self, item_id: MusicItemId) -> DbResult<FolderId> {
         self.db_utils.lock().get_field_value(item_id, "music_items","folder_id")
-    }
-
-    fn add_tag(&self, item_id: MusicItemId, name: &str, value: &str) -> DbResult<()> {
-        let mut context = self.db_utils.lock();
-        let conn = context.connection();
-        let tag_name_id = self.get_add_tag_name(&conn, name)?;
-        let tag_value_id = self.get_add_tag_value(&conn, tag_name_id, value)?;
-        let result = self.add_tag_to_item(&conn, item_id, tag_value_id);
-        
-        context.on_music_updated();
-        return result;
-    }
-
-    fn get_tag(&self, item_id: MusicItemId, key: &str) -> DbResult<Option<Tag>> {
-        let tags = self.get_tags(item_id)?;
-        let tag = tags.iter().find(|&tag| tag.get_key().eq(key));
-        return Ok(tag.map(|x| x.clone()));
-    }
-
-    fn get_tags(&self, item_id: MusicItemId) -> DbResult<Vec<Tag>> {
-        let context = self.db_utils.lock();
-        let mut tags_stmt = context.connection().prepare(
-            "SELECT tags_names.name, tags_values.value
-                  FROM tags_values
-                  INNER JOIN tags_names ON tags_names.id = tags_values.name_id
-                  WHERE tags_values.id IN (SELECT tag_id FROM music_items_tags WHERE item_id=(?1))"
-        )?;
-        let tags_rows = tags_stmt.query_map(
-            params![item_id],|row| {
-                Ok((
-                    row.get::<_, String>(0)?,
-                    row.get::<_, String>(1)?
-                ))
-            }
-        )?;
-        let mut tags_vec = Vec::new();
-        for tag in tags_rows {
-            let tag = tag?;
-            tags_vec.push(Tag::new_string(tag.0, tag.1));
-        }
-        return Ok(tags_vec);
     }
 
     fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: &str) -> DbResult<()> {

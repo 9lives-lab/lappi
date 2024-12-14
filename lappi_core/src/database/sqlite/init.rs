@@ -6,9 +6,7 @@ pub fn get_tables_list() -> Vec<&'static str> {
         "music_items",
         "lyrics_items",
         "picture_items",
-        "tags_names",
-        "tags_values",
-        "music_items_tags",
+        "tags",
         "music_src_files",
         "playlists",
         "playlist_items"
@@ -57,30 +55,14 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     )?;
 
     connection.execute(
-        "CREATE TABLE tags_names (
+        "CREATE TABLE tags (
                 id                      INTEGER NOT NULL PRIMARY KEY,
-                name                    TEXT    NOT NULL UNIQUE
-        )",
-        [],
-    )?;
-
-    connection.execute(
-        "CREATE TABLE tags_values (
-                id                      INTEGER NOT NULL PRIMARY KEY,
-                name_id                 INTEGER NOT NULL,
-                value                   TEXT    NOT NULL,
-                FOREIGN KEY(name_id)    REFERENCES tags_names(id)
-        )",
-        [],
-    )?;
-
-    connection.execute(
-        "CREATE TABLE music_items_tags (
-                id                      INTEGER NOT NULL PRIMARY KEY,
-                item_id                 INTEGER NOT NULL,
-                tag_id                  INTEGER NOT NULL,
-                FOREIGN KEY(item_id)    REFERENCES music_items(id),
-                FOREIGN KEY(tag_id)     REFERENCES tags_values(id)
+                music_item_id           INTEGER,
+                folder_id               INTEGER,
+                tag_name                TEXT    NOT NULL,
+                tag_value               TEXT    NOT NULL,
+                FOREIGN KEY(music_item_id) REFERENCES music_items(id),
+                FOREIGN KEY(folder_id)     REFERENCES folders(id)
         )",
         [],
     )?;

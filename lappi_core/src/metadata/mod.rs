@@ -7,7 +7,7 @@ use std::fs::File;
 
 use serde::Serialize;
 
-use crate::collection::music::TagsMap;
+use crate::collection::tags::TagsMap;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Metadata {
