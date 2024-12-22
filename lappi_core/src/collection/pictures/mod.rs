@@ -4,6 +4,7 @@ pub mod database_api;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use base64::{Engine as _, engine::general_purpose};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
@@ -24,6 +25,19 @@ pub struct PicturesCollection {
 }
 
 impl PicturesCollection {
+    pub fn add_blob_to_collection(&self, blob: PictureBlob, folder_id: FolderId) -> PictureId {
+        log::debug!("Add blob to collection. file_name: {:?}, file_type: {:?}", blob.file_name, blob.file_type);
+        // TODO choose extenstion based on mime type
+        let file_path = PathBuf::from(blob.file_name);
+        let file_extension = file_path.extension().unwrap().to_str().unwrap();
+        let picture_id = self.db.add_picture_item(file_extension, folder_id).unwrap();
+        let new_file_path = self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
+        let blob_data = general_purpose::STANDARD.decode(blob.data_base64).unwrap();
+        log::debug!("Writing file to {:?}", new_file_path);
+        std::fs::write(new_file_path, blob_data).unwrap();
+        return picture_id;
+    }
+
     pub fn copy_to_collection_by_path(&self, file_path: String, folder_id: FolderId) -> PictureId {
         let file_path = PathBuf::from(file_path);
         let file_extension = file_path.extension().unwrap().to_str().unwrap();
@@ -32,6 +46,13 @@ impl PicturesCollection {
         log::debug!("Copying file from {:?} to {:?}", file_path, new_file_path);
         std::fs::copy(file_path, new_file_path).unwrap();
         return picture_id;
+    }
+
+    pub fn delete_picture(&self, picture_id: PictureId) {
+        let file_path = self.get_picture_storage_path(picture_id); 
+        log::debug!("Deleting file {:?}", file_path);
+        std::fs::remove_file(file_path).unwrap();
+        self.db.delete_picture_item(picture_id).unwrap();
     }
 
     pub fn get_picture_path(&self, picture_id: PictureId) -> String {
@@ -52,6 +73,11 @@ impl PicturesCollection {
     fn get_pictures_storage_path(&self) -> PathBuf {
         return self.local_storage.get_internal_storage_folder("pictures");
     }
+
+    fn get_picture_storage_path(&self, picture_id: PictureId) -> PathBuf {
+        let file_extension = self.db.get_picture_extension(picture_id).unwrap();
+        return self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
+    }
 }
 
 impl ServiceApi for PicturesCollection {
@@ -70,7 +96,9 @@ impl ServiceInitializer for PicturesCollection {
             local_storage,
         });
 
+        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.add_blob_to_collection", add_blob_to_collection(blob: PictureBlob, folder_id: FolderId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.copy_to_collection_by_path", copy_to_collection_by_path(file_path: String, folder_id: FolderId));
+        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.delete_picture", delete_picture(picture_id: PictureId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_picture_path", get_picture_path(picture_id: PictureId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_pictures_in_folder", get_pictures_in_folder(folder_id: FolderId));
 

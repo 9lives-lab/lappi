@@ -155,6 +155,8 @@ async function update () {
   await updateFolders(currentFolderId)
   if (currentItemId >= 0) {
     await updateItem(currentItemId)
+  } else {
+    await openFolder(currentFolderId)
   }
 }
 

@@ -30,6 +30,14 @@ impl PicturesDbApi for PicturesDb {
         Ok(context.connection().last_insert_rowid())
     }
 
+    fn delete_picture_item(&self, picture_id: PictureId) -> DbResult<()> {
+        let mut context = self.db_utils.lock();
+        let query = "DELETE FROM picture_items WHERE id = ?1";
+        context.connection().execute(&query, params![picture_id])?;
+        context.on_folders_updated();
+        Ok(())
+    }
+
     fn get_picture_extension(&self, picture_id: PictureId) -> DbResult<String> {
         let context = self.db_utils.lock();
         context.get_field_value(picture_id, "picture_items", "extension")

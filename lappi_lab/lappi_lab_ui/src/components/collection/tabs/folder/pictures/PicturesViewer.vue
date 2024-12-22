@@ -4,12 +4,19 @@
     class="pictures-scroll-area"
   >
     <div class="pictures-viewer row no-wrap items-center q-pa-md q-gutter-md">
-      <img
-        v-for="item in picturesUrlList"
-        :key="item.id"
-        :src="item.url"
-        class="image-container"
-      />
+      <div v-for="item in picturesUrlList" :key="item.id">
+        <img :src="item.url" class="image-container">
+        <q-menu>
+          <q-list style="min-width: 100px">
+            <q-item clickable v-close-popup @click="setFolderCover(item)">
+              <q-item-section>Set folder cover</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="deletePicture(item)">
+              <q-item-section>Delete</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </div>
     </div>
   </q-scroll-area>
 </template>
@@ -19,6 +26,15 @@ import { getCurrentInstance, ref, onMounted } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const picturesUrlList = ref([])
+let currentFolderId = -1
+
+async function setFolderCover (item) {
+  await aminaApi.sendRequest('lappi.collection.folders.set_folder_cover', { folder_id: currentFolderId, picture_id: item.id })
+}
+
+async function deletePicture (item) {
+  await aminaApi.sendRequest('lappi.collection.pictures.delete_picture', { picture_id: item.id })
+}
 
 async function updateUrls (picturesIdList) {
   const newUrlList = []
@@ -34,6 +50,7 @@ async function updateUrls (picturesIdList) {
 }
 
 async function update (newFolderId) {
+  currentFolderId = newFolderId
   const picturesIdList = await aminaApi.sendRequest('lappi.collection.pictures.get_pictures_in_folder', { folder_id: newFolderId })
   await updateUrls(picturesIdList)
 }

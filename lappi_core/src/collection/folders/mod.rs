@@ -15,6 +15,7 @@ use crate::database::Database;
 use super::folders::database_api::FoldersDbApi;
 use super::music::database_api::MusicDbApi;
 use super::music::MusicItemId;
+use super::pictures::PictureId;
 use super::tags::database_api::TagsDbApi;
 use super::tags::Tag;
 
@@ -72,6 +73,10 @@ impl FoldersCollection {
 
     pub fn set_folder_type(&self, folder_id: FolderId, folder_type: FolderType) {
         self.folders_db.set_folder_type(folder_id, folder_type).unwrap();
+    }
+
+    pub fn set_folder_cover(&self, folder_id: FolderId, picture_id: PictureId) {
+        self.folders_db.set_folder_cover(folder_id, picture_id).unwrap();
     }
 
     pub fn find_or_add_folder(&self, parent_id: FolderId, folder_name: String, folder_type: FolderType) -> FolderId {
@@ -214,6 +219,7 @@ impl ServiceInitializer for FoldersCollection {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_name", set_folder_name(folder_id: FolderId, name: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_type", set_folder_type(folder_id: FolderId, folder_type: FolderType));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_cover", set_folder_cover(folder_id: FolderId, picture_id: PictureId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_tags", get_tags(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_tag", set_tag(folder_id: FolderId, tag_name: String, tag_value: String));

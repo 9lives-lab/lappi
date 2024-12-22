@@ -3,6 +3,7 @@ use rusqlite::{params, OptionalExtension};
 use crate::collection::folders::database_api::FoldersDbApi;
 use crate::collection::folders::{FolderDescription, FolderId, FolderType};
 use crate::collection::music::MusicItemId;
+use crate::collection::pictures::PictureId;
 use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils};
 use crate::database::api::DbResult;
 
@@ -95,6 +96,13 @@ impl FoldersDbApi for FoldersDb {
         let mut context = self.db_utils.lock();
         context.set_field_value(folder_id, "folders", "folder_type", folder_type as i32)?;
         context.on_folders_updated(); // Notify any observers of the change
+        Ok(())
+    }
+
+    fn set_folder_cover(&self, folder_id: FolderId, picture_id: PictureId) -> DbResult<()> {
+        let mut context = self.db_utils.lock();
+        context.set_field_value(folder_id, "folders", "avatar_picture_id", picture_id as i32)?;
+        context.on_folders_updated();
         Ok(())
     }
 

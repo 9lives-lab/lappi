@@ -2,8 +2,18 @@
   <WidgetPane title="Pictures">
     <div class="column pictures-editor">
       <ToolPane class="col">
-        <q-btn class="col-auto" icon="add" label="Add" @click="addPicture" />
-        <q-input borderless dense class="col" v-model="addPath" />
+        <q-file
+          multiple
+          dense
+          outlined
+          label="Add pictures"
+          v-model="files"
+          @update:model-value="addPictures"
+        >
+          <template v-slot:prepend>
+            <q-icon name="attach_file" />
+          </template>
+        </q-file>
       </ToolPane>
       <PicturesViewer ref="picturesViewer" />
     </div>
@@ -19,14 +29,33 @@ import PicturesViewer from 'src/components/collection/tabs/folder/pictures/Pictu
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
 const picturesViewer = ref(null)
-const addPath = ref('')
+const files = ref(null)
 let folderId = 0
 
-async function addPicture () {
-  const path = addPath.value
-  await aminaApi.sendRequest('lappi.collection.pictures.copy_to_collection_by_path', { file_path: path, folder_id: folderId })
-  addPath.value = ''
-  picturesViewer.value.update(folderId)
+function blobToBase64 (blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result)
+    reader.readAsDataURL(blob)
+  })
+}
+
+async function addPicture (file) {
+  const dataBase64 = await blobToBase64(file)
+  const blob = {
+    file_name: file.name,
+    file_type: file.type,
+    data_base64: dataBase64.substr(dataBase64.indexOf(',') + 1)
+  }
+  await aminaApi.sendRequest('lappi.collection.pictures.add_blob_to_collection', { blob, folder_id: folderId })
+  await picturesViewer.value.update(folderId)
+}
+
+async function addPictures (newFiles) {
+  for (const file of newFiles) {
+    await addPicture(file)
+  }
+  files.value = null
 }
 
 async function update (newFolderId) {
