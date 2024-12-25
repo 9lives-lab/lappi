@@ -33,8 +33,16 @@ impl LyricsSourceApi for LyricsOvhSource {
         let response = client.get(&url).send()?;
         let response = response.error_for_status()?;
         let lyrics_response: LyricsResponse = response.json()?;
+
+        let lyrics = lyrics_response.lyrics;
+
+        // clean string
+        let lyrics = lyrics.replace("\\n", "\n"); // replace \n with newline
+        let lyrics = lyrics.replace("\r", ""); // remove carriage returns
+        let lyrics = lyrics.replace("\n\n", "\n"); // remove double newlines
+
         
-        return Ok(lyrics_response.lyrics);
+        return Ok(lyrics);
     }
 }
 
