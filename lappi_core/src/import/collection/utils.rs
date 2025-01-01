@@ -17,9 +17,6 @@ pub fn import_song(collection: &Collection, tags: &TagsMap) -> Option<MusicItemI
 
     let item_id = collection.music().create_item(title.unwrap().clone(), album_id);
 
-    collection.music().set_tag(item_id, "title".to_string(), title.unwrap().to_string());
-    collection.music().set_tag(item_id, "album".to_string(), album.unwrap().to_string());
-
     return Some(item_id);
 }
 
