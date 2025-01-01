@@ -1,3 +1,4 @@
+use anyhow::Result;
 use rusqlite::{params, OptionalExtension};
 
 use crate::collection::folders::database_api::FoldersDbApi;
@@ -5,7 +6,6 @@ use crate::collection::folders::{FolderDescription, FolderId, FolderType};
 use crate::collection::music::MusicItemId;
 use crate::collection::pictures::PictureId;
 use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils};
-use crate::database::api::DbResult;
 
 pub struct FoldersDb {
     db_utils: DatabaseUtils,
@@ -27,7 +27,7 @@ impl FoldersDb {
         }
     }
 
-    fn get_folder_description(&self, context: &DatabaseContext, folder_id: FolderId) -> DbResult<FolderDescription> {
+    fn get_folder_description(&self, context: &DatabaseContext, folder_id: FolderId) -> Result<FolderDescription> {
         if folder_id == self.get_root_folder() {
             return Ok(FolderDescription {
                 folder_id: 0,
@@ -53,7 +53,7 @@ impl FoldersDb {
         Ok(folder_description)
     }
 
-    fn find_folder_id(&self, context: &DatabaseContext, parent_id: FolderId, folder_name: &str) -> DbResult<Option<FolderId>> {
+    fn find_folder_id(&self, context: &DatabaseContext, parent_id: FolderId, folder_name: &str) -> Result<Option<FolderId>> {
         let result = context.connection().query_row(
             "SELECT id FROM folders WHERE parent_id == (?1) AND name == (?2)",
             params![parent_id, folder_name],
@@ -72,41 +72,41 @@ impl FoldersDbApi for FoldersDb {
         0
     }
 
-    fn get_folder_parent(&self, folder_id: FolderId) -> DbResult<FolderId> {
+    fn get_folder_parent(&self, folder_id: FolderId) -> Result<FolderId> {
         self.db_utils.lock().get_field_value(folder_id, "folders", "parent_id")
     }
 
-    fn get_folder_name(&self, folder_id: FolderId) -> DbResult<String> {
+    fn get_folder_name(&self, folder_id: FolderId) -> Result<String> {
         self.db_utils.lock().get_field_value(folder_id, "folders", "name")
     }
 
-    fn get_folder_description(&self, folder_id: FolderId) -> DbResult<FolderDescription> {
+    fn get_folder_description(&self, folder_id: FolderId) -> Result<FolderDescription> {
         let context = self.db_utils.lock();
         self.get_folder_description(&context, folder_id)
     }
 
-    fn set_folder_name(&self, folder_id: FolderId, name: &str) -> DbResult<()> {
+    fn set_folder_name(&self, folder_id: FolderId, name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(folder_id, "folders", "name", name)?;
         context.on_folders_updated(); // Notify any observers of the change
         Ok(())
     }
 
-    fn set_folder_type(&self, folder_id: FolderId, folder_type: FolderType) -> DbResult<()> {
+    fn set_folder_type(&self, folder_id: FolderId, folder_type: FolderType) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(folder_id, "folders", "folder_type", folder_type as i32)?;
         context.on_folders_updated(); // Notify any observers of the change
         Ok(())
     }
 
-    fn set_folder_cover(&self, folder_id: FolderId, picture_id: PictureId) -> DbResult<()> {
+    fn set_folder_cover(&self, folder_id: FolderId, picture_id: PictureId) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(folder_id, "folders", "avatar_picture_id", picture_id as i32)?;
         context.on_folders_updated();
         Ok(())
     }
 
-    fn find_or_add_folder(&self, parent_id: FolderId, folder_name: &str, folder_type: FolderType) -> DbResult<FolderId> {
+    fn find_or_add_folder(&self, parent_id: FolderId, folder_name: &str, folder_type: FolderType) -> Result<FolderId> {
         let mut context = self.db_utils.lock();
 
         let folder_id = match self.find_folder_id(&context, parent_id, folder_name)? {
@@ -124,7 +124,7 @@ impl FoldersDbApi for FoldersDb {
         return Ok(folder_id);
     }
 
-    fn get_folders_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<FolderDescription>> {
+    fn get_folders_in_folder(&self, folder_id: FolderId) -> Result<Vec<FolderDescription>> {
         let context = self.db_utils.lock();
         let id_list = context.get_fields_list_by_field_i64_value("folders", "id", "parent_id", folder_id).unwrap();
         let mut result = Vec::new();
@@ -134,7 +134,7 @@ impl FoldersDbApi for FoldersDb {
         Ok(result)
     }
 
-    fn get_music_items_in_folder(&self, folder_id: FolderId) -> DbResult<Vec<MusicItemId>> {
+    fn get_music_items_in_folder(&self, folder_id: FolderId) -> Result<Vec<MusicItemId>> {
         self.db_utils.lock().get_fields_list_by_field_i64_value("music_items", "id", "folder_id", folder_id)
     }
 }

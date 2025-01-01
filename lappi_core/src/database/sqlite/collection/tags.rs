@@ -1,9 +1,9 @@
 use std::borrow::BorrowMut;
 
+use anyhow::Result;
 use rusqlite::{params, OptionalExtension};
 
 use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils};
-use crate::database::api::DbResult;
 use crate::collection::folders::FolderId;
 use crate::collection::music::MusicItemId;
 use crate::collection::tags::Tag;
@@ -29,7 +29,7 @@ impl <'a> TagsUtils<'a> {
         }
     }
 
-    pub fn add_tag_row(&self, id_field_value: i64, tag_name: &str, tag_value: &str) -> DbResult<()> {
+    pub fn add_tag_row(&self, id_field_value: i64, tag_name: &str, tag_value: &str) -> Result<()> {
         let sql = format!("INSERT INTO tags ({}, tag_name, tag_value) VALUES (?1, ?2, ?3)", self.id_field_name);
         self.context.connection().execute(
             sql.as_str(),
@@ -38,7 +38,7 @@ impl <'a> TagsUtils<'a> {
         Ok(())
     }
 
-    pub fn get_tag_row_id(&self, id_field: i64, tag_name: &str) -> DbResult<Option<i64>> {
+    pub fn get_tag_row_id(&self, id_field: i64, tag_name: &str) -> Result<Option<i64>> {
         let sql = format!("SELECT id FROM tags WHERE {}=(?1) AND tag_name=(?2)", self.id_field_name);
         let result = self.context.connection().query_row(&sql, params![id_field, tag_name],
             |row| row.get::<_, i64>(0),
@@ -46,7 +46,7 @@ impl <'a> TagsUtils<'a> {
         Ok(result)
     }
 
-    fn set_add_tag(&mut self, id_field_value: i64, tag_name: &str, tag_value: &str) -> DbResult<()> {
+    fn set_add_tag(&mut self, id_field_value: i64, tag_name: &str, tag_value: &str) -> Result<()> {
         match self.get_tag_row_id(id_field_value, tag_name)? {
             Some(id) => {
                 let sql = format!("UPDATE tags SET tag_value=(?1) WHERE id=(?2)");
@@ -63,7 +63,7 @@ impl <'a> TagsUtils<'a> {
         return Ok(());
     }
 
-    fn get_tags(&self, id_field: i64) -> DbResult<Vec<Tag>> {
+    fn get_tags(&self, id_field: i64) -> Result<Vec<Tag>> {
         let sql = format!("SELECT tag_name, tag_value FROM tags WHERE {}=(?1)", self.id_field_name);
         let mut tags_stmt = self.context.connection().prepare(sql.as_str())?;
         let tags_rows = tags_stmt.query_map(params![id_field],|row| {
@@ -74,13 +74,13 @@ impl <'a> TagsUtils<'a> {
         Ok(tags_rows.map(|x| x.unwrap()).collect())
     }
 
-    fn get_tag(&self, id_field: i64, tag_name: &str) -> DbResult<Option<Tag>> {
+    fn get_tag(&self, id_field: i64, tag_name: &str) -> Result<Option<Tag>> {
         let tags = self.get_tags(id_field)?;
         let tag = tags.iter().find(|&tag| tag.get_key().eq(tag_name));
         return Ok(tag.map(|x| x.clone()));
     }
 
-    fn delete_tag(&mut self, id_field: i64, tag_name: &str) -> DbResult<()> {
+    fn delete_tag(&mut self, id_field: i64, tag_name: &str) -> Result<()> {
         let sql = format!("DELETE FROM tags WHERE {}=(?1) AND tag_name=(?2)", self.id_field_name);
         self.context.connection().execute(
             sql.as_str(),
@@ -108,49 +108,49 @@ impl TagsDbApi for TagsDb {
         return Box::new(TagsDb::new(self.db_utils.clone()));
     }
 
-    fn set_add_item_tag(&self, item_id: MusicItemId, tag_name: &str, tag_value: &str) -> DbResult<()> {
+    fn set_add_item_tag(&self, item_id: MusicItemId, tag_name: &str, tag_value: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_music_item_utils(context.borrow_mut());
         return tags_utils.set_add_tag(item_id, tag_name, tag_value);
     }
 
-    fn get_item_tag(&self, item_id: MusicItemId, tag_name: &str) -> DbResult<Option<Tag>> {
+    fn get_item_tag(&self, item_id: MusicItemId, tag_name: &str) -> Result<Option<Tag>> {
         let mut context = self.db_utils.lock();
         let tags_utils = TagsUtils::new_music_item_utils(context.borrow_mut());
         return tags_utils.get_tag(item_id, tag_name);
     }
 
-    fn get_item_tags(&self, item_id: MusicItemId) -> DbResult<Vec<Tag>> {
+    fn get_item_tags(&self, item_id: MusicItemId) -> Result<Vec<Tag>> {
         let mut context = self.db_utils.lock();
         let tags_utils = TagsUtils::new_music_item_utils(context.borrow_mut());
         return tags_utils.get_tags(item_id);
     }
 
-    fn delete_item_tag(&self, item_id: MusicItemId, tag_name: &str) -> DbResult<()> {
+    fn delete_item_tag(&self, item_id: MusicItemId, tag_name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_music_item_utils(context.borrow_mut());
         return tags_utils.delete_tag(item_id, tag_name);
     }
 
-    fn set_add_folder_tag(&self, folder_id: FolderId, tag_name: &str, tag_value: &str) -> DbResult<()> {
+    fn set_add_folder_tag(&self, folder_id: FolderId, tag_name: &str, tag_value: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_folder_utils(context.borrow_mut());
         return tags_utils.set_add_tag(folder_id, tag_name, tag_value);
     }
 
-    fn get_folder_tag(&self, folder_id: FolderId, tag_name: &str) -> DbResult<Option<Tag>> {
+    fn get_folder_tag(&self, folder_id: FolderId, tag_name: &str) -> Result<Option<Tag>> {
         let mut context = self.db_utils.lock();
         let tags_utils = TagsUtils::new_folder_utils(context.borrow_mut());
         return tags_utils.get_tag(folder_id, tag_name);
     }
 
-    fn get_folder_tags(&self, folder_id: FolderId) -> DbResult<Vec<Tag>> {
+    fn get_folder_tags(&self, folder_id: FolderId) -> Result<Vec<Tag>> {
         let mut context = self.db_utils.lock();
         let tags_utils = TagsUtils::new_folder_utils(context.borrow_mut());
         return tags_utils.get_tags(folder_id);
     }
 
-    fn delete_folder_tag(&self, folder_id: FolderId, tag_name: &str) -> DbResult<()> {
+    fn delete_folder_tag(&self, folder_id: FolderId, tag_name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_folder_utils(context.borrow_mut());
         return tags_utils.delete_tag(folder_id, tag_name);

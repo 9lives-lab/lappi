@@ -1,9 +1,9 @@
+use anyhow::Result;
 use rusqlite::params;
 
 use crate::collection::music::MusicItemId;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::playlists::types::{PlaylistDesc, PlaylistId, PlaylistItemId};
-use crate::database::api::DbResult;
 use crate::database::sqlite::utils::DatabaseUtils;
 
 pub struct PlaylistsDb {
@@ -23,7 +23,7 @@ impl PlaylistsDbApi for PlaylistsDb {
         return Box::new(PlaylistsDb::new(self.db_utils.clone()));
     }
 
-    fn create_playlist(&self, name: &str) -> DbResult<PlaylistId> {
+    fn create_playlist(&self, name: &str) -> Result<PlaylistId> {
         let mut context = self.db_utils.lock();
         context.connection().execute(
             "INSERT INTO playlists (name) VALUES (?1)",
@@ -35,21 +35,21 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(playlist_id)
     }
 
-    fn set_playlist_name(&self, id: PlaylistId, name: &str) -> DbResult<()> {
+    fn set_playlist_name(&self, id: PlaylistId, name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(id, "playlists", "name", name)?;
         context.on_playlists_updated();
         Ok(())
     }
 
-    fn delete_playlist(&self, id: PlaylistId) -> DbResult<()> {
+    fn delete_playlist(&self, id: PlaylistId) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.remove_row("playlists", id)?;
         context.on_playlists_updated();
         Ok(())
     }
 
-    fn get_playlists(&self) -> DbResult<Vec<PlaylistDesc>> {
+    fn get_playlists(&self) -> Result<Vec<PlaylistDesc>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare("SELECT id, name FROM playlists")?;
         let rows = stmt.query_map(params![], |row| {
@@ -65,7 +65,7 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(list)
     }
 
-    fn get_playlist_description(&self, playlist_id: PlaylistId) -> DbResult<PlaylistDesc> {
+    fn get_playlist_description(&self, playlist_id: PlaylistId) -> Result<PlaylistDesc> {
         let context = self.db_utils.lock();
         let description = context.connection().query_row(
             "SELECT name FROM playlists WHERE id=(?1)",
@@ -81,7 +81,7 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(description)
     }
 
-    fn add_item_to_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) -> DbResult<()> {
+    fn add_item_to_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.connection().execute(
             "INSERT INTO playlist_items (playlist_id, music_item_id) VALUES (?1, ?2)",
@@ -91,7 +91,7 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(())
     }
 
-    fn get_playlist_items(&self, playlist_id: PlaylistId) -> DbResult<Vec<(PlaylistItemId, MusicItemId)>> {
+    fn get_playlist_items(&self, playlist_id: PlaylistId) -> Result<Vec<(PlaylistItemId, MusicItemId)>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare("SELECT id, music_item_id FROM playlist_items WHERE playlist_id=(?1)").unwrap();
         let rows = stmt.query_map(params![playlist_id], |row| {
@@ -102,7 +102,7 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(list)
     }
 
-    fn get_playlists_for_music_item(&self, music_item_id: MusicItemId) -> DbResult<Vec<PlaylistId>> {
+    fn get_playlists_for_music_item(&self, music_item_id: MusicItemId) -> Result<Vec<PlaylistId>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare("SELECT playlist_id FROM playlist_items WHERE music_item_id=(?1)")?;
         let rows = stmt.query_map(params![music_item_id], |row| {

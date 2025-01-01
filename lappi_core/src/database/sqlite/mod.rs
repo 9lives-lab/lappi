@@ -2,7 +2,7 @@ pub mod utils;
 pub mod init;
 pub mod collection;
 
-use collection::tags::TagsDb;
+use anyhow::Result;
 use rusqlite::Connection;
 use amina_core::service::Context;
 
@@ -13,7 +13,7 @@ use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::tags::database_api::TagsDbApi;
-use crate::database::api::{DbExporter, DbImporter, DbResult};
+use crate::database::api::{DbExporter, DbImporter};
 use crate::debug::configuration::database::Mode;
 use crate::debug::Debugger;
 
@@ -22,6 +22,7 @@ use collection::folders::FoldersDb;
 use collection::pictures::PicturesDb;
 use collection::lyrics::LyricsDb;
 use collection::music::MusicDb;
+use collection::tags::TagsDb;
 use collection::playlists::PlaylistsDb;
 
 pub struct SqliteDb {
@@ -67,7 +68,7 @@ impl CollectionDbApi for SqliteDb {
         self.db_utils.lock().start_batch();
     }
  
-    fn export(&self, exporter: Box<dyn DbExporter>) -> DbResult<()> {
+    fn export(&self, exporter: Box<dyn DbExporter>) -> Result<()> {
         let context = self.db_utils.lock();
         let tables_list = self::init::get_tables_list();
         for table_name in tables_list {
@@ -76,7 +77,7 @@ impl CollectionDbApi for SqliteDb {
         Ok(())
     }
 
-    fn import(&self, importer: Box<dyn DbImporter>) -> DbResult<()> {
+    fn import(&self, importer: Box<dyn DbImporter>) -> Result<()> {
         let context = self.db_utils.lock();
         let tables_list = self::init::get_tables_list();
         for table_name in tables_list {

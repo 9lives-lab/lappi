@@ -1,35 +1,6 @@
 use rusqlite::ToSql;
 use rusqlite::types::ToSqlOutput;
 
-pub mod error {
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Debug, Deserialize, Serialize)]
-    pub enum DbError {
-        GenericError(String),
-    }
-
-    impl From<rusqlite::Error> for DbError {
-        fn from(err: rusqlite::Error) -> DbError {
-            DbError::GenericError(err.to_string())
-        }
-    }
-
-    impl std::fmt::Display for DbError {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "Database error")
-        }
-    }
-
-    impl std::error::Error for DbError {
-        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-            None
-        }
-    }
-}
-
-pub type DbResult<T, E = error::DbError> = std::result::Result<T, E>;
-
 #[derive(Debug, Clone)]
 pub enum DbValue {
     Null,

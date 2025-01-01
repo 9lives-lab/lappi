@@ -1,8 +1,8 @@
+use anyhow::Result;
 use rusqlite::params;
 use fallible_iterator::FallibleIterator;
 
 use crate::database::sqlite::utils::DatabaseUtils;
-use crate::database::api::DbResult;
 use crate::collection::lyrics::{LyricsDescription, LyricsId};
 use crate::collection::lyrics::database_api::LyricsDbApi;
 use crate::collection::music::MusicItemId;
@@ -24,14 +24,14 @@ impl LyricsDbApi for LyricsDb {
         return Box::new(LyricsDb::new(self.db_utils.clone()));
     }
 
-    fn add_lyrics_item(&self, music_id: MusicItemId, lang_code: &str) -> DbResult<LyricsId> {
+    fn add_lyrics_item(&self, music_id: MusicItemId, lang_code: &str) -> Result<LyricsId> {
         let context = self.db_utils.lock();
         let query = "INSERT INTO lyrics_items (music_item_id, lang_code) VALUES (?1, ?2)";
         context.connection().execute(&query, params![music_id, lang_code])?;
         Ok(context.connection().last_insert_rowid())
     }
 
-    fn get_lyrics_list(&self, music_id: MusicItemId) -> DbResult<Vec<LyricsDescription>> {
+    fn get_lyrics_list(&self, music_id: MusicItemId) -> Result<Vec<LyricsDescription>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare("SELECT id, lang_code FROM lyrics_items WHERE music_item_id=(?1)")?;
         let rows = stmt.query([music_id])?;

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use num_traits::FromPrimitive;
 use rusqlite::params;
 
@@ -5,7 +6,6 @@ use crate::collection::folders::FolderId;
 use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::music::{MusicItemDescription, MusicItemId, MusicSourceFileId, SourceFileDesc, SourceType};
 use crate::database::sqlite::utils::DatabaseUtils;
-use crate::database::api::DbResult;
 
 pub struct MusicDb {
     db_utils: DatabaseUtils,
@@ -35,14 +35,14 @@ impl MusicDbApi for MusicDb {
         item_id
     }
 
-    fn set_item_name(&self, item_id: MusicItemId, name: &str) -> DbResult<()> {
+    fn set_item_name(&self, item_id: MusicItemId, name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(item_id, "music_items", "name", name)?;
         context.on_folders_updated(); // Notify any observers of the change
         Ok(())
     }
 
-    fn get_music_item_description(&self, music_id: MusicItemId) -> DbResult<MusicItemDescription> {
+    fn get_music_item_description(&self, music_id: MusicItemId) -> Result<MusicItemDescription> {
         let context = self.db_utils.lock();
         let description = context.connection().query_row(
             "SELECT name, folder_id FROM music_items WHERE id=(?1)",
@@ -59,15 +59,15 @@ impl MusicDbApi for MusicDb {
         Ok(description) 
     }
 
-    fn get_all_music_items(&self) -> DbResult<Vec<MusicItemId>> {
+    fn get_all_music_items(&self) -> Result<Vec<MusicItemId>> {
         self.db_utils.lock().get_rows_list("music_items")
     }
 
-    fn get_music_item_folder(&self, item_id: MusicItemId) -> DbResult<FolderId> {
+    fn get_music_item_folder(&self, item_id: MusicItemId) -> Result<FolderId> {
         self.db_utils.lock().get_field_value(item_id, "music_items","folder_id")
     }
 
-    fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: &str) -> DbResult<()> {
+    fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.connection().execute(
             "INSERT INTO music_src_files (music_item_id, path, source_type) VALUES (?1, ?2, ?3)",
@@ -77,7 +77,7 @@ impl MusicDbApi for MusicDb {
         Ok(())
     }
 
-    fn delete_source_file(&self, source_id: MusicSourceFileId) -> DbResult<()> {
+    fn delete_source_file(&self, source_id: MusicSourceFileId) -> Result<()> {
         let mut context = self.db_utils.lock();
         let conn = context.connection();
         conn.execute(
@@ -88,14 +88,14 @@ impl MusicDbApi for MusicDb {
         Ok(())
     }
 
-    fn set_source_file_path(&self, source_id: MusicSourceFileId, path: &str) -> DbResult<()> {
+    fn set_source_file_path(&self, source_id: MusicSourceFileId, path: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(source_id, "music_src_files", "path", path)?;
         context.on_music_updated();
         Ok(())
     }
 
-    fn get_source_files(&self, item_id: MusicItemId) -> DbResult<Vec<SourceFileDesc>> {
+    fn get_source_files(&self, item_id: MusicItemId) -> Result<Vec<SourceFileDesc>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare(
             "SELECT id, music_item_id, path, source_type FROM music_src_files WHERE music_item_id=(?1)"

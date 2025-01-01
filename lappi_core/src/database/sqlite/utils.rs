@@ -1,12 +1,13 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use anyhow::Result;
 use rusqlite::{Connection, OptionalExtension, params, Rows, ToSql};
 use rusqlite::types::FromSql;
 use amina_core::events::EventEmitter;
 use amina_core::service::{Context, Service};
 
 use crate::collection::OnCollectionUpdated;
-use crate::database::api::{DbExporter, DbImporter, DbResult, DbValue};
+use crate::database::api::{DbExporter, DbImporter, DbValue};
 
 struct BatchContext {
     events_emitter: Service<EventEmitter>,
@@ -65,37 +66,37 @@ impl DatabaseContext {
         &self.connection
     }
 
-    pub fn set_field_value<T: ToSql>(&self, row_id: i64, table_name: &str, field_name: &str, value: T) -> DbResult<()>  {
+    pub fn set_field_value<T: ToSql>(&self, row_id: i64, table_name: &str, field_name: &str, value: T) -> Result<()>  {
         let query = format!("UPDATE {} SET {} = ?1 WHERE id = ?2", table_name, field_name);
         self.connection.execute(&query, params![value, row_id])?;
         Ok(())
     }
 
-    pub fn get_field_value<T: FromSql>(&self, row_id: i64, table_name: &str, field_name: &str) -> DbResult<T> {
+    pub fn get_field_value<T: FromSql>(&self, row_id: i64, table_name: &str, field_name: &str) -> Result<T> {
         let query = format!("SELECT {} FROM {} WHERE id=(?1)", field_name, table_name);
         let result = self.connection.query_row(&query, params![row_id], |row| row.get::<_, T>(0))?;
         Ok(result)
     }
 
-    pub fn get_field_by_key<K: ToSql, T: FromSql>(&self, table_name: &str, key_name: &str, key_value: K, field_name: &str) -> DbResult<T> {
+    pub fn get_field_by_key<K: ToSql, T: FromSql>(&self, table_name: &str, key_name: &str, key_value: K, field_name: &str) -> Result<T> {
         let query = format!("SELECT {} FROM {} WHERE {}=(?1)", field_name, table_name, key_name);
         let result = self.connection.query_row(&query, params![key_value], |row| row.get::<_, T>(0))?;
         Ok(result)
     }
 
-    pub fn add_empty_row(&self, table_name: &str) -> DbResult<i64> {
+    pub fn add_empty_row(&self, table_name: &str) -> Result<i64> {
         let query = format!("INSERT INTO {} DEFAULT VALUES", table_name);
         self.connection.execute(&query, [])?;
         Ok(self.connection.last_insert_rowid())
     }
 
-    pub fn remove_row(&self, table_name: &str, row_id: i64) -> DbResult<()> {
+    pub fn remove_row(&self, table_name: &str, row_id: i64) -> Result<()> {
         let query = format!("DELETE FROM {} WHERE id=(?1)", table_name);
         self.connection.execute(&query, params![row_id])?;
         Ok(())
     }
 
-    pub fn find_or_add_string_row(&self, table_name: &str, field_name: &str, value: &str) -> DbResult<i64> {
+    pub fn find_or_add_string_row(&self, table_name: &str, field_name: &str, value: &str) -> Result<i64> {
         let query = format!("SELECT id FROM {} WHERE {}=(?1)", table_name, field_name);
         let result = self.connection.query_row(
             &query,
@@ -116,7 +117,7 @@ impl DatabaseContext {
         Ok(row_id)
     }
 
-    pub fn find_connection(&self, table_name: &str, from_name: &str, from_id: i64, to_name: &str, to_id: i64) -> DbResult<bool> {
+    pub fn find_connection(&self, table_name: &str, from_name: &str, from_id: i64, to_name: &str, to_id: i64) -> Result<bool> {
         let query = format!("SELECT id FROM {} WHERE {}=(?1) AND {}=(?2)", table_name, from_name, to_name);
         let result = self.connection.query_row(
             &query,
@@ -126,7 +127,7 @@ impl DatabaseContext {
         Ok(result.is_some())
     }
 
-    pub fn add_connection(&self, table_name: &str, from_name: &str, from_id: i64, to_name: &str, to_id: i64) -> DbResult<()> {
+    pub fn add_connection(&self, table_name: &str, from_name: &str, from_id: i64, to_name: &str, to_id: i64) -> Result<()> {
         if !self.find_connection(table_name, from_name, from_id, to_name, to_id)? {
             let query = format!("INSERT INTO {} ({}, {}) VALUES (?1, ?2)", table_name, from_name, to_name);
             self.connection.execute(
@@ -139,7 +140,7 @@ impl DatabaseContext {
         }
     }
 
-    pub fn collect_rows(rows: &mut Rows) -> DbResult<Vec<i64>> {
+    pub fn collect_rows(rows: &mut Rows) -> Result<Vec<i64>> {
         let mut id_list = Vec::new();
         while let Some(row) = rows.next()? {
             id_list.push(row.get(0)?);
@@ -147,21 +148,21 @@ impl DatabaseContext {
         Ok(id_list)
     }
 
-    pub fn get_rows_list(&self, table_name: &str) -> DbResult<Vec<i64>> {
+    pub fn get_rows_list(&self, table_name: &str) -> Result<Vec<i64>> {
         let query = format!("SELECT id FROM {}", table_name);
         let mut stmt = self.connection.prepare(&query)?;
         let mut rows = stmt.query([])?;
         Self::collect_rows(&mut rows)
     }
 
-    pub fn get_fields_list_by_field_i64_value(&self, table_name: &str, return_field_name: &str, field_name: &str, value: i64) -> DbResult<Vec<i64>> {
+    pub fn get_fields_list_by_field_i64_value(&self, table_name: &str, return_field_name: &str, field_name: &str, value: i64) -> Result<Vec<i64>> {
         let query = format!("SELECT {} FROM {} WHERE {}=(?1)", return_field_name, table_name, field_name);
         let mut stmt = self.connection.prepare(&query)?;
         let mut rows = stmt.query([value])?;
         Self::collect_rows(&mut rows)
     }
 
-    pub fn get_table_info(&self, table_name: &str) -> DbResult<Vec<(String, String)>> {
+    pub fn get_table_info(&self, table_name: &str) -> Result<Vec<(String, String)>> {
         let query = format!("PRAGMA table_info({})", table_name);
         let mut stmt = self.connection.prepare(&query)?;
         let mut rows = stmt.query([])?;
@@ -174,7 +175,7 @@ impl DatabaseContext {
         Ok(result)
     }
 
-    pub fn export_table(&self, table_name: &str, exporter: &dyn DbExporter) -> DbResult<()> {
+    pub fn export_table(&self, table_name: &str, exporter: &dyn DbExporter) -> Result<()> {
         let table_info = self.get_table_info(table_name)?;
         let columns: Vec<String> = table_info.iter().map(|(name, _)| name.clone()).collect();
         let query = format!("SELECT {} FROM {}", columns.join(", "), table_name);
@@ -197,7 +198,7 @@ impl DatabaseContext {
         Ok(())
     }
 
-    pub fn import_table(&self, table_name: &str, importer: &dyn DbImporter) -> DbResult<()> {
+    pub fn import_table(&self, table_name: &str, importer: &dyn DbImporter) -> Result<()> {
         let table_info = self.get_table_info(table_name)?;
         let columns: Vec<String> = table_info.iter().map(|(name, _)| name.clone()).collect();
         let data = importer.get_table_rows(table_name, table_info);
