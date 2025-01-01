@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineModel, defineEmits } from 'vue'
+import { defineModel } from 'vue'
 
 defineProps({
   name: String
