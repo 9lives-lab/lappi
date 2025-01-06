@@ -1,17 +1,18 @@
 use std::fs::File;
 use std::path::Path;
-use std::sync::Arc;
+
+use amina_core::service::Service;
 
 use crate::collection::Collection;
 use crate::collection::tags::TagsMap;
 
-pub struct BasicCollectionImporter {
-    collection: Arc<Collection>,
+pub struct BasicCsvCollectionImporter {
+    collection: Service<Collection>,
 }
 
-impl BasicCollectionImporter {
+impl BasicCsvCollectionImporter {
 
-    pub fn new(collection: Arc<Collection>) -> Self {
+    pub fn new(collection: Service<Collection>) -> Self {
         Self {
             collection
         }

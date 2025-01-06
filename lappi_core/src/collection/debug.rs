@@ -1,27 +1,28 @@
-use std::ops::Deref;
-use std::sync::Arc;
-
-use amina_core::service::Context;
-
-use crate::collection::Collection;
-use crate::import::collection::basic::BasicCollectionImporter;
 use crate::debug::Debugger;
+use crate::collection::Collection;
+use crate::import::collection::basic_csv::BasicCsvCollectionImporter;
+use crate::import::collection::basic_yaml::BasicYamlCollectionImporter;
 
-pub fn init_collection_from_csv(debugger: &Debugger, collection: Arc<Collection>) {
-    log::debug!("Initializing collection from csv");
+pub fn init() {
+    let debugger = crate::context().get_service::<Debugger>();
+    let collection = crate::context().get_service::<Collection>();
 
-    let folder_path = debugger.get_debug_root_workspace()
-        .join(&debugger.config().collection.init_folder);
-
-    log::debug!("Init folder: {:?}", &folder_path);
-
-    let importer = BasicCollectionImporter::new(collection);
-    importer.import(&folder_path);
-}
-
-pub fn init(context: &Context, collection: Arc<Collection>) {
-    let debugger = context.get_service::<Debugger>();
     if debugger.config().collection.init {
-        init_collection_from_csv(debugger.deref(), collection);
+        if collection.is_empty() {
+            log::info!("Collection is empty");
+
+            let folder_path = debugger.get_debug_root_workspace().join(&debugger.config().collection.init_folder);
+            log::info!("Init folder: {:?}", &folder_path);
+
+            if folder_path.join("items.csv").exists() {
+                let importer = BasicCsvCollectionImporter::new(collection);
+                importer.import(&folder_path);
+            } else if folder_path.join("collection.yaml").exists() {
+                let importer = BasicYamlCollectionImporter::new(collection, &folder_path);
+                importer.import();
+            } else {
+                panic!("No collection.csv or collection.yaml file found in init folder")
+            }
+        }
     }
 }

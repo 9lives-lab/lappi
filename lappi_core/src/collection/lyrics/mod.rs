@@ -34,6 +34,7 @@ impl LyricsCollection {
 
     pub fn save_lyrics(&self, lyrics_id: LyricsId, text: String) {
         let path = self.get_lyrics_storage_path(lyrics_id);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(path, text.as_bytes()).unwrap();
     }
 

@@ -68,6 +68,10 @@ impl FoldersDbApi for FoldersDb {
         return Box::new(FoldersDb::new(self.db_utils.clone()));
     }
 
+    fn is_empty(&self) -> bool {
+        self.db_utils.lock().is_empty("folders")
+    }
+
     fn get_root_folder(&self) -> FolderId {
         0
     }

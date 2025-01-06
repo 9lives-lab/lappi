@@ -61,6 +61,10 @@ impl Collection {
     pub fn stop_batch(&self) {
         self.db.stop_batch();
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.folders.is_empty()
+    }
 }
 
 impl ServiceApi for Collection {
@@ -69,6 +73,7 @@ impl ServiceApi for Collection {
         if self.local_storage.is_available() {
             self.db.import(self.local_storage.get_importer()).unwrap();
         }
+        debug::init();
     }
 
     fn stop(&self) {
@@ -99,8 +104,6 @@ impl ServiceInitializer for Collection {
             playlists: context.get_service::<PlaylistsCollection>(),
             db: database,
         });
-
-        debug::init(context, collection.clone());
 
         return collection;
     }

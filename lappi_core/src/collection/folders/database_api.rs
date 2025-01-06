@@ -6,6 +6,7 @@ use crate::collection::pictures::PictureId;
 
 pub trait FoldersDbApi: Send + Sync {
     fn clone_api(&self) -> Box<dyn FoldersDbApi>;
+    fn is_empty(&self) -> bool;
     fn get_root_folder(&self) -> FolderId;
     fn get_folder_parent(&self, folder_id: FolderId) -> Result<FolderId>;
     fn get_folder_name(&self, folder_id: FolderId) -> Result<String>;

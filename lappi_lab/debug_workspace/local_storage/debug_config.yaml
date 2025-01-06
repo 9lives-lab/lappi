@@ -7,9 +7,9 @@ database:
 
 collection:
 
-  init: false
+  init: true
 
   # Folder containing collection template in csv files
-  init_folder: "../../lappi_dataset/collection"
+  init_folder: "../lappi_dataset/default_collection"
 
   storage: true

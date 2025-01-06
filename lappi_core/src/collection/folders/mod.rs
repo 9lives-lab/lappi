@@ -51,6 +51,10 @@ pub struct FoldersCollection {
 }
 
 impl FoldersCollection {
+    pub fn is_empty(&self) -> bool {
+        self.folders_db.is_empty()
+    }
+
     pub fn get_root_folder(&self) -> FolderId {
         self.folders_db.get_root_folder()
     }

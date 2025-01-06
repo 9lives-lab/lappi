@@ -66,6 +66,16 @@ impl DatabaseContext {
         &self.connection
     }
 
+    pub fn is_empty(&self, table_name: &str) -> bool {
+        let query = format!("SELECT COUNT(*) FROM {}", table_name);
+        let rows_num = self.connection.query_row(
+            &query, 
+            params![], 
+            |row| row.get::<_, i64>(0)
+        ).unwrap();
+        return 0 == rows_num;
+    }
+
     pub fn set_field_value<T: ToSql>(&self, row_id: i64, table_name: &str, field_name: &str, value: T) -> Result<()>  {
         let query = format!("UPDATE {} SET {} = ?1 WHERE id = ?2", table_name, field_name);
         self.connection.execute(&query, params![value, row_id])?;

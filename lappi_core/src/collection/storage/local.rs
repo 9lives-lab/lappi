@@ -39,6 +39,7 @@ pub struct CsvFileDbExporter {
 
 impl DbExporter for CsvFileDbExporter {
     fn get_table_exporter(&self, table_name: &str, columns: Vec<String>) -> Box<dyn DbTableExporter> {
+        std::fs::create_dir_all(&self.root_path).unwrap();
         let path = self.root_path.join(table_name.to_string() + ".csv");
         let mut file = File::create(path).unwrap();
         let header = columns.join("|").add("\n");

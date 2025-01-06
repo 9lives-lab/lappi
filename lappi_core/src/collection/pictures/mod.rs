@@ -71,7 +71,11 @@ impl PicturesCollection {
     }
 
     fn get_pictures_storage_path(&self) -> PathBuf {
-        return self.local_storage.get_internal_storage_folder("pictures");
+        let pictures_folder = self.local_storage.get_internal_storage_folder("pictures");
+        if !pictures_folder.exists() {
+            std::fs::create_dir_all(&pictures_folder).unwrap();
+        }
+        return pictures_folder;
     }
 
     fn get_picture_storage_path(&self, picture_id: PictureId) -> PathBuf {
