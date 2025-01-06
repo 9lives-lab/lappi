@@ -1,8 +1,11 @@
 <template>
-  <div class="player-pane row items-center items-stretch">
+  <div class="player-pane row items-stretch">
     <q-btn class="col-auto text-subtitle2" icon="skip_previous" @click="playPrevious" />
     <q-btn class="col-auto text-subtitle1" :icon="playButtonIcon" size="lg" @click="tooglePlay()"/>
     <q-btn class="col-auto text-subtitle2" icon="skip_next" @click="playNext"/>
+    <div class="cover-image-container row items-center q-pl-md">
+      <img v-show="coverUrl != null" :src="coverUrl" class="cover-image">
+    </div>
     <div class="col q-pr-md q-pl-md q-pt-md">
       <div class="title text-weight-light">{{ title }}</div>
       <q-slider
@@ -27,6 +30,7 @@ import { getCurrentInstance, onMounted, ref } from 'vue'
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
 const title = ref(' ')
+const coverUrl = ref(null)
 const playButtonIcon = ref('play_circle')
 const progress = ref(0)
 let isProgressChanged = false
@@ -49,14 +53,21 @@ async function onProgressChange (value) {
 }
 
 onMounted(() => {
-  aminaApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane', (event) => {
+  aminaApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane', async (event) => {
     if (isProgressChanged === false) {
       title.value = event.title
       progress.value = event.progress
+
       if (event.is_playing) {
         playButtonIcon.value = 'pause_circle'
       } else {
         playButtonIcon.value = 'play_circle'
+      }
+
+      if (event.cover_path !== null) {
+        coverUrl.value = await aminaApi.getFileUrl(event.cover_path)
+      } else {
+        coverUrl.value = null
       }
     } else {
       // skip progress change event
@@ -77,6 +88,12 @@ onMounted(() => {
 
   .title
     text-align: center
+
+  .cover-image
+    height: 50px
+    border-radius: 5px
+    border: 2px solid rgba(255,255,255,0.1)
+    box-shadow: 0px 0px 10px rgba(255,255,255,0.1)
 
 </style>
 

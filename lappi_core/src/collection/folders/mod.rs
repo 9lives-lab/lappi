@@ -83,6 +83,16 @@ impl FoldersCollection {
         self.folders_db.set_folder_cover(folder_id, picture_id).unwrap();
     }
 
+    pub fn find_folder_cover(&self, folder_id: FolderId) -> Option<PictureId> {
+        let folder_chain = self.get_folders_chain(folder_id);
+        for folder in folder_chain.iter().rev() {
+            if let Some(picture_id) = folder.avatar_picture_id {
+                return Some(picture_id);
+            }
+        }
+        None
+    }
+
     pub fn find_or_add_folder(&self, parent_id: FolderId, folder_name: String, folder_type: FolderType) -> FolderId {
         self.folders_db.find_or_add_folder(parent_id, folder_name.as_str(), folder_type).unwrap()
     }

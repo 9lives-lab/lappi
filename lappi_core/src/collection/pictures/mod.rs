@@ -50,14 +50,19 @@ impl PicturesCollection {
 
     pub fn delete_picture(&self, picture_id: PictureId) {
         let file_path = self.get_picture_storage_path(picture_id); 
-        log::debug!("Deleting file {:?}", file_path);
-        std::fs::remove_file(file_path).unwrap();
+        log::debug!("Deleting file {:?}", &file_path);
+        let remove_result = std::fs::remove_file(&file_path);
+        if remove_result.is_err() {
+            log::error!("Failed to delete file {:?}: {:?}", &file_path, remove_result);
+        }
         self.db.delete_picture_item(picture_id).unwrap();
     }
 
     pub fn get_picture_path(&self, picture_id: PictureId) -> String {
-        let file_extension = self.db.get_picture_extension(picture_id).unwrap();
-        return format!("{}/{}.{}", FILE_HANDLER_KEY, picture_id, file_extension);
+        return match self.db.get_picture_extension(picture_id) {
+            Ok(file_extension) => format!("{}/{}.{}", FILE_HANDLER_KEY, picture_id, file_extension),
+            Err(_) => "".to_string(),
+        };
     }
 
     pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Vec<PictureId> {

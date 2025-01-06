@@ -10,6 +10,7 @@ use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use crate::database::Database;
 
 use super::folders::{FolderId, FoldersCollection};
+use super::pictures::PictureId;
 use super::tags::database_api::TagsDbApi;
 use super::tags::Tag;
 
@@ -94,6 +95,10 @@ impl MusicCollection {
         self.music_db.get_music_item_description(item_id).unwrap()
     }
 
+    pub fn get_item_cover(&self, item_id: MusicItemId) -> Option<PictureId> {
+        self.folders.find_folder_cover(self.get_item_description(item_id).folder_id)
+    }
+
     pub fn set_tag(&self, item_id: MusicItemId, tag_name: String, tag_value: String) {
         self.tags_db.set_add_item_tag(item_id, tag_name.as_str(), tag_value.as_str()).unwrap();
     }
@@ -112,6 +117,21 @@ impl MusicCollection {
         tags.extend(self.folders.get_inherited_tags(folder_id));
 
         return tags;
+    }
+
+    pub fn get_tag(&self, item_id: MusicItemId, tag_name: &str) -> Option<Tag> {
+        let mut tags = vec![];
+
+        tags.extend(self.get_tags(item_id));
+        tags.extend(self.get_inherited_tags(item_id));
+
+        for tag in tags {
+            if tag.get_key() == tag_name {
+                return Some(tag);
+            }
+        }
+
+        return None;
     }
 
     pub fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: String) {

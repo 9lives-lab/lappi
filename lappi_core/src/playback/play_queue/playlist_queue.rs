@@ -1,3 +1,4 @@
+use crate::collection::pictures::PictureId;
 use crate::collection::playlists::types::{PlaylistId, PlaylistItemId};
 use crate::collection::playlists::PlaylistsCollection;
 use crate::playback::sources::PlaybackSource;
@@ -36,6 +37,10 @@ impl PlayQueue for PlaylistQueue {
 
     fn get_current_title(&self) -> &str {
         self.queue[self.current_idx].playback_source.get_name()
+    }
+
+    fn get_current_cover(&self) -> Option<PictureId> {
+        self.queue[self.current_idx].playback_source.get_cover_picture()
     }
 
     fn has_next(&self) -> bool {

@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use crate::collection::music::{MusicCollection, MusicItemId};
+use crate::collection::pictures::PictureId;
 
 #[derive(Clone, Debug)]
 pub enum SourceType {
@@ -9,8 +10,9 @@ pub enum SourceType {
 
 #[derive(Clone, Debug)]
 pub struct PlaybackSource {
-    pub name: String,
-    pub source_type: SourceType,
+    name: String,
+    source_type: SourceType,
+    cover_picture: Option<PictureId>,
 }
 
 impl PlaybackSource {
@@ -18,6 +20,7 @@ impl PlaybackSource {
         Box::new(Self {
             name,
             source_type: SourceType::LocalFile(path),
+            cover_picture: Option::None,
         })
     }
 
@@ -31,13 +34,21 @@ impl PlaybackSource {
             if file_desc.source_type == crate::collection::music::SourceType::LocalFile {
                 default_source_file = Some(file_desc);
                 break;
-            }   
+            }
         }
     
-        let name = music.get_item_description(music_item_id).name;
+        let item_desc = music.get_item_description(music_item_id);
+        let artist_tag = music.get_tag(music_item_id, "artist");
+        let name = if let Some(artist_tag) = artist_tag {
+            format!("{} - {}", artist_tag.get_string().unwrap(), item_desc.name)
+        } else {
+            item_desc.name
+        };
 
         if let Some(file_desc) = default_source_file {
-            return Some(Self::local_file(name, file_desc.path));
+            let mut playback_source = Self::local_file(name, file_desc.path);
+            playback_source.cover_picture = music.get_item_cover(music_item_id);
+            return Some(playback_source);
         } else {
             return None;
         }
@@ -49,5 +60,9 @@ impl PlaybackSource {
 
     pub fn get_source_type(&self) -> &SourceType {
         &self.source_type
+    }
+
+    pub fn get_cover_picture(&self) -> Option<PictureId> {
+        self.cover_picture
     }
 }
