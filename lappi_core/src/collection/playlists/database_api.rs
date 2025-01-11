@@ -11,6 +11,7 @@ pub trait PlaylistsDbApi: Send + Sync {
     fn get_playlists(&self) -> Result<Vec<PlaylistDesc>>;
     fn get_playlist_description(&self, id: PlaylistId) -> Result<PlaylistDesc>;
     fn add_item_to_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) -> Result<()>;
+    fn delete_item_from_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) -> Result<()>;
     fn get_playlist_items(&self, playlist_id: PlaylistId) -> Result<Vec<(PlaylistItemId, MusicItemId)>>;
     fn get_playlists_for_music_item(&self, music_item_id: MusicItemId) -> Result<Vec<PlaylistId>>;
 }

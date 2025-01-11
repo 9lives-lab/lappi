@@ -1,50 +1,42 @@
 <template>
   <WidgetPane title="Playlists">
     <div class="column playback-sources">
-      <ToolPane class="col-auto">
+      <div class="row q-pa-md q-gutter-md">
         <q-btn
-          icon="playlist_add"
-          label="Add to playlist"
-          @click="addToPlaylist()"
-          :disable="!isAddButtonActive"
-        />
-      </ToolPane>
-      <div class="row">
-        <div
+          no-caps
           v-for="playlist in playlistsList"
           :key="playlist.id"
-          class="playlist-item row flex-center col-4 q-pa-sm"
-          @click="selectPlaylist(playlist.id)"
-          :class="{ 'playlist-item-selected': playlist.id === selectedPlaylistId }"
-        >
-          <q-icon v-if="playlist.added" name="playlist_add_check" class="icon-added-to-playlist q-pr-md" />
-          <div>{{ playlist.name }}</div>
-        </div>
+          :color="playlist.added ? 'primary' : 'blue-grey'"
+          :icon="playlist.added ? 'check' : 'add'"
+          :label="playlist.name"
+          @click="addOrRemoveFromPlaylist(playlist)"
+        />
       </div>
     </div>
   </WidgetPane>
 </template>
 
 <script setup>
-import { ref, getCurrentInstance, computed } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
 import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const playlistsList = ref([])
-const selectedPlaylistId = ref(-1)
 let musicItemId = -1
 
-async function selectPlaylist (playlistId) {
-  selectedPlaylistId.value = playlistId
-}
-
-async function addToPlaylist () {
-  await aminaApi.sendRequest('lappi.playlists.add_item_to_playlist', {
-    playlist_id: selectedPlaylistId.value,
-    music_item_id: musicItemId
-  })
-  selectedPlaylistId.value = -1
+async function addOrRemoveFromPlaylist (playlist) {
+  if (playlist.added) {
+    await aminaApi.sendRequest('lappi.playlists.delete_item_from_playlist', {
+      playlist_id: playlist.id,
+      music_item_id: musicItemId
+    })
+  } else {
+    await aminaApi.sendRequest('lappi.playlists.add_item_to_playlist', {
+      playlist_id: playlist.id,
+      music_item_id: musicItemId
+    })
+  }
+  await update()
 }
 
 async function update () {
@@ -64,16 +56,8 @@ async function update () {
 
 async function setMusicItem (itemId) {
   musicItemId = itemId
-  selectedPlaylistId.value = -1
   await update()
 }
-
-const isAddButtonActive = computed(() => {
-  if (selectedPlaylistId.value >= 0) {
-    return playlistsList.value.find(playlist => playlist.id === selectedPlaylistId.value).added === false
-  }
-  return false
-})
 
 defineExpose({
   update,

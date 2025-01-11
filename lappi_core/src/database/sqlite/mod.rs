@@ -65,7 +65,7 @@ impl CollectionDbApi for SqliteDb {
     }
 
     fn stop_batch(&self) {
-        self.db_utils.lock().start_batch();
+        self.db_utils.lock().stop_batch();
     }
  
     fn export(&self, exporter: Box<dyn DbExporter>) -> Result<()> {

@@ -6,7 +6,7 @@
     <div class="row col q-gutter-md">
       <WidgetPane class="col-3">
         <AbsoluteWrapper class="list-wrapper col">
-          <q-virtual-scroll class="list-scroll" :items="listItems" v-slot="{ item, index }">
+          <q-virtual-scroll class="list-scroll" :items="listItems" v-slot="{ item, index }" ref="listScroll">
             <q-item class="list-item" :key="index" clickable @click="onItemClicked(item)">
               <q-item-section avatar>
                 <q-avatar v-show="item.hasAvatar === true" rounded>
@@ -72,6 +72,7 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 const isNewFolderDialogOpened = ref(false)
 const isNewItemDialogOpened = ref(false)
 
+const listScroll = ref(null)
 const navigationBar = ref(null)
 const collectionTabs = ref(null)
 const listItems = ref([])
@@ -134,6 +135,9 @@ async function updateFolders (folderId) {
 async function openFolder (folderId) {
   await updateFolders(folderId)
   collectionTabs.value.setFolder(folderId)
+  if (currentFolderId !== folderId) {
+    listScroll.value.scrollTo({ top: 0 })
+  }
   currentFolderId = folderId
   currentItemId = -1
 }

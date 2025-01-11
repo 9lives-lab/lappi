@@ -91,6 +91,16 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(())
     }
 
+    fn delete_item_from_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) -> Result<()> {
+        let mut context = self.db_utils.lock();
+        context.connection().execute(
+            "DELETE FROM playlist_items WHERE playlist_id=(?1) AND music_item_id=(?2)",
+            params![playlist_id, music_item_id],
+        )?;
+        context.on_playlists_updated();
+        Ok(())
+    }
+
     fn get_playlist_items(&self, playlist_id: PlaylistId) -> Result<Vec<(PlaylistItemId, MusicItemId)>> {
         let context = self.db_utils.lock();
         let mut stmt = context.connection().prepare("SELECT id, music_item_id FROM playlist_items WHERE playlist_id=(?1)").unwrap();

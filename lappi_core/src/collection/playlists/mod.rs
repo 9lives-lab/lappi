@@ -71,6 +71,10 @@ impl PlaylistsCollection {
     pub fn add_item_to_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) {
         self.db.add_item_to_playlist(playlist_id, music_item_id).unwrap();
     }
+
+    pub fn delete_item_from_playlist(&self, playlist_id: PlaylistId, music_item_id: MusicItemId) {
+        self.db.delete_item_from_playlist(playlist_id, music_item_id).unwrap();
+    }
 }
 
 impl ServiceApi for PlaylistsCollection {
@@ -96,6 +100,7 @@ impl ServiceInitializer for PlaylistsCollection {
         register_rpc_handler!(rpc, playlists, "lappi.playlists.get_playlist_items", get_playlist_items(playlist_id: PlaylistId));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.get_playlists_for_music_item", get_playlists_for_music_item(music_item_id: MusicItemId));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.add_item_to_playlist", add_item_to_playlist(playlist_id: PlaylistId, music_item_id: MusicItemId));
+        register_rpc_handler!(rpc, playlists, "lappi.playlists.delete_item_from_playlist", delete_item_from_playlist(playlist_id: PlaylistId, music_item_id: MusicItemId));
         
         return playlists;
     }
