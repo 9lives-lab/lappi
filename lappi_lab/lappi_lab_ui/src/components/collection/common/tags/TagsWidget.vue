@@ -15,6 +15,7 @@
           v-model="tag.value.String"
           @input="setTag(tag.key, tag.value.String)"
         />
+        <div v-show="customTags.length === 0">No tags yet</div>
       </div>
       <ToolPane>
         <div class="q-pa-md">Inherited tags</div>
@@ -27,6 +28,7 @@
           :name="tag.key"
           v-model="tag.value.String"
         />
+        <div v-show="inheritedTags.length === 0">No tags yet</div>
       </div>
     </div>
   </WidgetPane>
