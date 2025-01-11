@@ -19,7 +19,7 @@ pub fn init() {
                 importer.import(&folder_path);
             } else if folder_path.join("collection.yaml").exists() {
                 let importer = BasicYamlCollectionImporter::new(collection, &folder_path);
-                importer.import();
+                importer.import().unwrap();
             } else {
                 panic!("No collection.csv or collection.yaml file found in init folder")
             }
