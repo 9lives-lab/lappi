@@ -95,6 +95,15 @@ impl MusicCollection {
         self.music_db.get_music_item_description(item_id).unwrap()
     }
 
+    pub fn get_item_caption(&self, item_id: MusicItemId) -> String {
+        if let Some(tag) = self.get_tag(item_id, "track") {
+            if let Some(track) = tag.get_string() {
+                return format!("track - {}", track);
+            }
+        }
+        return "".to_string();
+    }
+
     pub fn get_item_cover(&self, item_id: MusicItemId) -> Option<PictureId> {
         self.folders.find_folder_cover(self.get_item_description(item_id).folder_id)
     }
@@ -173,6 +182,7 @@ impl ServiceInitializer for MusicCollection {
         register_rpc_handler!(rpc, music, "lappi.collection.music.create_item", create_item(name: String, folder_id: FolderId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.set_item_name", set_item_name(item_id: MusicItemId, name: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_caption", get_item_caption(item_id: MusicItemId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.add_source_file", add_source_file(item_id: MusicItemId, source_type: SourceType, path: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.delete_source_file", delete_source_file(source_id: MusicSourceFileId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.set_source_file_path", set_source_file_path(source_id: MusicSourceFileId, path: String));

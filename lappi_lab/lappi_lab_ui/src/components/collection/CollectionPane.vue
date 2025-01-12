@@ -111,6 +111,28 @@ async function getFolderItem (id, folderDescription) {
     item.icon = icon
   }
 
+  const caption = await aminaApi.sendRequest('lappi.collection.folders.get_folder_caption', { folder_id: folderDescription.folder_id })
+  if (caption !== '') {
+    item.caption = item.caption + ', ' + caption
+  }
+
+  return item
+}
+
+async function getMusicItem (id, itemDescription) {
+  const item = {
+    id,
+    item_id: itemDescription.item_id,
+    title: itemDescription.name,
+    hasAvatar: false,
+    icon: 'library_music',
+    caption: 'Song'
+  }
+  const caption = await aminaApi.sendRequest('lappi.collection.music.get_item_caption', { item_id: itemDescription.item_id })
+  if (caption !== '') {
+    item.caption = item.caption + ', ' + caption
+  }
+
   return item
 }
 
@@ -118,15 +140,7 @@ async function updateFolders (folderId) {
   const { content } = await aminaApi.sendRequest('lappi.collection.folders.get_folder_content', { folder_id: folderId })
 
   const folders = await Promise.all(content.folders.map(async (folder, id) => (await getFolderItem(id, folder))))
-
-  const items = content.items.map((item, id) => ({
-    id: id + content.folders.length,
-    item_id: item.item_id,
-    title: item.name,
-    hasAvatar: false,
-    icon: 'library_music',
-    caption: 'Song'
-  }))
+  const items = await Promise.all(content.items.map(async (item, id) => (await getMusicItem(id + content.folders.length, item))))
 
   listItems.value = [...folders, ...items]
   navigationBar.value.update(folderId)

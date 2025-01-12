@@ -71,6 +71,20 @@ impl FoldersCollection {
         self.folders_db.get_folder_description(folder_id).unwrap()
     }
 
+    pub fn get_folder_caption(&self, folder_id: FolderId) -> String {
+        match self.get_folder_description(folder_id).folder_type {
+            FolderType::Album => {
+                if let Some(tag) = self.get_tag(folder_id, "year") {
+                    if let Some(year) = tag.get_string() {
+                        return format!("year - {}", year);
+                    }
+                }
+                return "".to_string();
+            }
+            _ => "".to_string()
+        }
+    }
+
     pub fn set_folder_name(&self, folder_id: FolderId, name: String) {
         self.folders_db.set_folder_name(folder_id, &name).unwrap();
     }
@@ -195,6 +209,21 @@ impl FoldersCollection {
         return tags;
     }
 
+    pub fn get_tag(&self, folder_id: FolderId, tag_name: &str) -> Option<Tag> {
+        let mut tags = vec![];
+
+        tags.extend(self.get_tags(folder_id));
+        tags.extend(self.get_inherited_tags(folder_id));
+
+        for tag in tags {
+            if tag.get_key() == tag_name {
+                return Some(tag);
+            }
+        }
+
+        return None;
+    }
+
     pub fn save_description(&self, folder_id: FolderId, text: String) {
         let path = self.get_description_storage_path(folder_id);
         std::fs::write(path, text.as_bytes()).unwrap();
@@ -229,6 +258,7 @@ impl ServiceInitializer for FoldersCollection {
         });
 
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_description", get_folder_description(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_caption", get_folder_caption(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_folder_content", get_folder_full_content(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_parent_folders", get_folders_chain(folder_id: FolderId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_name", set_folder_name(folder_id: FolderId, name: String));
