@@ -1,12 +1,14 @@
 use anyhow::Result;
 
 use crate::collection::music::MusicItemId;
+use crate::collection::pictures::PictureId;
 use super::types::{PlaylistDesc, PlaylistId, PlaylistItemId};
 
 pub trait PlaylistsDbApi: Send + Sync {
     fn clone_api(&self) -> Box<dyn PlaylistsDbApi>;
     fn create_playlist(&self, name: &str) -> Result<PlaylistId>;
     fn set_playlist_name(&self, id: PlaylistId, name: &str) -> Result<()>;
+    fn set_playlist_cover(&self, id: PlaylistId, picture_id: Option<PictureId>) -> Result<()>;
     fn delete_playlist(&self, id: PlaylistId) -> Result<()>;
     fn get_playlists(&self) -> Result<Vec<PlaylistDesc>>;
     fn get_playlist_description(&self, id: PlaylistId) -> Result<PlaylistDesc>;

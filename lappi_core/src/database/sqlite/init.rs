@@ -81,7 +81,8 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     connection.execute(
         "CREATE TABLE playlists (
                 id                      INTEGER NOT NULL PRIMARY KEY,
-                name                    TEXT    NOT NULL UNIQUE
+                name                    TEXT    NOT NULL UNIQUE,
+                avatar_picture_id       INTEGER
         )",
         [],
     )?;

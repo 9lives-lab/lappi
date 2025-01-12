@@ -8,6 +8,10 @@
         <img :src="item.url" class="image-container">
         <q-menu>
           <q-list style="min-width: 100px">
+            <q-item>
+              <q-item-section>Picture id: {{ item.id }}</q-item-section>
+            </q-item>
+            <q-separator />
             <q-item clickable v-close-popup @click="setFolderCover(item)">
               <q-item-section>Set folder cover</q-item-section>
             </q-item>

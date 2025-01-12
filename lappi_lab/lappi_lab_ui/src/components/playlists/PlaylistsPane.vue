@@ -4,7 +4,16 @@
       <AbsoluteWrapper class="list-wrapper col">
         <q-virtual-scroll class="list-scroll" :items="playlistsList" v-slot="{ item }">
           <q-item class="list-item" :key="item.id" clickable @click="selectPlaylist(item.id)">
-            <q-item-label>{{ item.name }}</q-item-label>
+            <q-item-section avatar>
+              <q-avatar v-show="item.hasAvatar === true" rounded>
+                <img :src="item.pictureUrl">
+              </q-avatar>
+              <q-icon v-show="item.hasAvatar === false" name="queue_music" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ item.name }}</q-item-label>
+              <q-item-label caption>Playlist</q-item-label>
+            </q-item-section>
           </q-item>
         </q-virtual-scroll>
       </AbsoluteWrapper>
@@ -45,7 +54,27 @@ async function selectPlaylist (newPlaylistId) {
 }
 
 async function update () {
-  const newPlaylistsList = await aminaApi.sendRequest('lappi.playlists.get_playlists')
+  const newPlaylistsList = []
+
+  for (const playlistDesc of await aminaApi.sendRequest('lappi.playlists.get_playlists')) {
+    const item = {
+      id: playlistDesc.id,
+      name: playlistDesc.name
+    }
+
+    if ('avatar_picture_id' in playlistDesc) {
+      const path = await aminaApi.sendRequest('lappi.collection.pictures.get_picture_path', { picture_id: playlistDesc.avatar_picture_id })
+      const pictureUrl = await aminaApi.getFileUrl(path)
+
+      item.hasAvatar = true
+      item.pictureUrl = pictureUrl
+    } else {
+      item.hasAvatar = false
+    }
+
+    newPlaylistsList.push(item)
+  }
+
   playlistsList.value = newPlaylistsList
   if (selectedPlaylistId.value >= 0) {
     await playlistTab.value.updatePlaylist(selectedPlaylistId.value)

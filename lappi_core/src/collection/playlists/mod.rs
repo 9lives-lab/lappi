@@ -10,6 +10,7 @@ use amina_core::register_rpc_handler;
 
 use crate::database::Database;
 use crate::collection::music::{MusicCollection, MusicItemId};
+use crate::collection::pictures::PictureId;
 
 use database_api::PlaylistsDbApi;
 use types::{PlaylistDesc, PlaylistId, PlaylistItemDesc};
@@ -39,6 +40,16 @@ impl PlaylistsCollection {
 
     pub fn set_playlist_name(&self, playlist_id: PlaylistId, name: String) {
         self.db.set_playlist_name(playlist_id, &name).unwrap();
+    }
+
+    pub fn set_playlist_cover(&self, playlist_id: PlaylistId, picture_id: PictureId) {
+        log::info!("Set playlist cover. Playlist id: {} -> Picture id:  {}", playlist_id, picture_id);
+        self.db.set_playlist_cover(playlist_id, Some(picture_id)).unwrap();
+    }
+
+    pub fn remove_playlist_cover(&self, playlist_id: PlaylistId) {
+        log::info!("Remove playlist cover. Playlist id: {}", playlist_id);
+        self.db.set_playlist_cover(playlist_id, None).unwrap();
     }
 
     pub fn delete_playlist(&self, playlist_id: PlaylistId) {
@@ -96,6 +107,8 @@ impl ServiceInitializer for PlaylistsCollection {
         register_rpc_handler!(rpc, playlists, "lappi.playlists.create_playlist", create_playlist(name: String));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.create_default_playlist", create_default_playlist());
         register_rpc_handler!(rpc, playlists, "lappi.playlists.set_playlist_name", set_playlist_name(playlist_id: PlaylistId, name: String));
+        register_rpc_handler!(rpc, playlists, "lappi.playlists.set_playlist_cover", set_playlist_cover(playlist_id: PlaylistId, picture_id: PictureId));
+        register_rpc_handler!(rpc, playlists, "lappi.playlists.remove_playlist_cover", remove_playlist_cover(playlist_id: PlaylistId));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.delete_playlist", delete_playlist(playlist_id: PlaylistId));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.get_playlist_items", get_playlist_items(playlist_id: PlaylistId));
         register_rpc_handler!(rpc, playlists, "lappi.playlists.get_playlists_for_music_item", get_playlists_for_music_item(music_item_id: MusicItemId));

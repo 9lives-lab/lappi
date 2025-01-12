@@ -18,6 +18,8 @@ struct CollectionEntry {
 #[derive(Debug, Deserialize)]
 struct ArtistEntry {
     name: String,
+    #[serde(default)]
+    create_playlist: bool,
     pictures: Option<Vec<String>>,
     albums: Option<Vec<AlbumEntry>>,
 }
@@ -73,11 +75,21 @@ impl BasicYamlCollectionImporter {
     fn import_artists(&self, artists: Vec<ArtistEntry>) -> Result<()> {
         for artist_entry in artists {
             let artist_name = artist_entry.name;
+
             let root_folder = self.collection.folders().get_root_folder();
-            let artist_folder = self.collection.folders().find_or_add_folder(root_folder, artist_name, FolderType::Artist);
+            let artist_folder = self.collection.folders().find_or_add_folder(root_folder, artist_name.clone(), FolderType::Artist);
             self.import_pictures(artist_entry.pictures, artist_folder)?;
+
             let albums = artist_entry.albums.unwrap_or_default();
             self.import_albumns(albums, artist_folder)?;
+
+            if artist_entry.create_playlist {
+                let playlist_id = self.collection.playlists().create_playlist(artist_name.clone());
+                let avatar_picture_id = self.collection.folders().get_folder_description(artist_folder).avatar_picture_id;
+                if let Some(avatar_picture_id) = avatar_picture_id {
+                    self.collection.playlists().set_playlist_cover(playlist_id, avatar_picture_id);
+                }
+            }
         }
         Ok(())
     }
@@ -102,6 +114,7 @@ impl BasicYamlCollectionImporter {
             let item_id = self.collection.music().create_item(song_entry.name.clone(), parent_folder_id);
             self.collection.music().set_tag(item_id, "track".to_string(), (i + 1).to_string());
             if let Some(file) = &song_entry.file {
+                log::debug!("Adding file {} to item {}", file, item_id);
                 let file_path = self.dir_path.clone().join(file).canonicalize()?.to_string_lossy().to_string();
                 self.collection.music().add_source_file(item_id, SourceType::LocalFile, file_path);
             }

@@ -2,6 +2,7 @@ use anyhow::Result;
 use rusqlite::params;
 
 use crate::collection::music::MusicItemId;
+use crate::collection::pictures::PictureId;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::playlists::types::{PlaylistDesc, PlaylistId, PlaylistItemId};
 use crate::database::sqlite::utils::DatabaseUtils;
@@ -42,6 +43,13 @@ impl PlaylistsDbApi for PlaylistsDb {
         Ok(())
     }
 
+    fn set_playlist_cover(&self, id: PlaylistId, picture_id: Option<PictureId>) -> Result<()> {
+        let mut context = self.db_utils.lock();
+        context.set_field_value(id, "playlists", "avatar_picture_id", picture_id)?;
+        context.on_playlists_updated();
+        Ok(())
+    }
+
     fn delete_playlist(&self, id: PlaylistId) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.remove_row("playlists", id)?;
@@ -51,13 +59,15 @@ impl PlaylistsDbApi for PlaylistsDb {
 
     fn get_playlists(&self) -> Result<Vec<PlaylistDesc>> {
         let context = self.db_utils.lock();
-        let mut stmt = context.connection().prepare("SELECT id, name FROM playlists")?;
+        let mut stmt = context.connection().prepare("SELECT id, name, avatar_picture_id FROM playlists")?;
         let rows = stmt.query_map(params![], |row| {
             let id = row.get::<_, i32>(0)?;
             let name = row.get::<_, String>(1)?;
+            let avatar_picture_id = row.get:: < _, Option<PictureId>>(2)?;
             Ok(PlaylistDesc {
                 id: id as PlaylistId,
-                name
+                name,
+                avatar_picture_id,
             })
         })?;
 
@@ -68,12 +78,13 @@ impl PlaylistsDbApi for PlaylistsDb {
     fn get_playlist_description(&self, playlist_id: PlaylistId) -> Result<PlaylistDesc> {
         let context = self.db_utils.lock();
         let description = context.connection().query_row(
-            "SELECT name FROM playlists WHERE id=(?1)",
+            "SELECT name, avatar_picture_id FROM playlists WHERE id=(?1)",
             params![playlist_id],
             |row| {
                 Ok(PlaylistDesc {
                     id: playlist_id,
                     name: row.get:: < _, String>(0)?,
+                    avatar_picture_id: row.get:: < _, Option<PictureId>>(1)?,
                 })
             },
         )?;
