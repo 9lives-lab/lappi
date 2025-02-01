@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { getCurrentInstance, onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
@@ -178,10 +178,6 @@ async function update () {
   }
 }
 
-aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane', (event) => {
-  update()
-})
-
 async function addItem () {
   await aminaApi.sendRequest('lappi.collection.music.create_item', { name: newItemName.value, folder_id: currentFolderId })
   newItemName.value = ''
@@ -193,7 +189,15 @@ async function addFolder () {
 }
 
 onMounted(() => {
+  aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane', () => {
+    update()
+  })
+
   openFolder(0)
+})
+
+onUnmounted(() => {
+  aminaApi.removeEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane')
 })
 </script>
 

@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { getCurrentInstance, onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
@@ -76,6 +76,9 @@ onMounted(() => {
   })
 })
 
+onUnmounted(() => {
+  aminaApi.removeEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane')
+})
 </script>
 
 <style lang="sass" scoped>

@@ -16,7 +16,6 @@
 </template>
 
 <script setup>
-import { defineModel } from 'vue'
 
 defineProps({
   name: String

@@ -4,28 +4,30 @@
   "description": "Lappi Lab UI",
   "productName": "Lappi Lab",
   "private": true,
+  "type": "module",
   "scripts": {
-    "lint": "eslint --ext .js,.vue ./",
-    "test": "echo \"No test specified\" && exit 0"
+    "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{js,cjs,mjs,vue}\"",
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "postinstall": "quasar prepare"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.9",
     "axios": "^1.6.7",
     "core-js": "^3.36.0",
-    "quasar": "^2.14.4",
+    "quasar": "^2.16.0",
     "vue": "^3.4.19",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.23.10",
-    "@quasar/app-webpack": "^3.12.3",
-    "eslint": "^8.56.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-vue": "^9.21.1",
-    "eslint-webpack-plugin": "^4.0.1"
+    "@eslint/js": "^9.14.0",
+    "@quasar/app-webpack": "^4.0.0",
+    "autoprefixer": "^10.4.2",
+    "eslint": "^9.14.0",
+    "eslint-plugin-vue": "^9.30.0",
+    "eslint-webpack-plugin": "^4.2.0",
+    "globals": "^15.12.0"
   },
   "browserslist": [
     "last 10 Chrome versions",
@@ -39,7 +41,7 @@
     "last 5 Opera versions"
   ],
   "engines": {
-    "node": ">= 12.22.1",
+    "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
   }

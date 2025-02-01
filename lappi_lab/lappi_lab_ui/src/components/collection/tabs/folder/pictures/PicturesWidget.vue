@@ -33,7 +33,7 @@ const files = ref(null)
 let folderId = 0
 
 function blobToBase64 (blob) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader()
     reader.onloadend = () => resolve(reader.result)
     reader.readAsDataURL(blob)

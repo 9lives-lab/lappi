@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { getCurrentInstance, ref, onMounted } from 'vue'
+import { getCurrentInstance, ref, onMounted, onUnmounted } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
@@ -35,6 +35,10 @@ onMounted(async () => {
   aminaApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayersSwitch', (event) => {
     currentPlayerName.value = event.current_player_name
   })
+})
+
+onUnmounted(() => {
+  aminaApi.removeEventHandler('lappi.playback.OnStateUpdated', 'PlayersSwitch')
 })
 </script>
 

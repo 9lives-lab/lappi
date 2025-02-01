@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { getCurrentInstance, onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
@@ -81,12 +81,16 @@ async function update () {
   }
 }
 
-aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'PlaylistPane', (event) => {
+onMounted(() => {
+  aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'PlaylistPane', () => {
+    update()
+  })
+
   update()
 })
 
-onMounted(() => {
-  update()
+onUnmounted(() => {
+  aminaApi.removeEventHandler('lappi.collection.OnCollectionUpdated', 'PlaylistPane')
 })
 </script>
 
