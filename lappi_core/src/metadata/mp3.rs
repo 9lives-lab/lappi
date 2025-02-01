@@ -8,6 +8,7 @@ use crate::metadata::Metadata;
 pub fn read(reader: Box<dyn Read>) -> Metadata {
     let mut tags = TagsMap::new();
 
+    #[allow(deprecated)]
     match Tag::read_from(reader) {
         Ok(id3_tags) => {
             add_string_tag(&mut tags, "title", id3_tags.title());

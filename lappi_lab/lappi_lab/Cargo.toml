@@ -5,14 +5,15 @@ license = "MIT OR Apache-2.0"
 edition = "2018"
 
 [dependencies]
-futures = "0.3.28"
-log = "0.4.19"
+futures = "0.3.31"
+log = "0.4.25"
 anyhow = "1.0.95"
-thiserror = "2.0.9"
-directories = "5.0.1"
-serde = "1.0.183"
-serde_json = "1.0.104"
+thiserror = "2.0.11"
+directories = "6.0.0"
+serde = "1.0.217"
+serde_json = "1.0.138"
 rodio = "0.20.1"
+openssl = "0.10.66"
 amina_core = { path = "../../amina/amina_core" }
 amina_server = { path = "../../amina/amina_server" }
 lappi_core = { path = "../../lappi_core" }
