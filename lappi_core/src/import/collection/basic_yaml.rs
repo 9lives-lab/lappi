@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use amina_core::service::Service;
@@ -37,6 +38,7 @@ struct AlbumEntry {
 struct SongEntry {
     name: String,
     file: Option<String>,
+    lyrics_file: Option<String>
 }
 
 pub struct BasicYamlCollectionImporter {
@@ -111,12 +113,24 @@ impl BasicYamlCollectionImporter {
 
     fn import_songs(&self, songs: Vec<SongEntry>, parent_folder_id: FolderId) -> Result<()> {
         for (i, song_entry) in songs.iter().enumerate() {
-            let item_id = self.collection.music().create_item(song_entry.name.clone(), parent_folder_id);
-            self.collection.music().set_tag(item_id, "track".to_string(), (i + 1).to_string());
+            let music_item_id = self.collection.music().create_item(song_entry.name.clone(), parent_folder_id);
+            self.collection.music().set_tag(music_item_id, "track".to_string(), (i + 1).to_string());
+
             if let Some(file) = &song_entry.file {
-                log::debug!("Adding file {} to item {}", file, item_id);
+                log::debug!("Adding file {} to item {}", file, music_item_id);
                 let file_path = self.dir_path.clone().join(file).canonicalize()?.to_string_lossy().to_string();
-                self.collection.music().add_source_file(item_id, SourceType::LocalFile, file_path);
+                self.collection.music().add_source_file(music_item_id, SourceType::LocalFile, file_path);
+            }
+
+            if let Some(lyrics_file) = &song_entry.lyrics_file {
+                let file_path = self.dir_path.clone().join(lyrics_file).canonicalize()?.to_string_lossy().to_string();
+                let mut lyrics_txt = String::new();
+                log::debug!("Adding lyrics file {} to item {}", file_path, music_item_id);
+                let mut file = File::open(file_path).unwrap();
+                file.read_to_string(&mut lyrics_txt)?;
+                let lang_code = "".to_string();
+                let lyrics_id = self.collection.lyrics().add_lyrics_item(music_item_id, lang_code);
+                self.collection.lyrics().save_lyrics(lyrics_id, lyrics_txt);
             }
         }
         Ok(())
