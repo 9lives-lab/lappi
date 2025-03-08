@@ -4,15 +4,16 @@ use std::io::BufReader;
 use std::sync::Arc;
 use std::time::Duration;
 
+use anyhow::Result;
 use rodio::{OutputStream, OutputStreamHandle, Sink, Source};
 
 use lappi_core::platform_api::PlaybackApi;
 use lappi_core::playback::{Player, PlayerFactory, PlayerState};
 use lappi_core::playback::sources::{SourceType, PlaybackSource};
 
-static EMBEDDED_PLAYER_NAME: &str = "Current device";
+static NATIVE_PLAYER_NAME: &str = "Current device";
 
-pub struct EmbeddedPlayer {
+pub struct NativePlayer {
     _stream: OutputStream,
     _stream_handle: OutputStreamHandle,
     sink: RefCell<Sink>,
@@ -20,24 +21,24 @@ pub struct EmbeddedPlayer {
     is_playing: Cell<bool>,
 }
 
-impl EmbeddedPlayer {
-    pub fn create() -> Self {
-        let (stream, stream_handle) = OutputStream::try_default().unwrap();
+impl NativePlayer {
+    pub fn create() -> Result<Self> {
+        let (stream, stream_handle) = OutputStream::try_default()?;
         let sink: Sink = Sink::try_new(&stream_handle).unwrap();
 
-        Self {
+        Ok(Self {
             _stream: stream,
             _stream_handle: stream_handle,
             sink: RefCell::new(sink),
             current_duration: Cell::new(None),
             is_playing: Cell::new(false),
-        }
+        })
     }
 }
 
-impl Player for EmbeddedPlayer{
+impl Player for NativePlayer{
     fn get_name(&self) -> &str {
-        EMBEDDED_PLAYER_NAME
+        NATIVE_PLAYER_NAME
     }
 
     fn play(&self, source: Box<PlaybackSource>) {
@@ -101,21 +102,21 @@ impl Player for EmbeddedPlayer{
     }
 }
 
-pub struct EmbeddedPlayerFactory {
+pub struct NativePlayerFactory {
 
 }
 
-impl PlayerFactory for EmbeddedPlayerFactory {
+impl PlayerFactory for NativePlayerFactory {
     fn get_name(&self) -> String {
-        EMBEDDED_PLAYER_NAME.to_string()
+        NATIVE_PLAYER_NAME.to_string()
     }
 
-    fn create_player(&self) -> Box<dyn Player> {
-        return Box::new(EmbeddedPlayer::create());
+    fn create_player(&self) -> Result<Box<dyn Player>> {
+        return Ok(Box::new(NativePlayer::create()?));
     }
 }
 
-impl EmbeddedPlayerFactory {
+impl NativePlayerFactory {
     pub fn new() -> Self {
         Self {
 
@@ -130,12 +131,17 @@ pub struct PlatformPlaybackApi {
 impl PlaybackApi for PlatformPlaybackApi {
     fn get_platform_player_factories(&self) -> HashMap<String, Box<dyn PlayerFactory>> {
         let mut factories: HashMap<String, Box<dyn PlayerFactory>> = HashMap::new();
-        factories.insert("embedded".to_string(), Box::new(EmbeddedPlayerFactory::new()));
-        return factories;
-    }
 
-    fn get_defaut_player_factory(&self) -> String {
-        return "embedded".to_string();
+        let enable_native_player: bool = std::env::var("LAPPI_ENABLE_NATIVE_PLAYER")
+            .unwrap_or("true".to_string())
+            .parse()
+            .unwrap();
+
+        if enable_native_player {
+            factories.insert("native".to_string(), Box::new(NativePlayerFactory::new()));
+        }
+        
+        return factories;
     }
 }
 

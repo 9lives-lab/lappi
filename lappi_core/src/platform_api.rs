@@ -12,7 +12,6 @@ pub trait FileSystemApi: Send + Sync {
 
 pub trait PlaybackApi: Send + Sync {
     fn get_platform_player_factories(&self) -> HashMap<String, Box<dyn PlayerFactory>>;
-    fn get_defaut_player_factory(&self) -> String;
 }
 
 pub struct PlatformApi {

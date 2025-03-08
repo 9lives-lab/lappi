@@ -1,6 +1,7 @@
 use std::cell::Cell;
 use std::path::Path;
 
+use anyhow::Result;
 use amina_core::service::{Context, Service};
 
 use crate::playback::{Player, PlayerFactory, PlayerState};
@@ -92,8 +93,8 @@ impl PlayerFactory for VlcHttpPlayerFactory {
         VLC_HTTP_PLAYER_NAME.to_string()
     }
 
-    fn create_player(&self) -> Box<dyn Player> {
-        Box::new(VlcHttpPlayer::new(self.settings.clone()))
+    fn create_player(&self) -> Result<Box<dyn Player>> {
+        Ok(Box::new(VlcHttpPlayer::new(self.settings.clone())))
     }
 }
 

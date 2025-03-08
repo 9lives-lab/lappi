@@ -4,12 +4,12 @@ pub mod sources;
 pub mod events;
 
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
 use std::thread;
 use std::time::Duration;
 use std::sync::{Arc, Mutex, RwLock};
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use amina_core::events::EventEmitter;
 use amina_core::register_rpc_handler;
@@ -63,14 +63,13 @@ pub trait Player {
 
 pub trait PlayerFactory: Send + Sync {
     fn get_name(&self) -> String;
-    fn create_player(&self) -> Box<dyn Player>;
+    fn create_player(&self) -> Result<Box<dyn Player>>;
 }
 
 pub struct Playback {
     event_emitter: Service<EventEmitter>,
     commands_sender: SyncSender<PlayerCommand>,
     player_factories: RwLock<HashMap<String, Box<dyn PlayerFactory>>>,
-    current_player_id: RwLock<String>,
     player_state: Arc<RwLock<PlayerState>>,
     current_queue: Mutex<Option<Box<dyn PlayQueue>>>
 }
@@ -155,9 +154,20 @@ impl Playback {
 
     fn create_defaut_player(&self) -> Box<dyn Player> {
         let player_factories = self.player_factories.read().unwrap();
-        let current_player_id = self.current_player_id.read().unwrap();
-        let default_factory = player_factories.get(current_player_id.deref()).unwrap();
-        return default_factory.create_player();
+        for (player_id, factory) in player_factories.iter() {
+            let player = factory.create_player();
+            match player {
+                Ok(player) => {
+                    log::info!("Using default player: {}", player_id);
+                    return player;
+                },
+                Err(err) => {
+                    log::warn!("Player {} is not available: {:?}", player_id, err);
+                }
+            }
+        }
+    
+        panic!("Failed to find default player");
     }
 
     fn update_player_state(&self, player: &dyn Player) -> PlayerState {
@@ -217,8 +227,16 @@ impl Playback {
                         PlayerCommand::SwitchPlayer(player_id) => {
                             let player_factories = self.player_factories.read().unwrap();
                             let factory = player_factories.get(&player_id).unwrap();
-                            player.pause();
-                            player = factory.create_player();
+                            match factory.create_player() {
+                                Ok(new_player) => {
+                                    player.pause();
+                                    player = new_player;
+                                    log::debug!("Switched to player {}", player_id);
+                                },
+                                Err(err) => {
+                                    log::error!("Failed to create player {}: {}", player_id, err);
+                                }
+                            }
                         },
                         PlayerCommand::Play(source) => {
                             log::debug!("Playing source {:?}", source);
@@ -276,7 +294,6 @@ impl ServiceInitializer for Playback {
         let platform_api = crate::context().get_service::<PlatformApi>();
 
         let mut player_factories: HashMap<String, Box<dyn PlayerFactory>> = HashMap::new();
-        player_factories.insert("vlc_http".to_string(), Box::new(VlcHttpPlayerFactory::new(context)));
         
         platform_api.playback.get_platform_player_factories()
             .into_iter()
@@ -284,6 +301,7 @@ impl ServiceInitializer for Playback {
                 player_factories.insert(id, factory);
             });
 
+        player_factories.insert("vlc_http".to_string(), Box::new(VlcHttpPlayerFactory::new(context)));
 
         let (commands_sender, cmd_reciver) = sync_channel(1);
         let player_state = Arc::new(RwLock::new(PlayerState::Stopped));
@@ -291,7 +309,6 @@ impl ServiceInitializer for Playback {
         let playback = Arc::new(Self {
             event_emitter: event_emitter.clone(),
             player_factories: RwLock::new(player_factories),
-            current_player_id: RwLock::new(platform_api.playback.get_defaut_player_factory()),
             player_state: player_state.clone(),
             commands_sender,
             current_queue: Mutex::new(None),
