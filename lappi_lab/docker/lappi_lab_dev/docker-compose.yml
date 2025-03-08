@@ -1,0 +1,9 @@
+services:
+  lappi-lab-dev:
+    image: lappi-lab-dev
+    container_name: lappi-lab-dev
+    volumes:
+      - type: bind
+        source: ../../../
+        target: /workspace/lappi
+    

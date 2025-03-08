@@ -12,13 +12,85 @@ At the moment the project consists of two modules:
 
 ## Quick start
 
-Lappi Lab is only intended to be launched from IDE.
+The easiest way to build Lappi Lab is to use development Docker container.
 
-To launch the application, it is sufficient to set up the workspace and run the standard configuration.
+### Prerequisites
 
+- [Docker](https://www.docker.com/get-started/)
+- [Docker Compose](https://docs.docker.com/compose/)
+
+### Prepare environment
+
+Clone repository
+
+```bash
+git clone --recursive https://github.com/9lives-lab/lappi.git
+cd lappi
+```
+
+Build container
+
+```bash
+cd lappi_lab/docker/lappi_lab_dev
+docker build -t lappi-lab-dev .
+```
+
+Run container
+
+```bash
+docker-compose up
+```
+
+Attach to container
+
+```bash
+docker exec -it lappi-lab-dev /bin/bash
+```
+
+### Run backend (inside container)
+
+Build Rust project
+
+```bash
+cargo build
+```
+
+To launch the application, workspace should be set.
 A workspace is a working directory where the application stores launch configuration files, settings, music collection, etc. 
-This way, it is possible to have multiple independent workspaces for different work scenarios. 
-The working directory is configured by 'LAPPI_WORKSPACE' environment variable.
+This way, it is possible to have multiple independent workspaces for different work scenarios.
+
+Base directory for workspaces is:
+```
+lappi_lab/debug_workspace/
+```
+
+Subdirectory inside base directory is configured by 'LAPPI_WORKSPACE' environment variable.
+
+```bash
+cargo run -- --env LAPPI_WORKSPACE=default
+```
+
+### Run frontend (inside container)
+
+Change directory
+
+```bash
+cd lappi_lab/lappi_lab_ui
+```
+
+Install dependencies
+
+```bash
+yarn install
+```
+
+Run frontend
+
+```bash
+yarn quasar dev
+```
+
+Frontend is available at http://localhost:9000
 
 ## License
 [MIT License](LICENSE-MIT), [Apache License](LICENSE-APACHE)
