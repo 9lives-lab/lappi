@@ -21,11 +21,13 @@
         @update:model-value="onProgressChange"
       />
     </div>
+    <WebPlayerPane/>
   </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
+import WebPlayerPane from 'src/components/player/WebPlayerPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 

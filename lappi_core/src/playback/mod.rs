@@ -28,6 +28,7 @@ use sources::PlaybackSource;
 use play_queue::{PlayQueue, SingleSourceQueue};
 use play_queue::playlist_queue::PlaylistQueue;
 use players::vlc_http::VlcHttpPlayerFactory;
+use players::web_player::WebPlayerFactory;
 
 #[derive(Debug, Clone)]
 enum PlayerCommand {
@@ -295,12 +296,10 @@ impl ServiceInitializer for Playback {
 
         let mut player_factories: HashMap<String, Box<dyn PlayerFactory>> = HashMap::new();
         
-        platform_api.playback.get_platform_player_factories()
-            .into_iter()
-            .for_each(|(id, factory)| {
-                player_factories.insert(id, factory);
-            });
-
+        let platform_factories = platform_api.playback.get_platform_player_factories();
+        player_factories.extend(platform_factories);
+        
+        player_factories.insert("web".to_string(), Box::new(WebPlayerFactory::new()));
         player_factories.insert("vlc_http".to_string(), Box::new(VlcHttpPlayerFactory::new(context)));
 
         let (commands_sender, cmd_reciver) = sync_channel(1);

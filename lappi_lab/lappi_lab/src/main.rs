@@ -14,6 +14,7 @@ use lappi_core::platform_api::FileSystemApi;
 use lappi_core::debug::Debugger;
 use lappi_core::collection::Collection;
 use lappi_core::collection::storage::local::LocalStorage;
+use lappi_core::playback::players::web_player::WebPlayerService;
 use lappi_core::playback::Playback;
 use lappi_core::database::Database;
 use lappi_core::exploring::chat::ChatService;
@@ -64,6 +65,7 @@ fn main() {
     context.init_service::<Database>();
     context.init_service::<LocalStorage>();
     context.init_service::<Collection>();
+    context.init_service::<WebPlayerService>();
     context.init_service::<Playback>();
     context.init_service::<CollectionImporter>();
     context.init_service::<PyServerClient>();
