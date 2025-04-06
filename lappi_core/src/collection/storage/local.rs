@@ -7,7 +7,7 @@ use std::sync::Arc;
 use amina_core::service::{Context, ServiceApi, ServiceInitializer};
 
 use crate::database::api::{DbExporter, DbImporter, DbTableExporter, DbValue};
-use crate::debug::Debugger;
+use crate::app_config::AppConfig;
 use crate::platform_api::PlatformApi;
 
 pub struct CsvFileDbTableExporter {
@@ -156,9 +156,9 @@ impl ServiceApi for LocalStorage {
 impl ServiceInitializer for LocalStorage {
     fn initialize(context: &Context) -> Arc<Self> {
         let platform_api = context.get_service::<PlatformApi>();
-        let debugger = context.get_service::<Debugger>();
+        let app_config = context.get_service::<AppConfig>();
 
-        let storage_available = debugger.config().collection.storage;
+        let storage_available = app_config.collection.storage;
         let storage_path = platform_api.file_system.get_workspace_dir().join("collection");
 
         let storage = Arc::new(Self {

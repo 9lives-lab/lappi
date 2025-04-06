@@ -3,21 +3,18 @@ use std::path::Path;
 
 use amina_core::service::Context;
 
-use crate::debug::Debugger;
-
+use crate::app_config::AppConfig;
+use crate::platform_api::PlatformApi;
 use super::PlaylistsCollection;
 
 pub fn init_playlists_from_csv(context: &Context, playlists: &PlaylistsCollection) {
-    let debugger = context.get_service::<Debugger>();
+    let app_config = context.get_service::<AppConfig>();
+    let platform_api = context.get_service::<PlatformApi>();
 
-    if debugger.config().collection.init {
+    if app_config.collection.init {
         log::debug!("Initializing playlists from csv");
-
-        let folder_path = debugger.get_debug_root_workspace()
-            .join(&debugger.config().collection.init_folder);
-
+        let folder_path = platform_api.file_system.get_workspace_dir().join(&app_config.collection.init_folder);
         log::debug!("Init folder: {:?}", &folder_path);
-
         init_classic_playlists(context, playlists, &folder_path);
     }
 }

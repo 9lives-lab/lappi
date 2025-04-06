@@ -10,6 +10,6 @@ collection:
   init: true
 
   # Folder containing collection template in csv files
-  init_folder: "../lappi_dataset/default_collection"
+  init_folder: "../../lappi_dataset/default_collection"
 
-  storage: false
+  storage: true

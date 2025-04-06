@@ -9,11 +9,11 @@ pub mod exploring;
 pub mod py_server_client;
 pub mod scripting_engine;
 
+pub mod app_config;
 pub mod platform_api;
 pub mod settings;
 
 pub mod ui;
-pub mod debug;
 
 #[macro_use]
 extern crate num_derive;

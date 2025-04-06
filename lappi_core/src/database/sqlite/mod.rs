@@ -14,8 +14,7 @@ use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::tags::database_api::TagsDbApi;
 use crate::database::api::{DbExporter, DbImporter};
-use crate::debug::configuration::database::Mode;
-use crate::debug::Debugger;
+use crate::app_config::{self, AppConfig};
 
 use utils::DatabaseUtils;
 use collection::folders::FoldersDb;
@@ -89,10 +88,10 @@ impl CollectionDbApi for SqliteDb {
 }
 
 pub fn initialize(context: &Context) -> SqliteDb {
-    let debugger = context.get_service::<Debugger>();
+    let app_config = context.get_service::<AppConfig>();
 
-    let connection = match debugger.config().database.sqlite_config.mode {
-        Mode::FILE => {
+    let connection = match app_config.database.sqlite_config.mode {
+        app_config::database::Mode::FILE => {
             use crate::platform_api::PlatformApi;
 
             log::debug!("Initialize SQLite DB in file");
@@ -109,7 +108,7 @@ pub fn initialize(context: &Context) -> SqliteDb {
 
             connection
         },
-        Mode::RAM => {
+        app_config::database::Mode::RAM => {
             log::debug!("Initialize SQLite DB in RAM");
 
             let connection = Connection::open_in_memory().unwrap();

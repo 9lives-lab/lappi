@@ -1,17 +1,19 @@
-use crate::debug::Debugger;
+use crate::app_config::AppConfig;
 use crate::collection::Collection;
+use crate::platform_api::PlatformApi;
 use crate::import::collection::basic_csv::BasicCsvCollectionImporter;
 use crate::import::collection::basic_yaml::BasicYamlCollectionImporter;
 
 pub fn init() {
-    let debugger = crate::context().get_service::<Debugger>();
+    let platform_api = crate::context().get_service::<PlatformApi>();
+    let app_config = crate::context().get_service::<AppConfig>();
     let collection = crate::context().get_service::<Collection>();
 
-    if debugger.config().collection.init {
+    if app_config.collection.init {
         if collection.is_empty() {
             log::info!("Collection is empty");
 
-            let folder_path = debugger.get_debug_root_workspace().join(&debugger.config().collection.init_folder);
+            let folder_path = platform_api.file_system.get_workspace_dir().join(&app_config.collection.init_folder);
             log::info!("Init folder: {:?}", &folder_path);
 
             if folder_path.join("items.csv").exists() {

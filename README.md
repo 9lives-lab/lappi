@@ -31,14 +31,14 @@ cd lappi
 Build container
 
 ```bash
-cd lappi_lab/docker/lappi_lab_dev
+cd lappi_lab/docker/dev
 docker build -t lappi-lab-dev .
 ```
 
 Run container
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 Attach to container

@@ -1,0 +1,15 @@
+database:
+  sqlite_config:
+    # Database work mode:
+    # RAM  - For debug only.
+    # FILE - Normal mode.
+    mode: RAM
+
+collection:
+
+  init: false
+
+  # Folder containing collection template in csv files
+  init_folder: "../../lappi_dataset/default_collection"
+
+  storage: false
