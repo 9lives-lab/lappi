@@ -155,20 +155,9 @@ impl Playback {
 
     fn create_defaut_player(&self) -> Box<dyn Player> {
         let player_factories = self.player_factories.read().unwrap();
-        for (player_id, factory) in player_factories.iter() {
-            let player = factory.create_player();
-            match player {
-                Ok(player) => {
-                    log::info!("Using default player: {}", player_id);
-                    return player;
-                },
-                Err(err) => {
-                    log::warn!("Player {} is not available: {:?}", player_id, err);
-                }
-            }
-        }
-    
-        panic!("Failed to find default player");
+        let factory = player_factories.get("web").unwrap();
+        let player = factory.create_player().unwrap();
+        return player;
     }
 
     fn update_player_state(&self, player: &dyn Player) -> PlayerState {
