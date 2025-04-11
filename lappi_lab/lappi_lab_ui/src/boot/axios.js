@@ -1,5 +1,5 @@
 import { boot } from 'quasar/wrappers'
-import aminaApi from 'src/amina_ui/client_api.js'
+import { AminaClientAPI } from 'src/amina_ui/client_api'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -9,6 +9,12 @@ import aminaApi from 'src/amina_ui/client_api.js'
 // for each client)
 
 export default boot(({ app }) => {
+  let host = window.location.host
+  if (process.env.DEV) {
+    host = 'localhost:8090'
+  }
+
+  const aminaApi = new AminaClientAPI(host)
   // for use inside Vue files (Options API) through this.$axios and this.$aminaApi
   app.config.globalProperties.$aminaApi = aminaApi
 })

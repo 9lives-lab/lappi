@@ -11,3 +11,9 @@ collection:
 
   # Folder containing collection template in csv files
   init_folder: "collection_init"
+
+web_server:
+  # http server port
+  port: 8090
+  # Path to frontend folder
+  static_files_path: ""

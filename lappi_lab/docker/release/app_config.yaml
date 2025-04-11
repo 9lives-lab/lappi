@@ -12,4 +12,11 @@ collection:
   # Folder containing collection template in csv files
   init_folder: "../../lappi_dataset/default_collection"
 
-  storage: false
+  storage: true
+
+web_server:
+  # http server
+  port: 8080
+  # Path to frontend folder
+  static_files_path: "/usr/src/lappi/lappi_lab_ui"
+

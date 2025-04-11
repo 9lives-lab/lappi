@@ -39,10 +39,22 @@ pub mod collection {
 
 }
 
+pub mod web_server {
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct Config {
+        pub port: u16,
+        pub static_files_path: String,
+    }
+
+}
+
 #[derive(Deserialize)]
 pub struct AppConfig {
     pub database: self::database::Config,
     pub collection: self::collection::Config,
+    pub web_server: self::web_server::Config,
 }
 
 impl ServiceApi for AppConfig {

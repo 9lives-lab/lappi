@@ -1,12 +1,17 @@
 mod platform_impl;
 
+use std::net::SocketAddr;
+use std::path::PathBuf;
+
 use amina_core::events::EventEmitter;
 use amina_core::rpc::Rpc;
+use amina_core::service::Context;
 use amina_core::tasks::TaskManager;
 use amina_core::cmd_manager::CmdManager;
 use amina_core::settings::SettingsManager;
 use amina_server::cli::SimpleCliContext;
 use amina_server::rpc_web_gate::RpcServer;
+use amina_server::rpc_web_gate::RpcServerConfig;
 use amina_server::cli::adapters::cmd_manager_adapter::CmdManagerAdapter;
 
 use lappi_core::platform_api::PlatformApi;
@@ -77,7 +82,7 @@ fn main() {
 
     log::debug!("Core initializing complete");
 
-    let server = RpcServer::run(context);
+    let server = start_rpc_server(context);
 
     log::info!("Initializing complete");
 
@@ -88,4 +93,21 @@ fn main() {
     server.stop();
 
     context.stop();
+}
+
+fn start_rpc_server(context: &Context) -> RpcServer {
+    let app_config = context.get_service::<AppConfig>();
+
+    let static_files_path = if app_config.web_server.static_files_path.is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(&app_config.web_server.static_files_path))
+    };
+
+    let rpc_server_config = RpcServerConfig {
+        socket_address: SocketAddr::from(([0, 0, 0, 0], app_config.web_server.port)),
+        static_files_path,
+    };
+
+    return RpcServer::run(context, &rpc_server_config);
 }

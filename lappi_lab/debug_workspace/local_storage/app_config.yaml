@@ -13,3 +13,9 @@ collection:
   init_folder: "../../lappi_dataset/default_collection"
 
   storage: true
+
+web_server:
+  # http server port
+  port: 8090
+  # Path to frontend folder
+  static_files_path: ""

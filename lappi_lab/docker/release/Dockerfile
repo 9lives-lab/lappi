@@ -34,32 +34,25 @@ RUN yarn quasar build
 FROM ubuntu:latest
 
 RUN apt-get update && apt-get install -y \
-    curl \
     libssl-dev \
     libasound2-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Set the default user to ubuntu
+USER ubuntu
+
 WORKDIR /usr/src/lappi
 
 # Frontend
-COPY --from=frontend-builder /usr/src/app/lappi/lappi_lab_ui/dist ./lappi_lab_ui
-
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN npm install --global http-server
-
-EXPOSE 8080
+COPY --chown=ubuntu:ubuntu --from=frontend-builder /usr/src/app/lappi/lappi_lab_ui/dist/spa ./lappi_lab_ui
 
 # Backend binary
-COPY --from=backend-builder /usr/src/app/lappi/target/release/lappi_lab ./lappi_lab
+COPY --chown=ubuntu:ubuntu --from=backend-builder /usr/src/app/lappi/target/release/lappi_lab ./lappi_lab
+COPY --chown=ubuntu:ubuntu ./lappi_lab/docker/release/app_config.yaml ./workspace/app_config.yaml
+COPY --chown=ubuntu:ubuntu ./lappi_lab/docker/release/run_lappi_lab.sh ./run_lappi_lab.sh
 
-COPY ./lappi_lab/docker/release/app_config.yaml ./workspace/app_config.yaml
-COPY ./lappi_lab/docker/release/run_lappi_lab.sh ./run_lappi_lab.sh
-
-EXPOSE 8090
-
+# Default port
+EXPOSE 8080
 
 # Start the backend and serve the frontend
 ENTRYPOINT ["/usr/src/lappi/run_lappi_lab.sh"]
