@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 use amina_core::events::Event;
@@ -8,7 +10,6 @@ use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::tags::database_api::TagsDbApi;
 use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
-use crate::database::api::{DbExporter, DbImporter};
 
 #[derive(Default, Clone)]
 #[derive(Serialize, Deserialize)]
@@ -31,6 +32,6 @@ pub trait CollectionDbApi: Send + Sync {
     fn start_batch(&self);
     fn stop_batch(&self);
  
-    fn export(&self, exporter: Box<dyn DbExporter>) -> Result<()>;
-    fn import(&self, importer: Box<dyn DbImporter>) -> Result<()>;
+    fn export(&self, base_path: &Path) -> Result<()>;
+    fn import(&self, base_path: &Path) -> Result<()>;
 }

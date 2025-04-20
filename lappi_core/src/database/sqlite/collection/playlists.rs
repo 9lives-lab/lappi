@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::Result;
 use rusqlite::params;
 
@@ -5,7 +7,7 @@ use crate::collection::music::MusicItemId;
 use crate::collection::pictures::PictureId;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::playlists::types::{PlaylistDesc, PlaylistId, PlaylistItemId};
-use crate::database::sqlite::utils::DatabaseUtils;
+use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
 
 pub struct PlaylistsDb {
     db_utils: DatabaseUtils,
@@ -16,6 +18,58 @@ impl PlaylistsDb {
         Self {
             db_utils,
         }
+    }
+
+    pub fn import(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+
+        let mut importer = ProtobufImporter::create(base_path, "playlists.pb")?;
+        while let Some(row) = importer.read_next_row::<crate::proto::collection::PlaylistsRow>()? {
+            db_context.connection().execute(
+                "INSERT INTO playlists (id, name) VALUES (?1, ?2)",
+                params![row.playlist_id, row.name],
+            )?;
+        }
+
+        let mut importer = ProtobufImporter::create(base_path, "playlist_items.pb")?;
+        while let Some(row) = importer.read_next_row::<crate::proto::collection::PlaylistItemsRow>()? {
+            db_context.connection().execute(
+                "INSERT INTO playlist_items (id, playlist_id, music_item_id) VALUES (?1, ?2, ?3)",
+                params![row.playlist_item_id, row.playlist_id, row.music_item_id],
+            )?;
+        }
+
+        Ok(())
+    }
+
+    pub fn export(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        let mut exporter = ProtobufExporter::create(base_path, "playlists.pb")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, name FROM playlists")?;
+        let rows = stmt.query_map([], |row| {
+            let mut playlist_row = crate::proto::collection::PlaylistsRow::new();
+            playlist_row.playlist_id = row.get::<_, i64>(0)?;
+            playlist_row.name = row.get::<_, String>(1)?;
+            Ok(playlist_row)
+        })?;
+        for row in rows {
+            exporter.write_row(&row?)?;
+        }
+
+        let mut exporter = ProtobufExporter::create(base_path, "playlist_items.pb")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, playlist_id, music_item_id FROM playlist_items")?;
+        let rows = stmt.query_map([], |row| {
+            let mut playlist_item_row = crate::proto::collection::PlaylistItemsRow::new();
+            playlist_item_row.playlist_item_id = row.get::<_, i64>(0)?;
+            playlist_item_row.playlist_id = row.get::<_, i64>(1)?;
+            playlist_item_row.music_item_id = row.get::<_, Option<i64>>(2)?;
+            Ok(playlist_item_row)
+        })?;
+        for row in rows {
+            exporter.write_row(&row?)?;
+        }
+
+        Ok(())
     }
 }
 

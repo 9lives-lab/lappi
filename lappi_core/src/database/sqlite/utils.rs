@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::{Read, Write};
+use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use anyhow::Result;
@@ -7,7 +10,6 @@ use amina_core::events::EventEmitter;
 use amina_core::service::{Context, Service};
 
 use crate::collection::OnCollectionUpdated;
-use crate::database::api::{DbExporter, DbImporter, DbValue};
 
 struct BatchContext {
     events_emitter: Service<EventEmitter>,
@@ -184,47 +186,6 @@ impl DatabaseContext {
         }
         Ok(result)
     }
-
-    pub fn export_table(&self, table_name: &str, exporter: &dyn DbExporter) -> Result<()> {
-        let table_info = self.get_table_info(table_name)?;
-        let columns: Vec<String> = table_info.iter().map(|(name, _)| name.clone()).collect();
-        let query = format!("SELECT {} FROM {}", columns.join(", "), table_name);
-        let mut stmt = self.connection.prepare(&query)?;
-        let mut rows = stmt.query([])?;
-        let mut table_exporter = exporter.get_table_exporter(table_name, columns);
-        while let Some(row) = rows.next()? {
-            let mut row_data = Vec::new();
-            for i in 0..table_info.len() {
-                let value = match table_info[i].1.as_str() {
-                    "INTEGER" => row.get::<usize, Option<i64>>(i)?.map(|value| DbValue::Number(value)),
-                    "TEXT" => row.get::<usize, Option<String>>(i)?.map(|value| DbValue::String(value)),
-                    _ => panic!("Unknown column type: {}", table_info[i].1),
-                };
-                row_data.push(value.unwrap_or_default());
-            }
-            table_exporter.add_row(row_data);
-        }
-        table_exporter.flush();
-        Ok(())
-    }
-
-    pub fn import_table(&self, table_name: &str, importer: &dyn DbImporter) -> Result<()> {
-        let table_info = self.get_table_info(table_name)?;
-        let columns: Vec<String> = table_info.iter().map(|(name, _)| name.clone()).collect();
-        let data = importer.get_table_rows(table_name, table_info);
-        for row in data {
-            let mut s = "?,".repeat(columns.len());
-            s.pop();
-            let query = format!("INSERT INTO {} ({}) VALUES ({})", table_name, columns.join(", "), s);
-            log::trace!("query: {} | {:?}", query, &row);
-            self.connection.execute(
-                &query,
-                rusqlite::params_from_iter(row.into_iter())
-            )?;
-        }
-        Ok(())
-    }
-
 }
 
 #[derive(Clone)]
@@ -250,3 +211,75 @@ impl<'a> DatabaseUtils {
         self.context.lock().unwrap()
     }
 }
+
+pub struct ProtobufImporter {
+    file: Option<File>,
+}
+
+impl ProtobufImporter {
+    pub fn create(base_path: &Path, file_name: &str) -> Result<Self> {
+        let file_path = base_path.join(file_name);
+        let file = if file_path.is_file() {
+            Some(File::open(file_path)?)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            file,
+        })
+    }
+
+    pub fn read_next_row<M>(&mut self) -> Result<Option<M>> 
+    where
+        M: protobuf::Message 
+    {
+        if let Some(file) = self.file.as_mut() {
+            // Read the length of the next message
+            let mut length_bytes = [0u8; 4];
+            if file.read_exact(&mut length_bytes).is_err() {
+                return Ok(None);
+            }
+            let length = u32::from_le_bytes(length_bytes) as usize;
+
+            // Read the message bytes
+            let mut message_bytes = vec![0u8; length];
+            file.read_exact(&mut message_bytes)?;
+
+            // Parse the message
+            let message = protobuf::Message::parse_from_bytes(&message_bytes)?;
+            Ok(Some(message))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+pub struct ProtobufExporter {
+    file: File,
+}
+
+impl ProtobufExporter {
+    pub fn create(base_path: &Path, file_name: &str) -> Result<Self> {
+        let file_path = base_path.join(file_name);
+        let file = File::create(file_path)?;
+        Ok(Self {
+            file,
+        })
+    }
+
+    pub fn write_row<M>(&mut self, message: &M) -> Result<()>
+    where
+        M: protobuf::Message
+    {
+        // Serialize the message
+        let message_bytes = message.write_to_bytes()?;
+        // Write the length of the message
+        let length = message_bytes.len() as u32;
+        self.file.write_all(&length.to_le_bytes())?;
+        // Write the message bytes
+        self.file.write_all(&message_bytes)?;
+        Ok(())
+    }
+}
+

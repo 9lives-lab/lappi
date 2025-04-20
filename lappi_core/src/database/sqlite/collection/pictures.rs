@@ -1,7 +1,9 @@
+use std::path::Path;
+
 use anyhow::Result;
 use rusqlite::params;
 
-use crate::database::sqlite::utils::DatabaseUtils;
+use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
 use crate::collection::folders::FolderId;
 use crate::collection::pictures::PictureId;
 use crate::collection::pictures::database_api::PicturesDbApi;
@@ -15,6 +17,37 @@ impl PicturesDb {
         Self {
             db_utils,
         }
+    }
+
+    pub fn import(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+
+        let mut importer = ProtobufImporter::create(base_path, "picture_items.pb")?;
+        while let Some(row) = importer.read_next_row::<crate::proto::collection::PictureItemsRow>()? {
+            db_context.connection().execute(
+                "INSERT INTO picture_items (id, extension, folder_id) VALUES (?1, ?2, ?3)",
+                params![row.picture_item_id, row.extension, row.folder_id],
+            )?;
+        }
+
+        Ok(())
+    }
+
+    pub fn export(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        let mut exporter = ProtobufExporter::create(base_path, "picture_items.pb")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, extension, folder_id FROM picture_items")?;
+        let rows = stmt.query_map([], |row| {
+            let mut picture_row = crate::proto::collection::PictureItemsRow::new();
+            picture_row.picture_item_id = row.get::<_, i64>(0)?;
+            picture_row.extension = row.get::<_, String>(1)?;
+            picture_row.folder_id = row.get::<_, i64>(2)?;
+            Ok(picture_row)
+        })?;
+        for row in rows {
+            exporter.write_row(&row?)?;
+        }
+        Ok(())
     }
 }
 

@@ -1,9 +1,10 @@
 use std::borrow::BorrowMut;
+use std::path::Path;
 
 use anyhow::Result;
 use rusqlite::{params, OptionalExtension};
 
-use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils};
+use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils, ProtobufExporter, ProtobufImporter};
 use crate::collection::folders::FolderId;
 use crate::collection::music::MusicItemId;
 use crate::collection::tags::Tag;
@@ -100,6 +101,39 @@ impl TagsDb {
         Self {
             db_utils,
         }
+    }
+
+    pub fn import(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+
+        let mut importer = ProtobufImporter::create(base_path, "tags.pb")?;
+        while let Some(row) = importer.read_next_row::<crate::proto::collection::TagsRow>()? {
+            db_context.connection().execute(
+                "INSERT INTO tags (id, music_item_id, folder_id, tag_name, tag_value) VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![row.tag_id, row.music_item_id, row.folder_id, row.tag_name, row.tag_value],
+            )?;
+        }
+
+        Ok(())
+    }
+
+    pub fn export(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        let mut exporter = ProtobufExporter::create(base_path, "tags.pb")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, music_item_id, folder_id, tag_name, tag_value FROM tags")?;
+        let rows = stmt.query_map([], |row| {
+            let mut tag_row = crate::proto::collection::TagsRow::new();
+            tag_row.tag_id = row.get::<_, i64>(0)?;
+            tag_row.music_item_id = row.get::<_, Option<i64>>(1)?;
+            tag_row.folder_id = row.get::<_, Option<i64>>(2)?;
+            tag_row.tag_name = row.get::<_, String>(3)?;
+            tag_row.tag_value = row.get::<_, String>(4)?;
+            Ok(tag_row)
+        })?;
+        for row in rows {
+            exporter.write_row(&row?)?;
+        }
+        Ok(())
     }
 }
 

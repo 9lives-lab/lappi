@@ -2,6 +2,8 @@ pub mod utils;
 pub mod init;
 pub mod collection;
 
+use std::path::Path;
+
 use anyhow::Result;
 use rusqlite::Connection;
 use amina_core::service::Context;
@@ -13,7 +15,6 @@ use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::tags::database_api::TagsDbApi;
-use crate::database::api::{DbExporter, DbImporter};
 use crate::app_config::{self, AppConfig};
 
 use utils::DatabaseUtils;
@@ -26,12 +27,12 @@ use collection::playlists::PlaylistsDb;
 
 pub struct SqliteDb {
     db_utils: DatabaseUtils,
-    folders_api: Box<dyn FoldersDbApi>,
-    pictures_api: Box<dyn PicturesDbApi>,
-    music_api: Box<dyn MusicDbApi>,
-    tags_api: Box<dyn TagsDbApi>,
-    lyrics_api: Box<dyn LyricsDbApi>,
-    playlists_api: Box<dyn PlaylistsDbApi>,
+    folders_api: Box<FoldersDb>,
+    pictures_api: Box<PicturesDb>,
+    music_api: Box<MusicDb>,
+    tags_api: Box<TagsDb>,
+    lyrics_api: Box<LyricsDb>,
+    playlists_api: Box<PlaylistsDb>,
 }
 
 impl CollectionDbApi for SqliteDb {
@@ -67,22 +68,24 @@ impl CollectionDbApi for SqliteDb {
         self.db_utils.lock().stop_batch();
     }
  
-    fn export(&self, exporter: Box<dyn DbExporter>) -> Result<()> {
-        let context = self.db_utils.lock();
-        let tables_list = self::init::get_tables_list();
-        for table_name in tables_list {
-            context.export_table(table_name, exporter.as_ref())?;
-        }
+    fn export(&self, base_path: &Path) -> Result<()> {
+        std::fs::create_dir_all(base_path)?; 
+        self.folders_api.export(base_path)?;
+        self.music_api.export(base_path)?;
+        self.tags_api.export(base_path)?;
+        self.pictures_api.export(base_path)?;
+        self.lyrics_api.export(base_path)?;
+        self.playlists_api.export(base_path)?;
         Ok(())
     }
 
-    fn import(&self, importer: Box<dyn DbImporter>) -> Result<()> {
-        let context = self.db_utils.lock();
-        let tables_list = self::init::get_tables_list();
-        for table_name in tables_list {
-            context.import_table(table_name, importer.as_ref())?;
-            log::debug!("Imported table {}", table_name);
-        }
+    fn import(&self, base_path: &Path) -> Result<()> {
+        self.folders_api.import(base_path)?;
+        self.music_api.import(base_path)?;
+        self.tags_api.import(base_path)?;
+        self.pictures_api.import(base_path)?;
+        self.lyrics_api.import(base_path)?;
+        self.playlists_api.import(base_path)?;
         Ok(())
     }
 }

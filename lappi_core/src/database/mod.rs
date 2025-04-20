@@ -1,4 +1,3 @@
-pub mod api;
 pub mod sqlite;
 
 use std::ops::Deref;

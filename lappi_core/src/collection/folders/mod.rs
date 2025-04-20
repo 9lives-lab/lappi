@@ -21,10 +21,6 @@ use super::tags::Tag;
 
 pub use types::*;
 
-pub struct FolderView {
-    pub content_folders: Vec<(MusicItemId, String)>,
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct ItemDescription {
     pub item_id: MusicItemId,

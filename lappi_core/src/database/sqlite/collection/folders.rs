@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::Result;
 use rusqlite::{params, OptionalExtension};
 
@@ -5,7 +7,7 @@ use crate::collection::folders::database_api::FoldersDbApi;
 use crate::collection::folders::{FolderDescription, FolderId, FolderType};
 use crate::collection::music::MusicItemId;
 use crate::collection::pictures::PictureId;
-use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils};
+use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils, ProtobufExporter, ProtobufImporter};
 
 pub struct FoldersDb {
     db_utils: DatabaseUtils,
@@ -42,10 +44,10 @@ impl FoldersDb {
             params![folder_id],
             |row| {
                 Ok(FolderDescription {
-                    folder_id:   row.get:: < _, i64>(0)? as FolderId,
-                    name:        row.get:: < _, String>(1)?,
-                    folder_type: self.i32_to_folder_type(row.get:: < _, i32>(2)?),
-                    avatar_picture_id: row.get:: < _, Option<i64>>(3)?,
+                    folder_id:   row.get::<_, i64>(0)? as FolderId,
+                    name:        row.get::<_, String>(1)?,
+                    folder_type: self.i32_to_folder_type(row.get::<_, i32>(2)?),
+                    avatar_picture_id: row.get::<_, Option<i64>>(3)?,
                 })
             },
         )?;
@@ -60,6 +62,37 @@ impl FoldersDb {
             |row| row.get::<_, i64>(0),
         ).optional()?;
         Ok(result)
+    }
+
+    pub fn import(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        let mut importer = ProtobufImporter::create(base_path, "folders.pb")?;
+        while let Some(row) = importer.read_next_row::<crate::proto::collection::FoldersRow>()? {
+            db_context.connection().execute(
+                "INSERT INTO folders (id, parent_id, name, folder_type, avatar_picture_id) VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![row.folder_id, row.parent_folder_id, row.name, row.folder_type, row.avatar_picture_id],
+            )?;
+        }
+        Ok(())
+    }
+
+    pub fn export(&self, base_path: &Path) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        let mut exporter = ProtobufExporter::create(base_path, "folders.pb")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, parent_id, name, folder_type, avatar_picture_id FROM folders")?;
+        let rows = stmt.query_map([], |row| {
+            let mut folders_row = crate::proto::collection::FoldersRow::new();
+            folders_row.folder_id = row.get::<_, i64>(0)?;
+            folders_row.parent_folder_id = row.get::<_, i64>(1)?;
+            folders_row.name = row.get::<_, String>(2)?;
+            folders_row.folder_type = row.get::<_, i32>(3)?;
+            folders_row.avatar_picture_id = row.get::<_, Option<i64>>(4)?;
+            Ok(folders_row)
+        })?;
+        for row in rows {
+            exporter.write_row(&row?)?;
+        }
+        Ok(())
     }
 }
 

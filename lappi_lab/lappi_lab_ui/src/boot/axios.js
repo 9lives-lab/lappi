@@ -11,7 +11,7 @@ import { AminaClientAPI } from 'src/amina_ui/client_api'
 export default boot(({ app }) => {
   let host = window.location.host
   if (process.env.DEV) {
-    host = 'localhost:8090'
+    host = window.location.hostname + ':8090'
   }
 
   const aminaApi = new AminaClientAPI(host)

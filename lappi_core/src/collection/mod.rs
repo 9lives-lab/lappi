@@ -33,7 +33,6 @@ pub struct Collection {
 }
 
 impl Collection {
-
     pub fn music(&self) -> &MusicCollection {
         &self.music
     }
@@ -65,21 +64,46 @@ impl Collection {
     pub fn is_empty(&self) -> bool {
         self.folders.is_empty()
     }
+
+    pub fn save(&self) {
+        if self.local_storage.is_available() {
+            let result = self.db.export(&self.local_storage.get_meta_path());
+            match result {
+                Ok(_) => {
+                    log::info!("Collection saved");
+                }
+                Err(e) => {
+                    log::error!("Failed to save collection: {}", e);
+                }
+                
+            }
+        }
+    }
+
+    pub fn load(&self) {
+        if self.local_storage.is_available() {
+            let result = self.db.import(&self.local_storage.get_meta_path());
+            match result {
+                Ok(_) => {
+                    log::info!("Collection loaded");
+                }
+                Err(e) => {
+                    log::error!("Failed to load collection: {}", e);
+                }
+            }
+        }
+        debug::init();
+    }
 }
 
 impl ServiceApi for Collection {
 
     fn start(&self) {
-        if self.local_storage.is_available() {
-            self.db.import(self.local_storage.get_importer()).unwrap();
-        }
-        debug::init();
+        self.load();
     }
 
     fn stop(&self) {
-        if self.local_storage.is_available() {
-            self.db.export(self.local_storage.get_exporter()).unwrap();
-        }
+        self.save();
     }
 
 }

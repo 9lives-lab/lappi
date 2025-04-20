@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+message FoldersRow {
+    int64 folder_id = 1;
+    int64 parent_folder_id = 2;
+    string name = 3;
+    int32 folder_type = 4;
+    optional int64 avatar_picture_id = 5;
+}
+
+message MusicItemsRow {
+    int64 music_item_id = 1;
+    string name = 2;
+    int64 folder_id = 3;
+}
+
+message LyricsItemsRow {
+    int64 lyrics_item_id = 1;
+    int64 music_item_id = 2;
+    string lang_code = 3;
+}
+
+message PictureItemsRow {
+    int64 picture_item_id = 1;
+    string extension = 2;
+    int64 folder_id = 3;
+}
+
+message TagsRow {
+    int64 tag_id = 1;
+    optional int64 music_item_id = 2;
+    optional int64 folder_id = 3;
+    string tag_name = 4;
+    string tag_value = 5;
+}
+
+message MusicSrcFilesRow {
+    int64 src_file_id = 1;
+    int64 music_item_id = 2;
+    int32 source_type = 3;
+    string path = 4;
+}
+
+message PlaylistsRow {
+    int64 playlist_id = 1;
+    string name = 2;
+    optional int64 avatar_picture_id = 3;
+}
+
+message PlaylistItemsRow {
+    int64 playlist_item_id = 1;
+    int64 playlist_id = 2;
+    optional int64 music_item_id = 3;
+}
