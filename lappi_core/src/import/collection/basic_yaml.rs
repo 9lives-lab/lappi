@@ -8,6 +8,7 @@ use serde::Deserialize;
 
 use crate::collection::folders::{FolderId, FolderType};
 use crate::collection::music::SourceType;
+use crate::collection::tags::TagValue;
 use crate::collection::Collection;
 
 #[derive(Debug, Deserialize)]
@@ -104,8 +105,7 @@ impl BasicYamlCollectionImporter {
             let songs = album_entry.songs.unwrap_or_default();
             self.import_songs(songs, album_folder)?;
             if let Some(year) = album_entry.year {
-                let year_tag = year.to_string();
-                self.collection.folders().set_tag(album_folder, "year".to_string(), year_tag);
+                self.collection.folders().set_tag(album_folder, "year".to_string(), TagValue::Number(year));
             }
         }
         Ok(())
@@ -114,7 +114,7 @@ impl BasicYamlCollectionImporter {
     fn import_songs(&self, songs: Vec<SongEntry>, parent_folder_id: FolderId) -> Result<()> {
         for (i, song_entry) in songs.iter().enumerate() {
             let music_item_id = self.collection.music().create_item(song_entry.name.clone(), parent_folder_id);
-            self.collection.music().set_tag(music_item_id, "track".to_string(), (i + 1).to_string());
+            self.collection.music().set_tag(music_item_id, "track".to_string(), TagValue::Number(i as i32 + 1));
 
             if let Some(file) = &song_entry.file {
                 log::debug!("Adding file {} to item {}", file, music_item_id);

@@ -704,8 +704,10 @@ pub struct TagsRow {
     pub folder_id: ::std::option::Option<i64>,
     // @@protoc_insertion_point(field:TagsRow.tag_name)
     pub tag_name: ::std::string::String,
-    // @@protoc_insertion_point(field:TagsRow.tag_value)
-    pub tag_value: ::std::string::String,
+    // @@protoc_insertion_point(field:TagsRow.string_value)
+    pub string_value: ::std::option::Option<::std::string::String>,
+    // @@protoc_insertion_point(field:TagsRow.int_value)
+    pub int_value: ::std::option::Option<i32>,
     // special fields
     // @@protoc_insertion_point(special_field:TagsRow.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -723,7 +725,7 @@ impl TagsRow {
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(5);
+        let mut fields = ::std::vec::Vec::with_capacity(6);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "tag_id",
@@ -745,10 +747,15 @@ impl TagsRow {
             |m: &TagsRow| { &m.tag_name },
             |m: &mut TagsRow| { &mut m.tag_name },
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "tag_value",
-            |m: &TagsRow| { &m.tag_value },
-            |m: &mut TagsRow| { &mut m.tag_value },
+        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
+            "string_value",
+            |m: &TagsRow| { &m.string_value },
+            |m: &mut TagsRow| { &mut m.string_value },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
+            "int_value",
+            |m: &TagsRow| { &m.int_value },
+            |m: &mut TagsRow| { &mut m.int_value },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<TagsRow>(
             "TagsRow",
@@ -781,7 +788,10 @@ impl ::protobuf::Message for TagsRow {
                     self.tag_name = is.read_string()?;
                 },
                 42 => {
-                    self.tag_value = is.read_string()?;
+                    self.string_value = ::std::option::Option::Some(is.read_string()?);
+                },
+                48 => {
+                    self.int_value = ::std::option::Option::Some(is.read_int32()?);
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -807,8 +817,11 @@ impl ::protobuf::Message for TagsRow {
         if !self.tag_name.is_empty() {
             my_size += ::protobuf::rt::string_size(4, &self.tag_name);
         }
-        if !self.tag_value.is_empty() {
-            my_size += ::protobuf::rt::string_size(5, &self.tag_value);
+        if let Some(v) = self.string_value.as_ref() {
+            my_size += ::protobuf::rt::string_size(5, &v);
+        }
+        if let Some(v) = self.int_value {
+            my_size += ::protobuf::rt::int32_size(6, v);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -828,8 +841,11 @@ impl ::protobuf::Message for TagsRow {
         if !self.tag_name.is_empty() {
             os.write_string(4, &self.tag_name)?;
         }
-        if !self.tag_value.is_empty() {
-            os.write_string(5, &self.tag_value)?;
+        if let Some(v) = self.string_value.as_ref() {
+            os.write_string(5, v)?;
+        }
+        if let Some(v) = self.int_value {
+            os.write_int32(6, v)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -852,7 +868,8 @@ impl ::protobuf::Message for TagsRow {
         self.music_item_id = ::std::option::Option::None;
         self.folder_id = ::std::option::Option::None;
         self.tag_name.clear();
-        self.tag_value.clear();
+        self.string_value = ::std::option::Option::None;
+        self.int_value = ::std::option::Option::None;
         self.special_fields.clear();
     }
 
@@ -862,7 +879,8 @@ impl ::protobuf::Message for TagsRow {
             music_item_id: ::std::option::Option::None,
             folder_id: ::std::option::Option::None,
             tag_name: ::std::string::String::new(),
-            tag_value: ::std::string::String::new(),
+            string_value: ::std::option::Option::None,
+            int_value: ::std::option::Option::None,
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -1392,23 +1410,25 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     emId\x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"t\n\x0fPictur\
     eItemsRow\x12&\n\x0fpicture_item_id\x18\x01\x20\x01(\x03R\rpictureItemId\
     \x12\x1c\n\textension\x18\x02\x20\x01(\tR\textension\x12\x1b\n\tfolder_i\
-    d\x18\x03\x20\x01(\x03R\x08folderId\"\xc3\x01\n\x07TagsRow\x12\x15\n\x06\
+    d\x18\x03\x20\x01(\x03R\x08folderId\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06\
     tag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\
     \x01(\x03H\0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\
     \x20\x01(\x03H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\
-    \x04\x20\x01(\tR\x07tagName\x12\x1b\n\ttag_value\x18\x05\x20\x01(\tR\x08\
-    tagValueB\x10\n\x0e_music_item_idB\x0c\n\n_folder_id\"\x8b\x01\n\x10Musi\
-    cSrcFilesRow\x12\x1e\n\x0bsrc_file_id\x18\x01\x20\x01(\x03R\tsrcFileId\
-    \x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1f\n\
-    \x0bsource_type\x18\x03\x20\x01(\x05R\nsourceType\x12\x12\n\x04path\x18\
-    \x04\x20\x01(\tR\x04path\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplayli\
-    st_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\
-    \x01(\tR\x04name\x12/\n\x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\
-    \x0favatarPictureId\x88\x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\
-    \x10PlaylistItemsRow\x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\
-    \x0eplaylistItemId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplayl\
-    istId\x12'\n\rmusic_item_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\
-    \x01\x01B\x10\n\x0e_music_item_idb\x06proto3\
+    \x04\x20\x01(\tR\x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\
+    \x02R\x0bstringValue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\
+    \x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_fol\
+    der_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"\x8b\x01\n\x10MusicSrcF\
+    ilesRow\x12\x1e\n\x0bsrc_file_id\x18\x01\x20\x01(\x03R\tsrcFileId\x12\"\
+    \n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1f\n\x0bsour\
+    ce_type\x18\x03\x20\x01(\x05R\nsourceType\x12\x12\n\x04path\x18\x04\x20\
+    \x01(\tR\x04path\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\
+    \x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\
+    \x04name\x12/\n\x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0favatarP\
+    ictureId\x88\x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10Playlis\
+    tItemsRow\x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplaylistIt\
+    emId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\n\r\
+    music_item_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\x10\n\
+    \x0e_music_item_idb\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file

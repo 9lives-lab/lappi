@@ -60,7 +60,8 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
                 music_item_id               INTEGER,
                 folder_id                   INTEGER,
                 tag_name                    TEXT    NOT NULL,
-                tag_value                   TEXT    NOT NULL,
+                string_value                TEXT,
+                int_value                   INTEGER,
                 FOREIGN KEY(music_item_id)  REFERENCES music_items(id),
                 FOREIGN KEY(folder_id)      REFERENCES folders(id)
         )",

@@ -10,10 +10,9 @@
         <TagField
           class="tag-fields col-5"
           v-for="tag in customTags"
-          :key="tag.key"
-          :name="tag.key"
-          v-model="tag.value.String"
-          @input="setTag(tag.key, tag.value.String)"
+          :key="tag.tagName"
+          :tagAdapter="tag"
+          :readonly="false"
         />
         <div v-show="customTags.length === 0">No tags yet</div>
       </div>
@@ -24,9 +23,9 @@
         <TagField
           class="tag-fields col-5"
           v-for="tag in inheritedTags"
-          :key="tag.key"
-          :name="tag.key"
-          v-model="tag.value.String"
+          :key="tag.tagName"
+          :tagAdapter="tag"
+          :readonly="true"
         />
         <div v-show="inheritedTags.length === 0">No tags yet</div>
       </div>
@@ -49,24 +48,42 @@ const newTagName = ref('')
 
 let adapter = null
 
-async function setTag (tagName, newValue) {
-  await adapter.setTag(tagName, newValue)
-}
-
 async function addTag () {
-  await setTag(newTagName.value, '')
+  await adapter.setTag(newTagName.value, { String: ' ' } )
   newTagName.value = ''
 }
 
+function createTagFieldAdapter (adapter, tag) {
+  return {
+    tagName: tag.key,
+    initialValue: tag.value,
+
+    async setValue (newValue) {
+      await adapter.setTag(tag.key, newValue)
+    },
+
+    async deleteTag () {
+      await adapter.deleteTag(tag.key)
+    },
+  }
+}
+
+function createTagFieldAdapters (adapter, tags) {
+  return tags.map((tag) => createTagFieldAdapter(adapter, tag))
+}
+
 async function update () {
-  customTags.value = await adapter.getTags()
-  inheritedTags.value = await adapter.getInheritedTags()
+  customTags.value    = createTagFieldAdapters(adapter, await adapter.getTags())
+  inheritedTags.value = createTagFieldAdapters(adapter, await adapter.getInheritedTags())
 }
 
 async function setMusicItem (newMusicItemId) {
   adapter = {
     async setTag (tagName, newValue) {
       await aminaApi.sendRequest('lappi.collection.music.set_tag', { item_id: newMusicItemId, tag_name: tagName, tag_value: newValue })
+    },
+    async deleteTag (tagName) {
+      await aminaApi.sendRequest('lappi.collection.music.delete_tag', { item_id: newMusicItemId, tag_name: tagName })
     },
     async getTags () {
       return await aminaApi.sendRequest('lappi.collection.music.get_tags', { item_id: newMusicItemId })
@@ -82,6 +99,9 @@ async function setFolder (newFolderId) {
   adapter = {
     async setTag (tagName, newValue) {
       await aminaApi.sendRequest('lappi.collection.folders.set_tag', { folder_id: newFolderId, tag_name: tagName, tag_value: newValue })
+    },
+    async deleteTag (tagName) {
+      await aminaApi.sendRequest('lappi.collection.folders.delete_tag', { folder_id: newFolderId, tag_name: tagName })
     },
     async getTags () {
       return await aminaApi.sendRequest('lappi.collection.folders.get_tags', { folder_id: newFolderId })

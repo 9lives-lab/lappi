@@ -7,7 +7,7 @@ use rusqlite::{params, OptionalExtension};
 use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils, ProtobufExporter, ProtobufImporter};
 use crate::collection::folders::FolderId;
 use crate::collection::music::MusicItemId;
-use crate::collection::tags::Tag;
+use crate::collection::tags::{Tag, TagValue};
 use crate::collection::tags::database_api::TagsDbApi;
 
 struct TagsUtils<'a> {
@@ -30,11 +30,18 @@ impl <'a> TagsUtils<'a> {
         }
     }
 
-    pub fn add_tag_row(&self, id_field_value: i64, tag_name: &str, tag_value: &str) -> Result<()> {
-        let sql = format!("INSERT INTO tags ({}, tag_name, tag_value) VALUES (?1, ?2, ?3)", self.id_field_name);
+    pub fn add_tag_row(&self, id_field_value: i64, tag_name: &str, tag_value: &TagValue) -> Result<()> {
+        let sql = format!("INSERT INTO tags ({}, tag_name, string_value, int_value) VALUES (?1, ?2, ?3, ?4)", self.id_field_name);
+        
+        let (string_value, int_value): (Option<String>, Option<i32>) = match tag_value {
+            TagValue::String(value) => (Some(value.clone()), None),
+            TagValue::Number(value) => (None, Some(*value)),
+            TagValue::Bool => (None, None),
+        };
+        
         self.context.connection().execute(
             sql.as_str(),
-            params![id_field_value, tag_name, tag_value],
+            params![id_field_value, tag_name, string_value, int_value],
         )?;
         Ok(())
     }
@@ -47,13 +54,19 @@ impl <'a> TagsUtils<'a> {
         Ok(result)
     }
 
-    fn set_add_tag(&mut self, id_field_value: i64, tag_name: &str, tag_value: &str) -> Result<()> {
+    fn set_add_tag(&mut self, id_field_value: i64, tag_name: &str, tag_value: &TagValue) -> Result<()> {
         match self.get_tag_row_id(id_field_value, tag_name)? {
             Some(id) => {
-                let sql = format!("UPDATE tags SET tag_value=(?1) WHERE id=(?2)");
+                let sql = format!("UPDATE tags SET string_value=(?1), int_value=(?2) WHERE id=(?3)");
+                let (string_value, int_value): (Option<String>, Option<i32>) = match tag_value {
+                    TagValue::String(value) => (Some(value.clone()), None),
+                    TagValue::Number(value) => (None, Some(*value)),
+                    TagValue::Bool => (None, None),
+                };
+
                 self.context.connection().execute(
                     sql.as_str(),
-                    params![tag_value, id],
+                    params![string_value, int_value, id],
                 )?;
             }
             None => {
@@ -65,12 +78,19 @@ impl <'a> TagsUtils<'a> {
     }
 
     fn get_tags(&self, id_field: i64) -> Result<Vec<Tag>> {
-        let sql = format!("SELECT tag_name, tag_value FROM tags WHERE {}=(?1)", self.id_field_name);
+        let sql = format!("SELECT tag_name, string_value, int_value FROM tags WHERE {}=(?1)", self.id_field_name);
         let mut tags_stmt = self.context.connection().prepare(sql.as_str())?;
         let tags_rows = tags_stmt.query_map(params![id_field],|row| {
-            let key = row.get::<_, String>(0)?;
-            let value = row.get::<_, String>(1)?;
-            Ok(Tag::new_string(key, value))
+            let tag_name = row.get(0)?;
+            let string_value: Option<String> = row.get(1)?;
+            let int_value: Option<i32> = row.get(2)?;
+            let tag_value = match (string_value, int_value) {
+                (Some(value), None) => TagValue::String(value),
+                (None, Some(value)) => TagValue::Number(value),
+                (None, None) => TagValue::Bool,
+                _ => return Err(rusqlite::Error::InvalidQuery),
+            };
+            Ok(Tag::new(tag_name, tag_value))
         })?;
         Ok(tags_rows.map(|x| x.unwrap()).collect())
     }
@@ -109,8 +129,8 @@ impl TagsDb {
         let mut importer = ProtobufImporter::create(base_path, "tags.pb")?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::TagsRow>()? {
             db_context.connection().execute(
-                "INSERT INTO tags (id, music_item_id, folder_id, tag_name, tag_value) VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![row.tag_id, row.music_item_id, row.folder_id, row.tag_name, row.tag_value],
+                "INSERT INTO tags (id, music_item_id, folder_id, tag_name, string_value, int_value) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![row.tag_id, row.music_item_id, row.folder_id, row.tag_name, row.string_value, row.int_value],
             )?;
         }
 
@@ -120,14 +140,15 @@ impl TagsDb {
     pub fn export(&self, base_path: &Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut exporter = ProtobufExporter::create(base_path, "tags.pb")?;
-        let mut stmt = db_context.connection().prepare("SELECT id, music_item_id, folder_id, tag_name, tag_value FROM tags")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, music_item_id, folder_id, tag_name, string_value, int_value FROM tags")?;
         let rows = stmt.query_map([], |row| {
             let mut tag_row = crate::proto::collection::TagsRow::new();
             tag_row.tag_id = row.get::<_, i64>(0)?;
             tag_row.music_item_id = row.get::<_, Option<i64>>(1)?;
             tag_row.folder_id = row.get::<_, Option<i64>>(2)?;
             tag_row.tag_name = row.get::<_, String>(3)?;
-            tag_row.tag_value = row.get::<_, String>(4)?;
+            tag_row.string_value = row.get::<_, Option<String>>(4)?;
+            tag_row.int_value = row.get::<_, Option<i32>>(5)?;
             Ok(tag_row)
         })?;
         for row in rows {
@@ -142,7 +163,7 @@ impl TagsDbApi for TagsDb {
         return Box::new(TagsDb::new(self.db_utils.clone()));
     }
 
-    fn set_add_item_tag(&self, item_id: MusicItemId, tag_name: &str, tag_value: &str) -> Result<()> {
+    fn set_add_item_tag(&self, item_id: MusicItemId, tag_name: &str, tag_value: &TagValue) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_music_item_utils(context.borrow_mut());
         return tags_utils.set_add_tag(item_id, tag_name, tag_value);
@@ -166,7 +187,7 @@ impl TagsDbApi for TagsDb {
         return tags_utils.delete_tag(item_id, tag_name);
     }
 
-    fn set_add_folder_tag(&self, folder_id: FolderId, tag_name: &str, tag_value: &str) -> Result<()> {
+    fn set_add_folder_tag(&self, folder_id: FolderId, tag_name: &str, tag_value: &TagValue) -> Result<()> {
         let mut context = self.db_utils.lock();
         let mut tags_utils = TagsUtils::new_folder_utils(context.borrow_mut());
         return tags_utils.set_add_tag(folder_id, tag_name, tag_value);

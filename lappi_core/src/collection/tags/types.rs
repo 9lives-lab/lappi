@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub enum TagValue {
     String(String),
     Number(i32),
+    Bool,
 }
 
 #[derive(Clone, Debug)]
@@ -17,6 +18,10 @@ pub struct Tag {
 }
 
 impl Tag {
+    pub fn new(key: String, value: TagValue) -> Tag {
+        Tag { key, value }
+    }
+
     pub fn new_string(key: String, value: String) -> Tag {
         Tag {
             key,
@@ -39,10 +44,11 @@ impl Tag {
         return &self.value;
     }
 
-    pub fn get_string(&self) -> Option<String> {
+    pub fn to_string(&self) -> String {
         match &self.value {
-            TagValue::String(string_value) => Some(string_value.clone()),
-            TagValue::Number(_) => None,
+            TagValue::String(string_value) => string_value.clone(),
+            TagValue::Number(number_value) => number_value.to_string(),
+            TagValue::Bool => "true".to_string()
         }
     }
 }

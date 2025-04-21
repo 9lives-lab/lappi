@@ -12,7 +12,7 @@ use crate::database::Database;
 use super::folders::{FolderId, FoldersCollection};
 use super::pictures::PictureId;
 use super::tags::database_api::TagsDbApi;
-use super::tags::Tag;
+use super::tags::{Tag, TagValue};
 
 use database_api::MusicDbApi;
 pub use types::*;
@@ -29,7 +29,7 @@ impl ItemRef {
         self.id
     }
 
-    pub fn add_tag(&self, tag_name: &str, value: &str) {
+    pub fn add_tag(&self, tag_name: &str, value: &TagValue) {
         self.tags_db.set_add_item_tag(self.id, tag_name, value).unwrap();
     }
 
@@ -97,7 +97,7 @@ impl MusicCollection {
 
     pub fn get_item_caption(&self, item_id: MusicItemId) -> String {
         if let Some(tag) = self.get_tag(item_id, "track") {
-            if let Some(track) = tag.get_string() {
+            if let TagValue::Number(track) = tag.get_value() {
                 return format!("track - {}", track);
             }
         }
@@ -108,8 +108,8 @@ impl MusicCollection {
         self.folders.find_folder_cover(self.get_item_description(item_id).folder_id)
     }
 
-    pub fn set_tag(&self, item_id: MusicItemId, tag_name: String, tag_value: String) {
-        self.tags_db.set_add_item_tag(item_id, tag_name.as_str(), tag_value.as_str()).unwrap();
+    pub fn set_tag(&self, item_id: MusicItemId, tag_name: String, tag_value: TagValue) {
+        self.tags_db.set_add_item_tag(item_id, tag_name.as_str(), &tag_value).unwrap();
     }
 
     pub fn get_tags(&self, item_id: MusicItemId) -> Vec<Tag> {
@@ -141,6 +141,10 @@ impl MusicCollection {
         }
 
         return None;
+    }
+
+    pub fn delete_tag(&self, item_id: MusicItemId, tag_name: String) {
+        self.tags_db.delete_item_tag(item_id, &tag_name).unwrap();
     }
 
     pub fn add_source_file(&self, item_id: MusicItemId, source_type: SourceType, path: String) {
@@ -177,8 +181,9 @@ impl ServiceInitializer for MusicCollection {
         });
 
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_tags", get_tags(item_id: MusicItemId));
-        register_rpc_handler!(rpc, music, "lappi.collection.music.set_tag", set_tag(item_id: MusicItemId, tag_name: String, tag_value: String));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.set_tag", set_tag(item_id: MusicItemId, tag_name: String, tag_value: TagValue));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_inheirted_tags", get_inherited_tags(item_id: MusicItemId));
+        register_rpc_handler!(rpc, music, "lappi.collection.music.delete_tag", delete_tag(item_id: MusicItemId, tag_name: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.create_item", create_item(name: String, folder_id: FolderId));
         register_rpc_handler!(rpc, music, "lappi.collection.music.set_item_name", set_item_name(item_id: MusicItemId, name: String));
         register_rpc_handler!(rpc, music, "lappi.collection.music.get_item_description", get_item_description(item_id: MusicItemId));

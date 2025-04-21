@@ -17,7 +17,7 @@ use super::music::database_api::MusicDbApi;
 use super::music::MusicItemId;
 use super::pictures::PictureId;
 use super::tags::database_api::TagsDbApi;
-use super::tags::Tag;
+use super::tags::{Tag, TagValue};
 
 pub use types::*;
 
@@ -71,7 +71,7 @@ impl FoldersCollection {
         match self.get_folder_description(folder_id).folder_type {
             FolderType::Album => {
                 if let Some(tag) = self.get_tag(folder_id, "year") {
-                    if let Some(year) = tag.get_string() {
+                    if let TagValue::Number(year) = tag.get_value() {
                         return format!("year - {}", year);
                     }
                 }
@@ -165,8 +165,8 @@ impl FoldersCollection {
         }
     }
 
-    pub fn set_tag(&self, folder_id: FolderId, tag_name: String, tag_value: String) {
-        self.tags_db.set_add_folder_tag(folder_id, tag_name.as_str(), tag_value.as_str()).unwrap();
+    pub fn set_tag(&self, folder_id: FolderId, tag_name: String, tag_value: TagValue) {
+        self.tags_db.set_add_folder_tag(folder_id, tag_name.as_str(), &tag_value).unwrap();
     }
 
     pub fn get_own_folder_tag(&self, folder_id: FolderId) -> Option<Tag> {
@@ -220,6 +220,10 @@ impl FoldersCollection {
         return None;
     }
 
+    pub fn delete_tag(&self, folder_id: FolderId, tag_name: String) {
+        self.tags_db.delete_folder_tag(folder_id, &tag_name).unwrap();
+    }
+
     pub fn save_description(&self, folder_id: FolderId, text: String) {
         let path = self.get_description_storage_path(folder_id);
         std::fs::write(path, text.as_bytes()).unwrap();
@@ -262,8 +266,9 @@ impl ServiceInitializer for FoldersCollection {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_folder_cover", set_folder_cover(folder_id: FolderId, picture_id: PictureId));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.find_or_add_folder", find_or_add_folder(parent_id: FolderId, folder_name: String, folder_type: FolderType));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_tags", get_tags(folder_id: FolderId));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_tag", set_tag(folder_id: FolderId, tag_name: String, tag_value: String));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.set_tag", set_tag(folder_id: FolderId, tag_name: String, tag_value: TagValue));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_inheirted_tags", get_inherited_tags(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.delete_tag", delete_tag(folder_id: FolderId, tag_name: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
 

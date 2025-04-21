@@ -96,7 +96,8 @@ Only one of `music_item_id` or `folder_id` should be set.
 | `music_item_id` | `optional int64` | Identifier of the associated music item. |
 | `folder_id` | `optional int64` | Identifier of the associated folder. |
 | `tag_name` | `string` | Name of the tag. |
-| `tag_value` | `string` | Value of the tag. |
+| `string_value` | `optional string` | String value of the tag. |
+| `int_value` | `optional int32` | Integer value of the tag. |
 
 ### `music_src_files.pb`
 

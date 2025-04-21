@@ -64,10 +64,10 @@ impl PlaylistsCollection {
         for (id, music_item_id) in playlist_items {
             let music_item_desc = self.music.get_item_description(music_item_id);
             let artist = self.music.get_tag(music_item_id, "artist")
-                .map(|tag| tag.get_string().unwrap_or_default())
+                .map(|tag| tag.to_string())
                 .unwrap_or_else(|| "".to_string());
             let album = self.music.get_tag(music_item_id, "album")
-                .map(|tag| tag.get_string().unwrap_or_default())
+                .map(|tag| tag.to_string())
                 .unwrap_or_else(|| "".to_string());
 
             result.push(PlaylistItemDesc {

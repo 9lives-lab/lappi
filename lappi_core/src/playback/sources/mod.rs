@@ -40,7 +40,7 @@ impl PlaybackSource {
         let item_desc = music.get_item_description(music_item_id);
         let artist_tag = music.get_tag(music_item_id, "artist");
         let name = if let Some(artist_tag) = artist_tag {
-            format!("{} - {}", artist_tag.get_string().unwrap(), item_desc.name)
+            format!("{} - {}", artist_tag.to_string(), item_desc.name)
         } else {
             item_desc.name
         };
