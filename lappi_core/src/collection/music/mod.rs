@@ -109,6 +109,7 @@ impl MusicCollection {
     }
 
     pub fn set_tag(&self, item_id: MusicItemId, tag_name: String, tag_value: TagValue) {
+        log::debug!("set_tag: item_id: {}, tag_name: {}, tag_value: {:?}", item_id, tag_name, tag_value);
         self.tags_db.set_add_item_tag(item_id, tag_name.as_str(), &tag_value).unwrap();
     }
 

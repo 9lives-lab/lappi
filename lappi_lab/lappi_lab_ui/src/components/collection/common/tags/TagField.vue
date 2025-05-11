@@ -86,11 +86,12 @@ watch(() => props.tagAdapter, async (newAdapter) => {
   if (newAdapter) {
     adapter = newAdapter
     name.value = newAdapter.tagName
-    if (newAdapter.initialValue.String) {
+
+    if ("String" in newAdapter.initialValue) {
       valueType.value = 'String'
       valueTypeIcon.value = 'text_fields'
       model.value = newAdapter.initialValue.String
-    } else if (newAdapter.initialValue.Number) {
+    } else if ("Number" in newAdapter.initialValue) {
       valueType.value = 'Number'
       valueTypeIcon.value = '123'
       model.value = newAdapter.initialValue.Number.toString()

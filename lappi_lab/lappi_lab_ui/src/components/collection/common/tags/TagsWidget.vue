@@ -3,17 +3,10 @@
     <div class="column">
       <ToolPane>
         <div class="q-pa-md">Custom tags</div>
-        <q-btn icon="add" class="q-mr-md" @click="addTag" />
-        <q-input borderless dense placeholder="Add tag" v-model="newTagName" />
+        <AddTagDialog class="q-mr-md" :adapter="adapter" />
       </ToolPane>
       <div class="tag-editor row q-pa-md q-gutter-md">
-        <TagField
-          class="tag-fields col-5"
-          v-for="tag in customTags"
-          :key="tag.tagName"
-          :tagAdapter="tag"
-          :readonly="false"
-        />
+        <TagField class="tag-fields col-5" v-for="tag in customTags" :key="tag.tagName" :tagAdapter="tag" :readonly="false"/>
         <div v-show="customTags.length === 0">No tags yet</div>
       </div>
       <ToolPane>
@@ -21,12 +14,7 @@
       </ToolPane>
       <div class="tag-editor row q-pa-md q-gutter-md">
         <TagField
-          class="tag-fields col-5"
-          v-for="tag in inheritedTags"
-          :key="tag.tagName"
-          :tagAdapter="tag"
-          :readonly="true"
-        />
+          class="tag-fields col-5" v-for="tag in inheritedTags" :key="tag.tagName" :tagAdapter="tag" :readonly="true"/>
         <div v-show="inheritedTags.length === 0">No tags yet</div>
       </div>
     </div>
@@ -37,6 +25,7 @@
 import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import TagField from 'components/collection/common/tags/TagField.vue'
+import AddTagDialog from 'components/collection/common/tags/AddTagDialog.vue'
 import { ref, getCurrentInstance } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
@@ -44,14 +33,7 @@ const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaA
 const customTags = ref([])
 const inheritedTags = ref([])
 
-const newTagName = ref('')
-
-let adapter = null
-
-async function addTag () {
-  await adapter.setTag(newTagName.value, { String: ' ' } )
-  newTagName.value = ''
-}
+let adapter = ref({})
 
 function createTagFieldAdapter (adapter, tag) {
   return {
@@ -73,12 +55,12 @@ function createTagFieldAdapters (adapter, tags) {
 }
 
 async function update () {
-  customTags.value    = createTagFieldAdapters(adapter, await adapter.getTags())
-  inheritedTags.value = createTagFieldAdapters(adapter, await adapter.getInheritedTags())
+  customTags.value    = createTagFieldAdapters(adapter.value, await adapter.value.getTags())
+  inheritedTags.value = createTagFieldAdapters(adapter.value, await adapter.value.getInheritedTags())
 }
 
 async function setMusicItem (newMusicItemId) {
-  adapter = {
+  adapter.value = {
     async setTag (tagName, newValue) {
       await aminaApi.sendRequest('lappi.collection.music.set_tag', { item_id: newMusicItemId, tag_name: tagName, tag_value: newValue })
     },
@@ -96,7 +78,7 @@ async function setMusicItem (newMusicItemId) {
 }
 
 async function setFolder (newFolderId) {
-  adapter = {
+  adapter.value = {
     async setTag (tagName, newValue) {
       await aminaApi.sendRequest('lappi.collection.folders.set_tag', { folder_id: newFolderId, tag_name: tagName, tag_value: newValue })
     },

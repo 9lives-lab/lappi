@@ -48,7 +48,7 @@ impl Tag {
         match &self.value {
             TagValue::String(string_value) => string_value.clone(),
             TagValue::Number(number_value) => number_value.to_string(),
-            TagValue::Bool => "true".to_string()
+            TagValue::Bool => "True".to_string()
         }
     }
 }

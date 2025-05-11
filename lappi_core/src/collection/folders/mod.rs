@@ -166,6 +166,7 @@ impl FoldersCollection {
     }
 
     pub fn set_tag(&self, folder_id: FolderId, tag_name: String, tag_value: TagValue) {
+        log::debug!("set_tag: folder_id: {}, tag_name: {}, tag_value: {:?}", folder_id, tag_name, tag_value);
         self.tags_db.set_add_folder_tag(folder_id, tag_name.as_str(), &tag_value).unwrap();
     }
 
@@ -198,6 +199,8 @@ impl FoldersCollection {
 
         let parent_folder_id = self.folders_db.get_folder_parent(folder_id).unwrap();
         if self.get_root_folder() != parent_folder_id {
+            let parent_tags = self.get_tags(parent_folder_id);
+            tags.extend(parent_tags);
             let parent_tags = self.get_inherited_tags(parent_folder_id);
             tags.extend(parent_tags);
         }
