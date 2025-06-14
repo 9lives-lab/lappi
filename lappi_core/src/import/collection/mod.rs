@@ -15,8 +15,8 @@ use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{TaskContext, TaskManager};
 
+use crate::collection::music_sources::MusicLinkType;
 use crate::collection::Collection;
-use crate::collection::music::SourceType;
 use crate::collection::tags::TagsMap;
 use crate::platform_api::PlatformApi;
 use crate::metadata;
@@ -89,7 +89,7 @@ impl Importer for AudioImporter {
         let metadata = metadata::read_from_path(path).unwrap();
         let item_id = utils::import_song(&self.collection, &metadata.tags);
         if let Some(item_id) = item_id {
-            self.collection.music().add_source_file(item_id, SourceType::LocalFile, String::from(path.to_str().unwrap()));
+            self.collection.music_sources().add_music_link(item_id, MusicLinkType::ExternalFile, String::from(path.to_str().unwrap()));
             logger.log_song(&metadata.tags);
         }
     }
@@ -173,9 +173,9 @@ impl CollectionImporter {
     }
 
     pub fn import_basic(&self, tags: HashMap<String, String>, file_path: String) {
-        let item_id = utils::import_song(&self.collection, &TagsMap::from_map(tags));
-        if let Some(item_id) = item_id {
-            self.collection.music().add_source_file(item_id, SourceType::LocalFile, file_path);
+        let music_item_id = utils::import_song(&self.collection, &TagsMap::from_map(tags));
+        if let Some(music_item_id) = music_item_id {
+            self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path)).unwrap();
         }
     }
 

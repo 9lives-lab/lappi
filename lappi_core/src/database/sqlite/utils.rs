@@ -218,6 +218,8 @@ pub struct ProtobufImporter {
 
 impl ProtobufImporter {
     pub fn create(base_path: &Path, file_name: &str) -> Result<Self> {
+        log::debug!("Import {}", file_name);
+
         let file_path = base_path.join(file_name);
         let file = if file_path.is_file() {
             Some(File::open(file_path)?)

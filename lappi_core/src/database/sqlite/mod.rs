@@ -9,33 +9,43 @@ use rusqlite::Connection;
 use amina_core::service::Context;
 
 use crate::collection::database_api::CollectionDbApi;
+use crate::collection::internal_files::database_api::InternalFilesDbApi;
 use crate::collection::folders::database_api::FoldersDbApi;
 use crate::collection::lyrics::database_api::LyricsDbApi;
 use crate::collection::music::database_api::MusicDbApi;
 use crate::collection::pictures::database_api::PicturesDbApi;
 use crate::collection::playlists::database_api::PlaylistsDbApi;
 use crate::collection::tags::database_api::TagsDbApi;
+use crate::collection::music_sources::database_api::MusicSourcesDbApi;
 use crate::app_config::{self, AppConfig};
 
 use utils::DatabaseUtils;
+use collection::internal_files::InternalFilesDb;
 use collection::folders::FoldersDb;
 use collection::pictures::PicturesDb;
 use collection::lyrics::LyricsDb;
 use collection::music::MusicDb;
 use collection::tags::TagsDb;
+use collection::music_sources::MusicSourcesDb;
 use collection::playlists::PlaylistsDb;
 
 pub struct SqliteDb {
     db_utils: DatabaseUtils,
+    internal_files_api: Box<InternalFilesDb>,
     folders_api: Box<FoldersDb>,
     pictures_api: Box<PicturesDb>,
     music_api: Box<MusicDb>,
+    music_sources_api: Box<MusicSourcesDb>,
     tags_api: Box<TagsDb>,
     lyrics_api: Box<LyricsDb>,
     playlists_api: Box<PlaylistsDb>,
 }
 
 impl CollectionDbApi for SqliteDb {
+    fn get_internal_files_api(&self) -> Box<dyn InternalFilesDbApi> {
+        self.internal_files_api.clone_api()
+    }
+
     fn get_folders_api(&self) -> Box<dyn FoldersDbApi> {
         self.folders_api.clone_api()
     }
@@ -50,6 +60,10 @@ impl CollectionDbApi for SqliteDb {
 
     fn get_tags_api(&self) -> Box<dyn TagsDbApi> {
         self.tags_api.clone_api()
+    }
+
+    fn get_music_sources_api(&self) -> Box<dyn MusicSourcesDbApi> {
+        self.music_sources_api.clone_api()
     }
 
     fn get_pictures_api(&self) -> Box<dyn PicturesDbApi> {
@@ -69,10 +83,12 @@ impl CollectionDbApi for SqliteDb {
     }
  
     fn export(&self, base_path: &Path) -> Result<()> {
-        std::fs::create_dir_all(base_path)?; 
+        std::fs::create_dir_all(base_path)?;
+        self.internal_files_api.export(base_path)?;
         self.folders_api.export(base_path)?;
         self.music_api.export(base_path)?;
         self.tags_api.export(base_path)?;
+        self.music_sources_api.export(base_path)?;
         self.pictures_api.export(base_path)?;
         self.lyrics_api.export(base_path)?;
         self.playlists_api.export(base_path)?;
@@ -80,9 +96,11 @@ impl CollectionDbApi for SqliteDb {
     }
 
     fn import(&self, base_path: &Path) -> Result<()> {
+        self.internal_files_api.import(base_path)?;
         self.folders_api.import(base_path)?;
         self.music_api.import(base_path)?;
         self.tags_api.import(base_path)?;
+        self.music_sources_api.import(base_path)?;
         self.pictures_api.import(base_path)?;
         self.lyrics_api.import(base_path)?;
         self.playlists_api.import(base_path)?;
@@ -125,10 +143,12 @@ pub fn initialize(context: &Context) -> SqliteDb {
 
     SqliteDb {
         db_utils: db_utils.clone(),
+        internal_files_api: Box::new(InternalFilesDb::new(db_utils.clone())),
         folders_api: Box::new(FoldersDb::new(db_utils.clone())),
         pictures_api: Box::new(PicturesDb::new(db_utils.clone())),
         music_api: Box::new(MusicDb::new(db_utils.clone())),
         tags_api: Box::new(TagsDb::new(db_utils.clone())),
+        music_sources_api: Box::new(MusicSourcesDb::new(db_utils.clone())),
         lyrics_api: Box::new(LyricsDb::new(db_utils.clone())),
         playlists_api: Box::new(PlaylistsDb::new(db_utils.clone())),
     }

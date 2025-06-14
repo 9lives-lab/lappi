@@ -7,7 +7,6 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::collection::folders::{FolderId, FolderType};
-use crate::collection::music::SourceType;
 use crate::collection::tags::TagValue;
 use crate::collection::Collection;
 
@@ -101,12 +100,15 @@ impl BasicYamlCollectionImporter {
         for album_entry in albums {
             let album_name = album_entry.name;
             let album_folder = self.collection.folders().find_or_add_folder(parent_folder_id, album_name, FolderType::Album);
-            self.import_pictures(album_entry.pictures, album_folder)?;
-            let songs = album_entry.songs.unwrap_or_default();
-            self.import_songs(songs, album_folder)?;
+
             if let Some(year) = album_entry.year {
                 self.collection.folders().set_tag(album_folder, "year".to_string(), TagValue::Number(year));
             }
+
+            self.import_pictures(album_entry.pictures, album_folder)?;
+
+            let songs = album_entry.songs.unwrap_or_default();
+            self.import_songs(songs, album_folder)?;
         }
         Ok(())
     }
@@ -119,7 +121,7 @@ impl BasicYamlCollectionImporter {
             if let Some(file) = &song_entry.file {
                 log::debug!("Adding file {} to item {}", file, music_item_id);
                 let file_path = self.dir_path.clone().join(file).canonicalize()?.to_string_lossy().to_string();
-                self.collection.music().add_source_file(music_item_id, SourceType::LocalFile, file_path);
+                self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path))?;
             }
 
             if let Some(lyrics_file) = &song_entry.lyrics_file {

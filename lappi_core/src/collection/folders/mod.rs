@@ -9,6 +9,7 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
+use crate::collection::internal_files::InternalPath;
 use crate::collection::storage::local::LocalStorage;
 use crate::database::Database;
 
@@ -67,17 +68,18 @@ impl FoldersCollection {
         self.folders_db.get_folder_description(folder_id).unwrap()
     }
 
-    pub fn get_folder_caption(&self, folder_id: FolderId) -> String {
+    pub fn get_caption_tag(&self, folder_id: FolderId) -> Option<Tag> {
         match self.get_folder_description(folder_id).folder_type {
-            FolderType::Album => {
-                if let Some(tag) = self.get_tag(folder_id, "year") {
-                    if let TagValue::Number(year) = tag.get_value() {
-                        return format!("year - {}", year);
-                    }
-                }
-                return "".to_string();
-            }
-            _ => "".to_string()
+            FolderType::Album => self.get_tag(folder_id, "year", false),
+            _ => None
+        }
+    }
+
+    pub fn get_folder_caption(&self, folder_id: FolderId) -> String {
+        if let Some(tag) = self.get_caption_tag(folder_id) {
+            return format!("{} - {}", tag.get_key(), tag.to_string());
+        } else {
+            return "".to_string();
         }
     }
 
@@ -208,11 +210,14 @@ impl FoldersCollection {
         return tags;
     }
 
-    pub fn get_tag(&self, folder_id: FolderId, tag_name: &str) -> Option<Tag> {
+    pub fn get_tag(&self, folder_id: FolderId, tag_name: &str, include_inherited: bool) -> Option<Tag> {
         let mut tags = vec![];
 
         tags.extend(self.get_tags(folder_id));
-        tags.extend(self.get_inherited_tags(folder_id));
+
+        if include_inherited {
+            tags.extend(self.get_inherited_tags(folder_id));
+        }
 
         for tag in tags {
             if tag.get_key() == tag_name {
@@ -240,6 +245,21 @@ impl FoldersCollection {
 
     fn get_description_storage_path(&self, folder_id: FolderId) -> PathBuf {
         return self.local_storage.get_internal_storage_folder("folders/about").join(format!("{}.txt", folder_id));
+    }
+
+    pub fn get_internal_path(&self, folder_id: FolderId) -> InternalPath {
+        let folders_chain = self.get_folders_chain(folder_id);
+        let mut path = InternalPath::new();
+        for folder_desc in folders_chain {
+            let mut folder_name = String::new();
+            if let Some(tag) = self.get_caption_tag(folder_desc.folder_id) {
+                folder_name = tag.to_string() + " - ";
+            }
+            folder_name += &folder_desc.name;
+            
+            path.push(&folder_name);
+        }
+        return path;
     }
 }
 
@@ -274,6 +294,7 @@ impl ServiceInitializer for FoldersCollection {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.delete_tag", delete_tag(folder_id: FolderId, tag_name: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_internal_path", get_internal_path(folder_id: FolderId));
 
         return folders;
     }

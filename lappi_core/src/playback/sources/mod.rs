@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
+use crate::collection::internal_files::InternalFiles;
 use crate::collection::music::{MusicCollection, MusicItemId};
+use crate::collection::music_sources::MusicSourcesCollection;
 use crate::collection::pictures::PictureId;
 
 #[derive(Clone, Debug)]
@@ -26,31 +28,29 @@ impl PlaybackSource {
 
     pub fn default_from_music_item(music_item_id: MusicItemId) -> Option<Box<PlaybackSource>> {
         let music = crate::context().get_service::<MusicCollection>();
+        let music_sources = crate::context().get_service::<MusicSourcesCollection>();
+        let internal_files = crate::context().get_service::<InternalFiles>();
 
-        let mut default_source_file = None;
-        let source_files = music.get_source_files(music_item_id);
-    
-        for file_desc in source_files {
-            if file_desc.source_type == crate::collection::music::SourceType::LocalFile {
-                default_source_file = Some(file_desc);
-                break;
-            }
-        }
-    
-        let item_desc = music.get_item_description(music_item_id);
-        let artist_tag = music.get_tag(music_item_id, "artist");
-        let name = if let Some(artist_tag) = artist_tag {
-            format!("{} - {}", artist_tag.to_string(), item_desc.name)
-        } else {
-            item_desc.name
-        };
+        match music_sources.get_music_file(music_item_id) {
+            Some(file_desc) => {
+                let item_desc = music.get_item_description(music_item_id);
 
-        if let Some(file_desc) = default_source_file {
-            let mut playback_source = Self::local_file(name, file_desc.path);
-            playback_source.cover_picture = music.get_item_cover(music_item_id);
-            return Some(playback_source);
-        } else {
-            return None;
+                let artist_tag = music.get_tag(music_item_id, "artist");
+                let name = if let Some(artist_tag) = artist_tag {
+                    format!("{} - {}", artist_tag.to_string(), item_desc.name)
+                } else {
+                    item_desc.name
+                };
+
+                let internal_path = internal_files.get_file_path(file_desc.internal_file_id);
+                let abs_path = internal_files.get_storage_abs_path(&internal_path);
+
+                let mut playback_source = Self::local_file(name, abs_path.to_str().unwrap().to_string());
+                playback_source.cover_picture = music.get_item_cover(music_item_id);
+
+                Some(playback_source)
+            },
+            None => None
         }
     }
 

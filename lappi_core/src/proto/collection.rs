@@ -218,6 +218,146 @@ impl ::protobuf::reflect::ProtobufValue for FoldersRow {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
+// @@protoc_insertion_point(message:InternalFilesRow)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct InternalFilesRow {
+    // message fields
+    // @@protoc_insertion_point(field:InternalFilesRow.file_id)
+    pub file_id: i64,
+    // @@protoc_insertion_point(field:InternalFilesRow.internal_path)
+    pub internal_path: ::std::string::String,
+    // special fields
+    // @@protoc_insertion_point(special_field:InternalFilesRow.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a InternalFilesRow {
+    fn default() -> &'a InternalFilesRow {
+        <InternalFilesRow as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl InternalFilesRow {
+    pub fn new() -> InternalFilesRow {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(2);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "file_id",
+            |m: &InternalFilesRow| { &m.file_id },
+            |m: &mut InternalFilesRow| { &mut m.file_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "internal_path",
+            |m: &InternalFilesRow| { &m.internal_path },
+            |m: &mut InternalFilesRow| { &mut m.internal_path },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<InternalFilesRow>(
+            "InternalFilesRow",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for InternalFilesRow {
+    const NAME: &'static str = "InternalFilesRow";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                8 => {
+                    self.file_id = is.read_int64()?;
+                },
+                18 => {
+                    self.internal_path = is.read_string()?;
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if self.file_id != 0 {
+            my_size += ::protobuf::rt::int64_size(1, self.file_id);
+        }
+        if !self.internal_path.is_empty() {
+            my_size += ::protobuf::rt::string_size(2, &self.internal_path);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if self.file_id != 0 {
+            os.write_int64(1, self.file_id)?;
+        }
+        if !self.internal_path.is_empty() {
+            os.write_string(2, &self.internal_path)?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> InternalFilesRow {
+        InternalFilesRow::new()
+    }
+
+    fn clear(&mut self) {
+        self.file_id = 0;
+        self.internal_path.clear();
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static InternalFilesRow {
+        static instance: InternalFilesRow = InternalFilesRow {
+            file_id: 0,
+            internal_path: ::std::string::String::new(),
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for InternalFilesRow {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("InternalFilesRow").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for InternalFilesRow {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for InternalFilesRow {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
 // @@protoc_insertion_point(message:MusicItemsRow)
 #[derive(PartialEq,Clone,Default,Debug)]
 pub struct MusicItemsRow {
@@ -904,67 +1044,60 @@ impl ::protobuf::reflect::ProtobufValue for TagsRow {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
-// @@protoc_insertion_point(message:MusicSrcFilesRow)
+// @@protoc_insertion_point(message:MusicFilesRow)
 #[derive(PartialEq,Clone,Default,Debug)]
-pub struct MusicSrcFilesRow {
+pub struct MusicFilesRow {
     // message fields
-    // @@protoc_insertion_point(field:MusicSrcFilesRow.src_file_id)
-    pub src_file_id: i64,
-    // @@protoc_insertion_point(field:MusicSrcFilesRow.music_item_id)
-    pub music_item_id: i64,
-    // @@protoc_insertion_point(field:MusicSrcFilesRow.source_type)
-    pub source_type: i32,
-    // @@protoc_insertion_point(field:MusicSrcFilesRow.path)
-    pub path: ::std::string::String,
+    // @@protoc_insertion_point(field:MusicFilesRow.id)
+    pub id: i64,
+    // @@protoc_insertion_point(field:MusicFilesRow.internal_file_id)
+    pub internal_file_id: i64,
+    // @@protoc_insertion_point(field:MusicFilesRow.file_type)
+    pub file_type: ::protobuf::EnumOrUnknown<MusicFileType>,
     // special fields
-    // @@protoc_insertion_point(special_field:MusicSrcFilesRow.special_fields)
+    // @@protoc_insertion_point(special_field:MusicFilesRow.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a MusicSrcFilesRow {
-    fn default() -> &'a MusicSrcFilesRow {
-        <MusicSrcFilesRow as ::protobuf::Message>::default_instance()
+impl<'a> ::std::default::Default for &'a MusicFilesRow {
+    fn default() -> &'a MusicFilesRow {
+        <MusicFilesRow as ::protobuf::Message>::default_instance()
     }
 }
 
-impl MusicSrcFilesRow {
-    pub fn new() -> MusicSrcFilesRow {
+impl MusicFilesRow {
+    pub fn new() -> MusicFilesRow {
         ::std::default::Default::default()
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(4);
+        let mut fields = ::std::vec::Vec::with_capacity(3);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "src_file_id",
-            |m: &MusicSrcFilesRow| { &m.src_file_id },
-            |m: &mut MusicSrcFilesRow| { &mut m.src_file_id },
+            "id",
+            |m: &MusicFilesRow| { &m.id },
+            |m: &mut MusicFilesRow| { &mut m.id },
         ));
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "music_item_id",
-            |m: &MusicSrcFilesRow| { &m.music_item_id },
-            |m: &mut MusicSrcFilesRow| { &mut m.music_item_id },
+            "internal_file_id",
+            |m: &MusicFilesRow| { &m.internal_file_id },
+            |m: &mut MusicFilesRow| { &mut m.internal_file_id },
         ));
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "source_type",
-            |m: &MusicSrcFilesRow| { &m.source_type },
-            |m: &mut MusicSrcFilesRow| { &mut m.source_type },
+            "file_type",
+            |m: &MusicFilesRow| { &m.file_type },
+            |m: &mut MusicFilesRow| { &mut m.file_type },
         ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "path",
-            |m: &MusicSrcFilesRow| { &m.path },
-            |m: &mut MusicSrcFilesRow| { &mut m.path },
-        ));
-        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<MusicSrcFilesRow>(
-            "MusicSrcFilesRow",
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<MusicFilesRow>(
+            "MusicFilesRow",
             fields,
             oneofs,
         )
     }
 }
 
-impl ::protobuf::Message for MusicSrcFilesRow {
-    const NAME: &'static str = "MusicSrcFilesRow";
+impl ::protobuf::Message for MusicFilesRow {
+    const NAME: &'static str = "MusicFilesRow";
 
     fn is_initialized(&self) -> bool {
         true
@@ -974,16 +1107,13 @@ impl ::protobuf::Message for MusicSrcFilesRow {
         while let Some(tag) = is.read_raw_tag_or_eof()? {
             match tag {
                 8 => {
-                    self.src_file_id = is.read_int64()?;
+                    self.id = is.read_int64()?;
                 },
                 16 => {
-                    self.music_item_id = is.read_int64()?;
+                    self.internal_file_id = is.read_int64()?;
                 },
                 24 => {
-                    self.source_type = is.read_int32()?;
-                },
-                34 => {
-                    self.path = is.read_string()?;
+                    self.file_type = is.read_enum_or_unknown()?;
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -997,17 +1127,14 @@ impl ::protobuf::Message for MusicSrcFilesRow {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u64 {
         let mut my_size = 0;
-        if self.src_file_id != 0 {
-            my_size += ::protobuf::rt::int64_size(1, self.src_file_id);
+        if self.id != 0 {
+            my_size += ::protobuf::rt::int64_size(1, self.id);
         }
-        if self.music_item_id != 0 {
-            my_size += ::protobuf::rt::int64_size(2, self.music_item_id);
+        if self.internal_file_id != 0 {
+            my_size += ::protobuf::rt::int64_size(2, self.internal_file_id);
         }
-        if self.source_type != 0 {
-            my_size += ::protobuf::rt::int32_size(3, self.source_type);
-        }
-        if !self.path.is_empty() {
-            my_size += ::protobuf::rt::string_size(4, &self.path);
+        if self.file_type != ::protobuf::EnumOrUnknown::new(MusicFileType::MP3) {
+            my_size += ::protobuf::rt::int32_size(3, self.file_type.value());
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -1015,17 +1142,14 @@ impl ::protobuf::Message for MusicSrcFilesRow {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if self.src_file_id != 0 {
-            os.write_int64(1, self.src_file_id)?;
+        if self.id != 0 {
+            os.write_int64(1, self.id)?;
         }
-        if self.music_item_id != 0 {
-            os.write_int64(2, self.music_item_id)?;
+        if self.internal_file_id != 0 {
+            os.write_int64(2, self.internal_file_id)?;
         }
-        if self.source_type != 0 {
-            os.write_int32(3, self.source_type)?;
-        }
-        if !self.path.is_empty() {
-            os.write_string(4, &self.path)?;
+        if self.file_type != ::protobuf::EnumOrUnknown::new(MusicFileType::MP3) {
+            os.write_enum(3, ::protobuf::EnumOrUnknown::value(&self.file_type))?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -1039,44 +1163,218 @@ impl ::protobuf::Message for MusicSrcFilesRow {
         &mut self.special_fields
     }
 
-    fn new() -> MusicSrcFilesRow {
-        MusicSrcFilesRow::new()
+    fn new() -> MusicFilesRow {
+        MusicFilesRow::new()
     }
 
     fn clear(&mut self) {
-        self.src_file_id = 0;
-        self.music_item_id = 0;
-        self.source_type = 0;
-        self.path.clear();
+        self.id = 0;
+        self.internal_file_id = 0;
+        self.file_type = ::protobuf::EnumOrUnknown::new(MusicFileType::MP3);
         self.special_fields.clear();
     }
 
-    fn default_instance() -> &'static MusicSrcFilesRow {
-        static instance: MusicSrcFilesRow = MusicSrcFilesRow {
-            src_file_id: 0,
-            music_item_id: 0,
-            source_type: 0,
-            path: ::std::string::String::new(),
+    fn default_instance() -> &'static MusicFilesRow {
+        static instance: MusicFilesRow = MusicFilesRow {
+            id: 0,
+            internal_file_id: 0,
+            file_type: ::protobuf::EnumOrUnknown::from_i32(0),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
     }
 }
 
-impl ::protobuf::MessageFull for MusicSrcFilesRow {
+impl ::protobuf::MessageFull for MusicFilesRow {
     fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
         static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().message_by_package_relative_name("MusicSrcFilesRow").unwrap()).clone()
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("MusicFilesRow").unwrap()).clone()
     }
 }
 
-impl ::std::fmt::Display for MusicSrcFilesRow {
+impl ::std::fmt::Display for MusicFilesRow {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for MusicSrcFilesRow {
+impl ::protobuf::reflect::ProtobufValue for MusicFilesRow {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
+// @@protoc_insertion_point(message:MusicLinksRow)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct MusicLinksRow {
+    // message fields
+    // @@protoc_insertion_point(field:MusicLinksRow.id)
+    pub id: i64,
+    // @@protoc_insertion_point(field:MusicLinksRow.music_item_id)
+    pub music_item_id: i64,
+    // @@protoc_insertion_point(field:MusicLinksRow.link)
+    pub link: ::std::string::String,
+    // @@protoc_insertion_point(field:MusicLinksRow.link_type)
+    pub link_type: ::protobuf::EnumOrUnknown<MusicLinkType>,
+    // special fields
+    // @@protoc_insertion_point(special_field:MusicLinksRow.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a MusicLinksRow {
+    fn default() -> &'a MusicLinksRow {
+        <MusicLinksRow as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl MusicLinksRow {
+    pub fn new() -> MusicLinksRow {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(4);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "id",
+            |m: &MusicLinksRow| { &m.id },
+            |m: &mut MusicLinksRow| { &mut m.id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "music_item_id",
+            |m: &MusicLinksRow| { &m.music_item_id },
+            |m: &mut MusicLinksRow| { &mut m.music_item_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "link",
+            |m: &MusicLinksRow| { &m.link },
+            |m: &mut MusicLinksRow| { &mut m.link },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "link_type",
+            |m: &MusicLinksRow| { &m.link_type },
+            |m: &mut MusicLinksRow| { &mut m.link_type },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<MusicLinksRow>(
+            "MusicLinksRow",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for MusicLinksRow {
+    const NAME: &'static str = "MusicLinksRow";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                8 => {
+                    self.id = is.read_int64()?;
+                },
+                16 => {
+                    self.music_item_id = is.read_int64()?;
+                },
+                26 => {
+                    self.link = is.read_string()?;
+                },
+                32 => {
+                    self.link_type = is.read_enum_or_unknown()?;
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if self.id != 0 {
+            my_size += ::protobuf::rt::int64_size(1, self.id);
+        }
+        if self.music_item_id != 0 {
+            my_size += ::protobuf::rt::int64_size(2, self.music_item_id);
+        }
+        if !self.link.is_empty() {
+            my_size += ::protobuf::rt::string_size(3, &self.link);
+        }
+        if self.link_type != ::protobuf::EnumOrUnknown::new(MusicLinkType::EXTERNAL_FILE) {
+            my_size += ::protobuf::rt::int32_size(4, self.link_type.value());
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if self.id != 0 {
+            os.write_int64(1, self.id)?;
+        }
+        if self.music_item_id != 0 {
+            os.write_int64(2, self.music_item_id)?;
+        }
+        if !self.link.is_empty() {
+            os.write_string(3, &self.link)?;
+        }
+        if self.link_type != ::protobuf::EnumOrUnknown::new(MusicLinkType::EXTERNAL_FILE) {
+            os.write_enum(4, ::protobuf::EnumOrUnknown::value(&self.link_type))?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> MusicLinksRow {
+        MusicLinksRow::new()
+    }
+
+    fn clear(&mut self) {
+        self.id = 0;
+        self.music_item_id = 0;
+        self.link.clear();
+        self.link_type = ::protobuf::EnumOrUnknown::new(MusicLinkType::EXTERNAL_FILE);
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static MusicLinksRow {
+        static instance: MusicLinksRow = MusicLinksRow {
+            id: 0,
+            music_item_id: 0,
+            link: ::std::string::String::new(),
+            link_type: ::protobuf::EnumOrUnknown::from_i32(0),
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for MusicLinksRow {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("MusicLinksRow").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for MusicLinksRow {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for MusicLinksRow {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
@@ -1396,39 +1694,170 @@ impl ::protobuf::reflect::ProtobufValue for PlaylistItemsRow {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
+// @@protoc_insertion_point(enum:MusicFileType)
+pub enum MusicFileType {
+    // @@protoc_insertion_point(enum_value:MusicFileType.MP3)
+    MP3 = 0,
+    // @@protoc_insertion_point(enum_value:MusicFileType.FLAC)
+    FLAC = 1,
+}
+
+impl ::protobuf::Enum for MusicFileType {
+    const NAME: &'static str = "MusicFileType";
+
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<MusicFileType> {
+        match value {
+            0 => ::std::option::Option::Some(MusicFileType::MP3),
+            1 => ::std::option::Option::Some(MusicFileType::FLAC),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn from_str(str: &str) -> ::std::option::Option<MusicFileType> {
+        match str {
+            "MP3" => ::std::option::Option::Some(MusicFileType::MP3),
+            "FLAC" => ::std::option::Option::Some(MusicFileType::FLAC),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    const VALUES: &'static [MusicFileType] = &[
+        MusicFileType::MP3,
+        MusicFileType::FLAC,
+    ];
+}
+
+impl ::protobuf::EnumFull for MusicFileType {
+    fn enum_descriptor() -> ::protobuf::reflect::EnumDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().enum_by_package_relative_name("MusicFileType").unwrap()).clone()
+    }
+
+    fn descriptor(&self) -> ::protobuf::reflect::EnumValueDescriptor {
+        let index = *self as usize;
+        Self::enum_descriptor().value_by_index(index)
+    }
+}
+
+impl ::std::default::Default for MusicFileType {
+    fn default() -> Self {
+        MusicFileType::MP3
+    }
+}
+
+impl MusicFileType {
+    fn generated_enum_descriptor_data() -> ::protobuf::reflect::GeneratedEnumDescriptorData {
+        ::protobuf::reflect::GeneratedEnumDescriptorData::new::<MusicFileType>("MusicFileType")
+    }
+}
+
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
+// @@protoc_insertion_point(enum:MusicLinkType)
+pub enum MusicLinkType {
+    // @@protoc_insertion_point(enum_value:MusicLinkType.EXTERNAL_FILE)
+    EXTERNAL_FILE = 0,
+    // @@protoc_insertion_point(enum_value:MusicLinkType.URL)
+    URL = 1,
+}
+
+impl ::protobuf::Enum for MusicLinkType {
+    const NAME: &'static str = "MusicLinkType";
+
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<MusicLinkType> {
+        match value {
+            0 => ::std::option::Option::Some(MusicLinkType::EXTERNAL_FILE),
+            1 => ::std::option::Option::Some(MusicLinkType::URL),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn from_str(str: &str) -> ::std::option::Option<MusicLinkType> {
+        match str {
+            "EXTERNAL_FILE" => ::std::option::Option::Some(MusicLinkType::EXTERNAL_FILE),
+            "URL" => ::std::option::Option::Some(MusicLinkType::URL),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    const VALUES: &'static [MusicLinkType] = &[
+        MusicLinkType::EXTERNAL_FILE,
+        MusicLinkType::URL,
+    ];
+}
+
+impl ::protobuf::EnumFull for MusicLinkType {
+    fn enum_descriptor() -> ::protobuf::reflect::EnumDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().enum_by_package_relative_name("MusicLinkType").unwrap()).clone()
+    }
+
+    fn descriptor(&self) -> ::protobuf::reflect::EnumValueDescriptor {
+        let index = *self as usize;
+        Self::enum_descriptor().value_by_index(index)
+    }
+}
+
+impl ::std::default::Default for MusicLinkType {
+    fn default() -> Self {
+        MusicLinkType::EXTERNAL_FILE
+    }
+}
+
+impl MusicLinkType {
+    fn generated_enum_descriptor_data() -> ::protobuf::reflect::GeneratedEnumDescriptorData {
+        ::protobuf::reflect::GeneratedEnumDescriptorData::new::<MusicLinkType>("MusicLinkType")
+    }
+}
+
 static file_descriptor_proto_data: &'static [u8] = b"\
     \n\x10collection.proto\"\xcf\x01\n\nFoldersRow\x12\x1b\n\tfolder_id\x18\
     \x01\x20\x01(\x03R\x08folderId\x12(\n\x10parent_folder_id\x18\x02\x20\
     \x01(\x03R\x0eparentFolderId\x12\x12\n\x04name\x18\x03\x20\x01(\tR\x04na\
     me\x12\x1f\n\x0bfolder_type\x18\x04\x20\x01(\x05R\nfolderType\x12/\n\x11\
     avatar_picture_id\x18\x05\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\
-    \x01B\x14\n\x12_avatar_picture_id\"d\n\rMusicItemsRow\x12\"\n\rmusic_ite\
-    m_id\x18\x01\x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\
-    \x01(\tR\x04name\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\
-    \"w\n\x0eLyricsItemsRow\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\
-    \x0clyricsItemId\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicIt\
-    emId\x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"t\n\x0fPictur\
-    eItemsRow\x12&\n\x0fpicture_item_id\x18\x01\x20\x01(\x03R\rpictureItemId\
-    \x12\x1c\n\textension\x18\x02\x20\x01(\tR\textension\x12\x1b\n\tfolder_i\
-    d\x18\x03\x20\x01(\x03R\x08folderId\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06\
-    tag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\
+    \x01B\x14\n\x12_avatar_picture_id\"P\n\x10InternalFilesRow\x12\x17\n\x07\
+    file_id\x18\x01\x20\x01(\x03R\x06fileId\x12#\n\rinternal_path\x18\x02\
+    \x20\x01(\tR\x0cinternalPath\"d\n\rMusicItemsRow\x12\"\n\rmusic_item_id\
+    \x18\x01\x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\x01(\
+    \tR\x04name\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"w\n\
+    \x0eLyricsItemsRow\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyr\
+    icsItemId\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\
+    \x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"t\n\x0fPictureIte\
+    msRow\x12&\n\x0fpicture_item_id\x18\x01\x20\x01(\x03R\rpictureItemId\x12\
+    \x1c\n\textension\x18\x02\x20\x01(\tR\textension\x12\x1b\n\tfolder_id\
+    \x18\x03\x20\x01(\x03R\x08folderId\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06t\
+    ag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\
     \x01(\x03H\0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\
     \x20\x01(\x03H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\
     \x04\x20\x01(\tR\x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\
     \x02R\x0bstringValue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\
     \x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_fol\
-    der_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"\x8b\x01\n\x10MusicSrcF\
-    ilesRow\x12\x1e\n\x0bsrc_file_id\x18\x01\x20\x01(\x03R\tsrcFileId\x12\"\
-    \n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1f\n\x0bsour\
-    ce_type\x18\x03\x20\x01(\x05R\nsourceType\x12\x12\n\x04path\x18\x04\x20\
-    \x01(\tR\x04path\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\
-    \x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\
-    \x04name\x12/\n\x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0favatarP\
-    ictureId\x88\x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10Playlis\
-    tItemsRow\x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplaylistIt\
-    emId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\n\r\
-    music_item_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\x10\n\
-    \x0e_music_item_idb\x06proto3\
+    der_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\
+    \x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\
+    \x02\x20\x01(\x03R\x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\
+    \x0e2\x0e.MusicFileTypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\
+    \n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\
+    \x01(\x03R\x0bmusicItemId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\
+    \x12+\n\tlink_type\x18\x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\
+    \"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\
+    \x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\
+    \x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0favatarPictureId\x88\
+    \x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10PlaylistItemsRow\
+    \x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplaylistItemId\x12\
+    \x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\n\rmusic_it\
+    em_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\x10\n\x0e_mus\
+    ic_item_id*\"\n\rMusicFileType\x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\
+    \x10\x01*+\n\rMusicLinkType\x12\x11\n\rEXTERNAL_FILE\x10\0\x12\x07\n\x03\
+    URL\x10\x01b\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -1446,16 +1875,20 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
     file_descriptor.get(|| {
         let generated_file_descriptor = generated_file_descriptor_lazy.get(|| {
             let mut deps = ::std::vec::Vec::with_capacity(0);
-            let mut messages = ::std::vec::Vec::with_capacity(8);
+            let mut messages = ::std::vec::Vec::with_capacity(10);
             messages.push(FoldersRow::generated_message_descriptor_data());
+            messages.push(InternalFilesRow::generated_message_descriptor_data());
             messages.push(MusicItemsRow::generated_message_descriptor_data());
             messages.push(LyricsItemsRow::generated_message_descriptor_data());
             messages.push(PictureItemsRow::generated_message_descriptor_data());
             messages.push(TagsRow::generated_message_descriptor_data());
-            messages.push(MusicSrcFilesRow::generated_message_descriptor_data());
+            messages.push(MusicFilesRow::generated_message_descriptor_data());
+            messages.push(MusicLinksRow::generated_message_descriptor_data());
             messages.push(PlaylistsRow::generated_message_descriptor_data());
             messages.push(PlaylistItemsRow::generated_message_descriptor_data());
-            let mut enums = ::std::vec::Vec::with_capacity(0);
+            let mut enums = ::std::vec::Vec::with_capacity(2);
+            enums.push(MusicFileType::generated_enum_descriptor_data());
+            enums.push(MusicLinkType::generated_enum_descriptor_data());
             ::protobuf::reflect::GeneratedFileDescriptor::new_generated(
                 file_descriptor_proto(),
                 deps,
