@@ -29,7 +29,7 @@
 import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 import WebPlayerPane from 'src/components/player/WebPlayerPane.vue'
 
-const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
+const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
 
 const title = ref(' ')
 const coverUrl = ref(null)
@@ -38,24 +38,24 @@ const progress = ref(0)
 let isProgressChanged = false
 
 async function playPrevious () {
-  await aminaApi.sendRequest('lappi.playback.play_previous')
+  await lappiApi.sendRequest('lappi.playback.play_previous')
 }
 
 async function playNext () {
-  await aminaApi.sendRequest('lappi.playback.play_next')
+  await lappiApi.sendRequest('lappi.playback.play_next')
 }
 
 async function tooglePlay () {
-  await aminaApi.sendRequest('lappi.playback.toggle')
+  await lappiApi.sendRequest('lappi.playback.toggle')
 }
 
 async function onProgressChange (value) {
   isProgressChanged = true
-  await aminaApi.sendRequest('lappi.playback.seek', { progress: value })
+  await lappiApi.sendRequest('lappi.playback.seek', { progress: value })
 }
 
 onMounted(() => {
-  aminaApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane', async (event) => {
+  lappiApi.setEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane', async (event) => {
     if (isProgressChanged === false) {
       title.value = event.title
       progress.value = event.progress
@@ -66,8 +66,8 @@ onMounted(() => {
         playButtonIcon.value = 'play_circle'
       }
 
-      if (event.cover_path !== null) {
-        coverUrl.value = await aminaApi.getFileUrl(event.cover_path)
+      if (event.cover_picture !== null) {
+        coverUrl.value = await lappiApi.getPictureUrl(event.cover_picture)
       } else {
         coverUrl.value = null
       }
@@ -79,7 +79,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  aminaApi.removeEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane')
+  lappiApi.removeEventHandler('lappi.playback.OnStateUpdated', 'PlayerPane')
 })
 </script>
 

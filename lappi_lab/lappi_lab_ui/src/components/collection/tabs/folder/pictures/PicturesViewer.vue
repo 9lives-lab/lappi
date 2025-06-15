@@ -28,26 +28,26 @@
 <script setup>
 import { getCurrentInstance, ref, onMounted } from 'vue'
 
-const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
+const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
+
 const picturesUrlList = ref([])
 let currentFolderId = -1
 
 async function setFolderCover (item) {
-  await aminaApi.sendRequest('lappi.collection.folders.set_folder_cover', { folder_id: currentFolderId, picture_id: item.id })
+  await lappiApi.sendRequest('lappi.collection.folders.set_folder_cover', { folder_id: currentFolderId, picture_id: item.id })
 }
 
 async function deletePicture (item) {
-  await aminaApi.sendRequest('lappi.collection.pictures.delete_picture', { picture_id: item.id })
+  await lappiApi.sendRequest('lappi.collection.pictures.delete_picture', { picture_id: item.id })
 }
 
-async function updateUrls (picturesIdList) {
+async function updateUrls (picturesDescList) {
   const newUrlList = []
-  for (const pictureId of picturesIdList) {
-    const path = await aminaApi.sendRequest('lappi.collection.pictures.get_picture_path', { picture_id: pictureId })
-    const url = await aminaApi.getFileUrl(path)
+  for (const pictureDesc of picturesDescList) {
+    const url = await lappiApi.getInternalFileUrl(pictureDesc.internal_file_id)
     newUrlList.push({
       url,
-      id: pictureId
+      id: pictureDesc.picture_id
     })
   }
   picturesUrlList.value = newUrlList
@@ -55,8 +55,8 @@ async function updateUrls (picturesIdList) {
 
 async function update (newFolderId) {
   currentFolderId = newFolderId
-  const picturesIdList = await aminaApi.sendRequest('lappi.collection.pictures.get_pictures_in_folder', { folder_id: newFolderId })
-  await updateUrls(picturesIdList)
+  const picturesDescList = await lappiApi.sendRequest('lappi.collection.pictures.get_pictures_in_folder', { folder_id: newFolderId })
+  await updateUrls(picturesDescList)
 }
 
 defineExpose({

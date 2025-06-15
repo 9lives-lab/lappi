@@ -1,11 +1,14 @@
 use std::path::Path;
 
 use anyhow::Result;
+use num_traits::FromPrimitive;
+use protobuf::EnumOrUnknown;
+use protobuf::Enum;
 use rusqlite::params;
 
 use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
 use crate::collection::folders::FolderId;
-use crate::collection::pictures::PictureId;
+use crate::collection::pictures::{PictureDesc, PictureId, PictureType};
 use crate::collection::pictures::database_api::PicturesDbApi;
 
 pub struct PicturesDb {
@@ -24,10 +27,12 @@ impl PicturesDb {
 
         let mut importer = ProtobufImporter::create(base_path, "picture_items.pb")?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::PictureItemsRow>()? {
-            db_context.connection().execute(
-                "INSERT INTO picture_items (id, extension, folder_id) VALUES (?1, ?2, ?3)",
-                params![row.picture_item_id, row.extension, row.folder_id],
-            )?;
+            db_context.connection().execute("INSERT INTO picture_items (id, folder_id, internal_file_id, picture_type) VALUES (?1, ?2, ?3, ?4)", params![
+                row.id, 
+                row.folder_id,
+                row.internal_file_id,
+                row.picture_type.value()
+            ])?;
         }
 
         Ok(())
@@ -36,12 +41,13 @@ impl PicturesDb {
     pub fn export(&self, base_path: &Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut exporter = ProtobufExporter::create(base_path, "picture_items.pb")?;
-        let mut stmt = db_context.connection().prepare("SELECT id, extension, folder_id FROM picture_items")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, folder_id, internal_file_id, picture_type FROM picture_items")?;
         let rows = stmt.query_map([], |row| {
             let mut picture_row = crate::proto::collection::PictureItemsRow::new();
-            picture_row.picture_item_id = row.get::<_, i64>(0)?;
-            picture_row.extension = row.get::<_, String>(1)?;
-            picture_row.folder_id = row.get::<_, i64>(2)?;
+            picture_row.id = row.get(0)?;
+            picture_row.folder_id = row.get(1)?;
+            picture_row.internal_file_id = row.get(2)?;
+            picture_row.picture_type = EnumOrUnknown::new(crate::proto::collection::PictureType::from_i32(row.get::<_, i32>(3)?).unwrap());
             Ok(picture_row)
         })?;
         for row in rows {
@@ -56,11 +62,25 @@ impl PicturesDbApi for PicturesDb {
         return Box::new(PicturesDb::new(self.db_utils.clone()));
     }
 
-    fn add_picture_item(&self, extension: &str, folder_id: FolderId) -> Result<PictureId> {
+    fn add_picture_item(&self, descriptor: &PictureDesc) -> Result<PictureId> {
         let context = self.db_utils.lock();
-        let query = "INSERT INTO picture_items (extension, folder_id) VALUES (?1, ?2)";
-        context.connection().execute(&query, params![extension, folder_id])?;
+        context.connection().execute("INSERT INTO picture_items (folder_id, internal_file_id, picture_type) VALUES (?1, ?2, ?3)", params![
+            descriptor.folder_id, 
+            descriptor.internal_file_id,
+            descriptor.picture_type as i32
+        ])?;
         Ok(context.connection().last_insert_rowid())
+    }
+
+    fn update_picture_item(&self, descriptor: &PictureDesc) -> Result<()> {
+        let context = self.db_utils.lock();
+        context.connection().execute("UPDATE picture_items SET folder_id = ?1, internal_file_id = ?2, picture_type = ?3 WHERE id = ?4", params![
+            descriptor.folder_id,
+            descriptor.internal_file_id,
+            descriptor.picture_type as i32,
+            descriptor.picture_id
+        ])?;
+        Ok(())
     }
 
     fn delete_picture_item(&self, picture_id: PictureId) -> Result<()> {
@@ -71,12 +91,31 @@ impl PicturesDbApi for PicturesDb {
         Ok(())
     }
 
-    fn get_picture_extension(&self, picture_id: PictureId) -> Result<String> {
+    fn get_picture_descriptor(&self, picture_id: PictureId) -> Result<PictureDesc> {
         let context = self.db_utils.lock();
-        context.get_field_value(picture_id, "picture_items", "extension")
+        let mut stmt = context.connection().prepare("SELECT folder_id, internal_file_id, picture_type FROM picture_items WHERE id = ?1")?;
+        let row = stmt.query_row(params![picture_id], |row| {
+            Ok(PictureDesc {
+                picture_id,
+                folder_id: row.get(0)?,
+                internal_file_id: row.get(1)?,
+                picture_type: PictureType::from_i32(row.get(2)?).unwrap()
+            })
+        })?;
+        Ok(row)
     }
     
-    fn get_pictures_in_folder(&self, folder_id: FolderId) -> Result<Vec<PictureId>> {
-        self.db_utils.lock().get_fields_list_by_field_i64_value("picture_items", "id", "folder_id", folder_id)
+    fn get_pictures_in_folder(&self, folder_id: FolderId) -> Result<Vec<PictureDesc>> {
+        let context = self.db_utils.lock();
+        let mut stmt = context.connection().prepare("SELECT id, internal_file_id, picture_type FROM picture_items WHERE folder_id = ?1")?;
+        let rows = stmt.query_map(params![folder_id], |row| {
+            Ok(PictureDesc {
+                picture_id: row.get(0)?,
+                folder_id,
+                internal_file_id: row.get(1)?,
+                picture_type: PictureType::from_i32(row.get(2)?).unwrap()
+            })
+        })?;
+        Ok(rows.collect::<Result<Vec<_>, _>>()?)
     }
 }

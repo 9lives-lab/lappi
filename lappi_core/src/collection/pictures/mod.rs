@@ -9,83 +9,82 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
-use crate::collection::storage::local::LocalStorage;
-use crate::collection::folders::FolderId;
+use crate::collection::internal_files::{InternalFiles, InternalPath};
+use crate::collection::folders::{FolderId, FoldersCollection};
 use crate::database::Database;
 
 use database_api::PicturesDbApi;
-pub use types::*;
 
-static FILE_HANDLER_KEY: &str = "lappi.collection.pictures";
+pub use types::*;
 
 #[derive(Clone)]
 pub struct PicturesCollection {
     db: Arc<Box<dyn PicturesDbApi>>,
-    local_storage: Service<LocalStorage>,
+    folders: Service<FoldersCollection>,
+    internal_files: Service<InternalFiles>,
 }
 
 impl PicturesCollection {
-    pub fn add_blob_to_collection(&self, blob: PictureBlob, folder_id: FolderId) -> PictureId {
-        log::debug!("Add blob to collection. file_name: {:?}, file_type: {:?}", blob.file_name, blob.file_type);
-        // TODO choose extenstion based on mime type
-        let file_path = PathBuf::from(blob.file_name);
-        let file_extension = file_path.extension().unwrap().to_str().unwrap();
-        let picture_id = self.db.add_picture_item(file_extension, folder_id).unwrap();
-        let new_file_path = self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
-        let blob_data = general_purpose::STANDARD.decode(blob.data_base64).unwrap();
-        log::debug!("Writing file to {:?}", new_file_path);
-        std::fs::write(new_file_path, blob_data).unwrap();
+    fn add_picture_data_to_collection(&self, folder_id: FolderId, picture_data: &[u8], path: &str) -> PictureId {
+        log::debug!("Add picture to collection. file_name: {:?}", path);
+
+        let file_path = PathBuf::from(path);
+        let file_extension = file_path.extension().unwrap().to_str().unwrap().to_lowercase();
+
+        let mut picture_desc = PictureDesc {
+            picture_id: 0,
+            folder_id,
+            internal_file_id: 0,
+            picture_type: PictureType::from_str(&file_extension).unwrap(),
+        };
+
+        let picture_id = self.db.add_picture_item(&picture_desc).unwrap();
+        picture_desc.picture_id = picture_id;
+
+        let internal_path = self.get_internal_path(picture_id);
+        let internal_file_id = self.internal_files.write_file(picture_data, &internal_path).unwrap();
+        
+        picture_desc.internal_file_id = internal_file_id;
+        self.db.update_picture_item(&picture_desc).unwrap();
+
         return picture_id;
+    }
+
+    pub fn add_blob_to_collection(&self, blob: PictureBlob, folder_id: FolderId) -> PictureId {
+        let blob_data = general_purpose::STANDARD.decode(blob.data_base64).unwrap();
+        return self.add_picture_data_to_collection(folder_id, &blob_data, &blob.file_name);
     }
 
     pub fn copy_to_collection_by_path(&self, file_path: String, folder_id: FolderId) -> PictureId {
-        let file_path = PathBuf::from(file_path);
-        let file_extension = file_path.extension().unwrap().to_str().unwrap();
-        let picture_id = self.db.add_picture_item(file_extension, folder_id).unwrap();
-        let new_file_path = self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
-        log::debug!("Copying file from {:?} to {:?}", file_path, new_file_path);
-        std::fs::copy(file_path, new_file_path).unwrap();
-        return picture_id;
+        let picture_data = std::fs::read(file_path.clone()).unwrap();
+        return self.add_picture_data_to_collection(folder_id, &picture_data, &file_path);
     }
 
     pub fn delete_picture(&self, picture_id: PictureId) {
-        let file_path = self.get_picture_storage_path(picture_id); 
-        log::debug!("Deleting file {:?}", &file_path);
-        let remove_result = std::fs::remove_file(&file_path);
+        let picture_desc = self.db.get_picture_descriptor(picture_id).unwrap();
+        log::debug!("Deleting picture {:?}", picture_desc);
+        let remove_result = self.internal_files.delete_file(picture_desc.internal_file_id);
         if remove_result.is_err() {
-            log::error!("Failed to delete file {:?}: {:?}", &file_path, remove_result);
+            log::error!("Failed to picture file: {:?}", remove_result.err().unwrap());
         }
         self.db.delete_picture_item(picture_id).unwrap();
     }
 
-    pub fn get_picture_path(&self, picture_id: PictureId) -> String {
-        return match self.db.get_picture_extension(picture_id) {
-            Ok(file_extension) => format!("{}/{}.{}", FILE_HANDLER_KEY, picture_id, file_extension),
-            Err(_) => "".to_string(),
-        };
-    }
-
-    pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Vec<PictureId> {
+    pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Vec<PictureDesc> {
         return self.db.get_pictures_in_folder(folder_id).unwrap();
     }
 
-    pub fn get_picture_binary(&self, path: &str) -> Result<Vec<u8>, std::io::Error> {
-        let path = self.get_pictures_storage_path().join(path);
-        let file_content = std::fs::read(path)?;
-        return Ok(file_content);
+    pub fn get_picture_descriptor(&self, picture_id: PictureId) -> PictureDesc {
+        return self.db.get_picture_descriptor(picture_id).unwrap();
     }
 
-    fn get_pictures_storage_path(&self) -> PathBuf {
-        let pictures_folder = self.local_storage.get_internal_storage_folder("pictures");
-        if !pictures_folder.exists() {
-            std::fs::create_dir_all(&pictures_folder).unwrap();
-        }
-        return pictures_folder;
-    }
-
-    fn get_picture_storage_path(&self, picture_id: PictureId) -> PathBuf {
-        let file_extension = self.db.get_picture_extension(picture_id).unwrap();
-        return self.get_pictures_storage_path().join(format!("{}.{}", picture_id, file_extension));
+    pub fn get_internal_path(&self, picture_id: PictureId) -> InternalPath {
+        let picture_desc = self.db.get_picture_descriptor(picture_id).unwrap();
+        let folder_name = self.folders.get_folder_name(picture_desc.folder_id);
+        let mut internal_path = self.folders.get_internal_path(picture_desc.folder_id);
+        internal_path.push("pictures");
+        internal_path.push(format!("{} - {}.{}", &folder_name, picture_desc.picture_id, picture_desc.picture_type.to_str()).as_str());
+        return internal_path;
     }
 }
 
@@ -97,24 +96,21 @@ impl ServiceInitializer for PicturesCollection {
     fn initialize(context: &Context) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
-        let db_api = Arc::new(database.get_pictures_api());
-        let local_storage = context.get_service::<LocalStorage>();
+        let db_api: Arc<Box<dyn PicturesDbApi + 'static>> = Arc::new(database.get_pictures_api());
+        let folders = context.get_service::<FoldersCollection>();
+        let internal_files = context.get_service::<InternalFiles>();
 
         let pictures = Arc::new(Self {
             db: db_api,
-            local_storage,
+            folders,
+            internal_files,
         });
 
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.add_blob_to_collection", add_blob_to_collection(blob: PictureBlob, folder_id: FolderId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.copy_to_collection_by_path", copy_to_collection_by_path(file_path: String, folder_id: FolderId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.delete_picture", delete_picture(picture_id: PictureId));
-        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_picture_path", get_picture_path(picture_id: PictureId));
         register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_pictures_in_folder", get_pictures_in_folder(folder_id: FolderId));
-
-        let pictures_copy = pictures.clone();
-        rpc.add_get_file_handler(FILE_HANDLER_KEY, move|path| {
-            pictures_copy.get_picture_binary(path)
-        });
+        register_rpc_handler!(rpc, pictures, "lappi.collection.pictures.get_picture_descriptor", get_picture_descriptor(picture_id: PictureId));
 
         return pictures;
     }

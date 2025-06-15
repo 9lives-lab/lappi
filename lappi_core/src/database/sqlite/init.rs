@@ -58,8 +58,10 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     connection.execute(
         "CREATE TABLE picture_items (
                 id                              INTEGER NOT NULL PRIMARY KEY,
-                extension                       TEXT    NOT NULL,
-                folder_id                       INTEGER
+                folder_id                       INTEGER NOT NULL,
+                internal_file_id                INTEGER NOT NULL,
+                picture_type                    INTEGER NOT NULL,
+                FOREIGN KEY(folder_id)          REFERENCES folders(id)
         )",
         [],
     )?;

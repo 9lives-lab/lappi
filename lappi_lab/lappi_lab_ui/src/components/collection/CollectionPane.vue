@@ -67,7 +67,7 @@ import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import NavigationBar from 'src/components/collection/NavigationBar.vue'
 import CollectionTabs from 'src/components/collection/tabs/CollectionTabs.vue'
 
-const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
+const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
 
 const isNewFolderDialogOpened = ref(false)
 const isNewItemDialogOpened = ref(false)
@@ -90,8 +90,7 @@ async function getFolderItem (id, folderDescription) {
   }
 
   if ('avatar_picture_id' in folderDescription) {
-    const path = await aminaApi.sendRequest('lappi.collection.pictures.get_picture_path', { picture_id: folderDescription.avatar_picture_id })
-    const pictureUrl = await aminaApi.getFileUrl(path)
+    const pictureUrl = await lappiApi.getPictureUrl(folderDescription.avatar_picture_id)
 
     item.hasAvatar = true
     item.pictureUrl = pictureUrl
@@ -111,7 +110,7 @@ async function getFolderItem (id, folderDescription) {
     item.icon = icon
   }
 
-  const caption = await aminaApi.sendRequest('lappi.collection.folders.get_folder_caption', { folder_id: folderDescription.folder_id })
+  const caption = await lappiApi.sendRequest('lappi.collection.folders.get_folder_caption', { folder_id: folderDescription.folder_id })
   if (caption !== '') {
     item.caption = item.caption + ', ' + caption
   }
@@ -128,7 +127,7 @@ async function getMusicItem (id, itemDescription) {
     icon: 'library_music',
     caption: 'Song'
   }
-  const caption = await aminaApi.sendRequest('lappi.collection.music.get_item_caption', { item_id: itemDescription.item_id })
+  const caption = await lappiApi.sendRequest('lappi.collection.music.get_item_caption', { item_id: itemDescription.item_id })
   if (caption !== '') {
     item.caption = item.caption + ', ' + caption
   }
@@ -137,7 +136,7 @@ async function getMusicItem (id, itemDescription) {
 }
 
 async function updateFolders (folderId) {
-  const { content } = await aminaApi.sendRequest('lappi.collection.folders.get_folder_content', { folder_id: folderId })
+  const { content } = await lappiApi.sendRequest('lappi.collection.folders.get_folder_content', { folder_id: folderId })
 
   const folders = await Promise.all(content.folders.map(async (folder, id) => (await getFolderItem(id, folder))))
   const items = await Promise.all(content.items.map(async (item, id) => (await getMusicItem(id + content.folders.length, item))))
@@ -179,17 +178,17 @@ async function update () {
 }
 
 async function addItem () {
-  await aminaApi.sendRequest('lappi.collection.music.create_item', { name: newItemName.value, folder_id: currentFolderId })
+  await lappiApi.sendRequest('lappi.collection.music.create_item', { name: newItemName.value, folder_id: currentFolderId })
   newItemName.value = ''
 }
 
 async function addFolder () {
-  await aminaApi.sendRequest('lappi.collection.folders.find_or_add_folder', { parent_id: currentFolderId, folder_name: newFolderName.value, folder_type: 'Folder' })
+  await lappiApi.sendRequest('lappi.collection.folders.find_or_add_folder', { parent_id: currentFolderId, folder_name: newFolderName.value, folder_type: 'Folder' })
   newFolderName.value = ''
 }
 
 onMounted(() => {
-  aminaApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane', () => {
+  lappiApi.setEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane', () => {
     update()
   })
 
@@ -197,7 +196,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  aminaApi.removeEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane')
+  lappiApi.removeEventHandler('lappi.collection.OnCollectionUpdated', 'CollectionPane')
 })
 </script>
 

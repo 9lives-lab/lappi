@@ -18,7 +18,6 @@ use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{TaskContext, TaskManager};
 
 use crate::collection::music::MusicItemId;
-use crate::collection::pictures::PicturesCollection;
 use crate::collection::playlists::types::{PlaylistId, PlaylistItemId};
 use crate::collection::OnCollectionUpdated;
 use crate::platform_api::PlatformApi;
@@ -169,20 +168,13 @@ impl Playback {
 
         event.current_player_name = player.get_name();
 
-        let mut cover_path = Option::None;
-
         let queue = self.current_queue.lock().unwrap();
         if let Some(queue) = queue.as_ref() {
             event.title = queue.get_current_title();
-            if let Some(cover) = queue.get_current_cover() {
-                let pictures = crate::context().get_service::<PicturesCollection>();
-                cover_path = Some(pictures.get_picture_path(cover));
-            }
+            event.cover_picture = queue.get_current_cover();
         } else {
             event.title = "Playback stopped";
         }
-
-        event.cover_path = cover_path.as_deref();
 
         match state {
             PlayerState::Playing(position) => {

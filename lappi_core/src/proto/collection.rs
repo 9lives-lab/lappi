@@ -678,12 +678,14 @@ impl ::protobuf::reflect::ProtobufValue for LyricsItemsRow {
 #[derive(PartialEq,Clone,Default,Debug)]
 pub struct PictureItemsRow {
     // message fields
-    // @@protoc_insertion_point(field:PictureItemsRow.picture_item_id)
-    pub picture_item_id: i64,
-    // @@protoc_insertion_point(field:PictureItemsRow.extension)
-    pub extension: ::std::string::String,
+    // @@protoc_insertion_point(field:PictureItemsRow.id)
+    pub id: i64,
     // @@protoc_insertion_point(field:PictureItemsRow.folder_id)
     pub folder_id: i64,
+    // @@protoc_insertion_point(field:PictureItemsRow.internal_file_id)
+    pub internal_file_id: i64,
+    // @@protoc_insertion_point(field:PictureItemsRow.picture_type)
+    pub picture_type: ::protobuf::EnumOrUnknown<PictureType>,
     // special fields
     // @@protoc_insertion_point(special_field:PictureItemsRow.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -701,22 +703,27 @@ impl PictureItemsRow {
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(3);
+        let mut fields = ::std::vec::Vec::with_capacity(4);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "picture_item_id",
-            |m: &PictureItemsRow| { &m.picture_item_id },
-            |m: &mut PictureItemsRow| { &mut m.picture_item_id },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "extension",
-            |m: &PictureItemsRow| { &m.extension },
-            |m: &mut PictureItemsRow| { &mut m.extension },
+            "id",
+            |m: &PictureItemsRow| { &m.id },
+            |m: &mut PictureItemsRow| { &mut m.id },
         ));
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "folder_id",
             |m: &PictureItemsRow| { &m.folder_id },
             |m: &mut PictureItemsRow| { &mut m.folder_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "internal_file_id",
+            |m: &PictureItemsRow| { &m.internal_file_id },
+            |m: &mut PictureItemsRow| { &mut m.internal_file_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "picture_type",
+            |m: &PictureItemsRow| { &m.picture_type },
+            |m: &mut PictureItemsRow| { &mut m.picture_type },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<PictureItemsRow>(
             "PictureItemsRow",
@@ -737,13 +744,16 @@ impl ::protobuf::Message for PictureItemsRow {
         while let Some(tag) = is.read_raw_tag_or_eof()? {
             match tag {
                 8 => {
-                    self.picture_item_id = is.read_int64()?;
-                },
-                18 => {
-                    self.extension = is.read_string()?;
+                    self.id = is.read_int64()?;
                 },
                 24 => {
                     self.folder_id = is.read_int64()?;
+                },
+                32 => {
+                    self.internal_file_id = is.read_int64()?;
+                },
+                40 => {
+                    self.picture_type = is.read_enum_or_unknown()?;
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -757,14 +767,17 @@ impl ::protobuf::Message for PictureItemsRow {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u64 {
         let mut my_size = 0;
-        if self.picture_item_id != 0 {
-            my_size += ::protobuf::rt::int64_size(1, self.picture_item_id);
-        }
-        if !self.extension.is_empty() {
-            my_size += ::protobuf::rt::string_size(2, &self.extension);
+        if self.id != 0 {
+            my_size += ::protobuf::rt::int64_size(1, self.id);
         }
         if self.folder_id != 0 {
             my_size += ::protobuf::rt::int64_size(3, self.folder_id);
+        }
+        if self.internal_file_id != 0 {
+            my_size += ::protobuf::rt::int64_size(4, self.internal_file_id);
+        }
+        if self.picture_type != ::protobuf::EnumOrUnknown::new(PictureType::JPG) {
+            my_size += ::protobuf::rt::int32_size(5, self.picture_type.value());
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -772,14 +785,17 @@ impl ::protobuf::Message for PictureItemsRow {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if self.picture_item_id != 0 {
-            os.write_int64(1, self.picture_item_id)?;
-        }
-        if !self.extension.is_empty() {
-            os.write_string(2, &self.extension)?;
+        if self.id != 0 {
+            os.write_int64(1, self.id)?;
         }
         if self.folder_id != 0 {
             os.write_int64(3, self.folder_id)?;
+        }
+        if self.internal_file_id != 0 {
+            os.write_int64(4, self.internal_file_id)?;
+        }
+        if self.picture_type != ::protobuf::EnumOrUnknown::new(PictureType::JPG) {
+            os.write_enum(5, ::protobuf::EnumOrUnknown::value(&self.picture_type))?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -798,17 +814,19 @@ impl ::protobuf::Message for PictureItemsRow {
     }
 
     fn clear(&mut self) {
-        self.picture_item_id = 0;
-        self.extension.clear();
+        self.id = 0;
         self.folder_id = 0;
+        self.internal_file_id = 0;
+        self.picture_type = ::protobuf::EnumOrUnknown::new(PictureType::JPG);
         self.special_fields.clear();
     }
 
     fn default_instance() -> &'static PictureItemsRow {
         static instance: PictureItemsRow = PictureItemsRow {
-            picture_item_id: 0,
-            extension: ::std::string::String::new(),
+            id: 0,
             folder_id: 0,
+            internal_file_id: 0,
+            picture_type: ::protobuf::EnumOrUnknown::from_i32(0),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -1695,6 +1713,88 @@ impl ::protobuf::reflect::ProtobufValue for PlaylistItemsRow {
 }
 
 #[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
+// @@protoc_insertion_point(enum:PictureType)
+pub enum PictureType {
+    // @@protoc_insertion_point(enum_value:PictureType.JPG)
+    JPG = 0,
+    // @@protoc_insertion_point(enum_value:PictureType.PNG)
+    PNG = 1,
+    // @@protoc_insertion_point(enum_value:PictureType.GIF)
+    GIF = 2,
+    // @@protoc_insertion_point(enum_value:PictureType.WEBP)
+    WEBP = 3,
+    // @@protoc_insertion_point(enum_value:PictureType.BMP)
+    BMP = 4,
+    // @@protoc_insertion_point(enum_value:PictureType.AVIF)
+    AVIF = 5,
+}
+
+impl ::protobuf::Enum for PictureType {
+    const NAME: &'static str = "PictureType";
+
+    fn value(&self) -> i32 {
+        *self as i32
+    }
+
+    fn from_i32(value: i32) -> ::std::option::Option<PictureType> {
+        match value {
+            0 => ::std::option::Option::Some(PictureType::JPG),
+            1 => ::std::option::Option::Some(PictureType::PNG),
+            2 => ::std::option::Option::Some(PictureType::GIF),
+            3 => ::std::option::Option::Some(PictureType::WEBP),
+            4 => ::std::option::Option::Some(PictureType::BMP),
+            5 => ::std::option::Option::Some(PictureType::AVIF),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    fn from_str(str: &str) -> ::std::option::Option<PictureType> {
+        match str {
+            "JPG" => ::std::option::Option::Some(PictureType::JPG),
+            "PNG" => ::std::option::Option::Some(PictureType::PNG),
+            "GIF" => ::std::option::Option::Some(PictureType::GIF),
+            "WEBP" => ::std::option::Option::Some(PictureType::WEBP),
+            "BMP" => ::std::option::Option::Some(PictureType::BMP),
+            "AVIF" => ::std::option::Option::Some(PictureType::AVIF),
+            _ => ::std::option::Option::None
+        }
+    }
+
+    const VALUES: &'static [PictureType] = &[
+        PictureType::JPG,
+        PictureType::PNG,
+        PictureType::GIF,
+        PictureType::WEBP,
+        PictureType::BMP,
+        PictureType::AVIF,
+    ];
+}
+
+impl ::protobuf::EnumFull for PictureType {
+    fn enum_descriptor() -> ::protobuf::reflect::EnumDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::EnumDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().enum_by_package_relative_name("PictureType").unwrap()).clone()
+    }
+
+    fn descriptor(&self) -> ::protobuf::reflect::EnumValueDescriptor {
+        let index = *self as usize;
+        Self::enum_descriptor().value_by_index(index)
+    }
+}
+
+impl ::std::default::Default for PictureType {
+    fn default() -> Self {
+        PictureType::JPG
+    }
+}
+
+impl PictureType {
+    fn generated_enum_descriptor_data() -> ::protobuf::reflect::GeneratedEnumDescriptorData {
+        ::protobuf::reflect::GeneratedEnumDescriptorData::new::<PictureType>("PictureType")
+    }
+}
+
+#[derive(Clone,Copy,PartialEq,Eq,Debug,Hash)]
 // @@protoc_insertion_point(enum:MusicFileType)
 pub enum MusicFileType {
     // @@protoc_insertion_point(enum_value:MusicFileType.MP3)
@@ -1831,33 +1931,36 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     \tR\x04name\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"w\n\
     \x0eLyricsItemsRow\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyr\
     icsItemId\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\
-    \x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"t\n\x0fPictureIte\
-    msRow\x12&\n\x0fpicture_item_id\x18\x01\x20\x01(\x03R\rpictureItemId\x12\
-    \x1c\n\textension\x18\x02\x20\x01(\tR\textension\x12\x1b\n\tfolder_id\
-    \x18\x03\x20\x01(\x03R\x08folderId\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06t\
-    ag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\
-    \x01(\x03H\0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\
-    \x20\x01(\x03H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\
-    \x04\x20\x01(\tR\x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\
-    \x02R\x0bstringValue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\
-    \x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_fol\
-    der_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\
-    \x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\
-    \x02\x20\x01(\x03R\x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\
-    \x0e2\x0e.MusicFileTypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\
-    \n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\
-    \x01(\x03R\x0bmusicItemId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\
-    \x12+\n\tlink_type\x18\x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\
-    \"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\
+    \x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"\x99\x01\n\x0fPic\
+    tureItemsRow\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfold\
+    er_id\x18\x03\x20\x01(\x03R\x08folderId\x12(\n\x10internal_file_id\x18\
+    \x04\x20\x01(\x03R\x0einternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\
+    \x01(\x0e2\x0c.PictureTypeR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\
+    \x15\n\x06tag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\
+    \x18\x02\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_i\
+    d\x18\x03\x20\x01(\x03H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_na\
+    me\x18\x04\x20\x01(\tR\x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01\
+    (\tH\x02R\x0bstringValue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\
+    \x01(\x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\
+    \n_folder_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRo\
+    w\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\
+    \x18\x02\x20\x01(\x03R\x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\
+    \x01(\x0e2\x0e.MusicFileTypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\
+    \x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\
+    \x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04l\
+    ink\x12+\n\tlink_type\x18\x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkTy\
+    pe\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\
     \x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\
     \x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0favatarPictureId\x88\
     \x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10PlaylistItemsRow\
     \x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplaylistItemId\x12\
     \x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\n\rmusic_it\
     em_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\x10\n\x0e_mus\
-    ic_item_id*\"\n\rMusicFileType\x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\
-    \x10\x01*+\n\rMusicLinkType\x12\x11\n\rEXTERNAL_FILE\x10\0\x12\x07\n\x03\
-    URL\x10\x01b\x06proto3\
+    ic_item_id*E\n\x0bPictureType\x12\x07\n\x03JPG\x10\0\x12\x07\n\x03PNG\
+    \x10\x01\x12\x07\n\x03GIF\x10\x02\x12\x08\n\x04WEBP\x10\x03\x12\x07\n\
+    \x03BMP\x10\x04\x12\x08\n\x04AVIF\x10\x05*\"\n\rMusicFileType\x12\x07\n\
+    \x03MP3\x10\0\x12\x08\n\x04FLAC\x10\x01*+\n\rMusicLinkType\x12\x11\n\rEX\
+    TERNAL_FILE\x10\0\x12\x07\n\x03URL\x10\x01b\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -1886,7 +1989,8 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
             messages.push(MusicLinksRow::generated_message_descriptor_data());
             messages.push(PlaylistsRow::generated_message_descriptor_data());
             messages.push(PlaylistItemsRow::generated_message_descriptor_data());
-            let mut enums = ::std::vec::Vec::with_capacity(2);
+            let mut enums = ::std::vec::Vec::with_capacity(3);
+            enums.push(PictureType::generated_enum_descriptor_data());
             enums.push(MusicFileType::generated_enum_descriptor_data());
             enums.push(MusicLinkType::generated_enum_descriptor_data());
             ::protobuf::reflect::GeneratedFileDescriptor::new_generated(
