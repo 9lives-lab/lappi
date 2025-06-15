@@ -45,9 +45,9 @@ impl MusicSourcesCollection {
             
         };
 
-        let internal_path = self.music.get_internal_path(item_id, &extention);
+        let internal_path = self.music.gen_internal_path(item_id, &extention);
 
-        let file_id = self.internal_files.import_file(src_path, &internal_path)?;
+        let file_id = self.internal_files.add_and_copy_file(src_path, &internal_path)?;
 
         let file_desc = MusicFileDesc {
             music_item_id: item_id,

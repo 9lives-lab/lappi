@@ -2,8 +2,8 @@ use rusqlite::Connection;
 
 pub fn get_tables_list() -> Vec<&'static str> {
     return vec![
-        "folders",
         "internal_files",
+        "folders",
         "music_items",
         "lyrics_items",
         "picture_items",
@@ -18,20 +18,21 @@ pub fn get_tables_list() -> Vec<&'static str> {
 pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
 
     connection.execute(
-        "CREATE TABLE folders (
+        "CREATE TABLE internal_files (
                 id                              INTEGER NOT NULL PRIMARY KEY,
-                parent_id                       INTEGER,
-                name                            TEXT    NOT NULL,
-                folder_type                     INTEGER NOT NULL,
-                avatar_picture_id               INTEGER
+                internal_path                   TEXT    NOT NULL
         )",
         [],
     )?;
 
     connection.execute(
-        "CREATE TABLE internal_files (
+        "CREATE TABLE folders (
                 id                              INTEGER NOT NULL PRIMARY KEY,
-                internal_path                   TEXT    NOT NULL
+                parent_id                       INTEGER,
+                name                            TEXT    NOT NULL,
+                folder_type                     INTEGER NOT NULL,
+                avatar_picture_id               INTEGER,
+                description_file_id             INTEGER
         )",
         [],
     )?;

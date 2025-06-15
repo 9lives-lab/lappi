@@ -40,7 +40,7 @@ async function updateItem (itemId) {
   if (musicFileDescOption) {
     isFileExists.value = true
     const musicFileId = musicFileDescOption.internal_file_id
-    const newMusicFilePath = await aminaApi.sendRequest('lappi.collection.internal_files.get_file_path', { file_id: musicFileId })
+    const newMusicFilePath = await aminaApi.sendRequest('lappi.collection.internal_files.get_internal_path', { file_id: musicFileId })
     musicFilePath.value = newMusicFilePath.path
   } else {
     isFileExists.value = false

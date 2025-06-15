@@ -41,8 +41,8 @@ impl PicturesCollection {
         let picture_id = self.db.add_picture_item(&picture_desc).unwrap();
         picture_desc.picture_id = picture_id;
 
-        let internal_path = self.get_internal_path(picture_id);
-        let internal_file_id = self.internal_files.write_file(picture_data, &internal_path).unwrap();
+        let internal_path = self.gen_internal_path(picture_id);
+        let internal_file_id = self.internal_files.add_and_write_file(picture_data, &internal_path).unwrap();
         
         picture_desc.internal_file_id = internal_file_id;
         self.db.update_picture_item(&picture_desc).unwrap();
@@ -78,10 +78,10 @@ impl PicturesCollection {
         return self.db.get_picture_descriptor(picture_id).unwrap();
     }
 
-    pub fn get_internal_path(&self, picture_id: PictureId) -> InternalPath {
+    pub fn gen_internal_path(&self, picture_id: PictureId) -> InternalPath {
         let picture_desc = self.db.get_picture_descriptor(picture_id).unwrap();
         let folder_name = self.folders.get_folder_name(picture_desc.folder_id);
-        let mut internal_path = self.folders.get_internal_path(picture_desc.folder_id);
+        let mut internal_path = self.folders.gen_internal_path(picture_desc.folder_id);
         internal_path.push("pictures");
         internal_path.push(format!("{} - {}.{}", &folder_name, picture_desc.picture_id, picture_desc.picture_type.to_str()).as_str());
         return internal_path;

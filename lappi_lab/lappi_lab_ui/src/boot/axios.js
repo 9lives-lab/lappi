@@ -7,7 +7,7 @@ class LappiApi extends AminaClientAPI {
   }
 
   async getInternalFileUrl (internalFileId) {
-    const internalPath = await this.sendRequest('lappi.collection.internal_files.get_file_path', { file_id: internalFileId })
+    const internalPath = await this.sendRequest('lappi.collection.internal_files.get_internal_path', { file_id: internalFileId })
     return this.getFileUrl('lappi.collection.internal/' + internalPath.path )
   }
 

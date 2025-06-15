@@ -24,44 +24,50 @@ pub struct InternalFiles {
 }
 
 impl InternalFiles {
-    pub fn write_file(&self, src_data: &[u8], internal_path: &InternalPath) -> Result<InternalFileId> {
-        let dst_path = self.get_storage_abs_path(internal_path);
-        if let Some(parent) = dst_path.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::write(dst_path, src_data)?;
-        let file_id = self.db.add_file_path(internal_path)?;
-        return Ok(file_id);
-    }
-
-    pub fn import_file(&self, src_path: &Path, internal_path: &InternalPath) -> Result<InternalFileId> {
-        let dst_path = self.get_storage_abs_path(internal_path);
-        if let Some(parent) = dst_path.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        std::fs::copy(src_path, dst_path)?;
-        let file_id = self.db.add_file_path(internal_path)?;
-        return Ok(file_id);
-    }
-
-    pub fn get_file_path(&self, file_id: InternalFileId) -> InternalPath {
+    pub fn get_internal_path(&self, file_id: InternalFileId) -> InternalPath {
         return self.db.get_file_path(file_id).unwrap();
     }
 
-    pub fn delete_file(&self, file_id: InternalFileId) -> Result<()> {
-        let path = self.db.get_file_path(file_id)?;
-        let abs_path = self.get_storage_abs_path(&path);
-        std::fs::remove_file(abs_path)?;
-        return Ok(());
-    }
-
-    pub fn get_storage_abs_path(&self, internal_path: &InternalPath) -> PathBuf {
+    pub fn get_system_path(&self, file_id: InternalFileId) -> PathBuf {
+        let internal_path = self.get_internal_path(file_id);
         let mut path = self.local_storage.get_collection_base_path();
         path.push(internal_path.as_str());
         return path;
     }
 
-    pub fn get_binary(&self, path: &str) -> Result<Vec<u8>, std::io::Error> {
+    pub fn add_new_file(&self, internal_path: &InternalPath) -> Result<InternalFileId> {
+        let file_id = self.db.add_file_path(internal_path)?;
+
+        let path = self.get_system_path(file_id);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::File::create(path)?;
+        return Ok(file_id);
+    }
+
+    pub fn add_and_write_file(&self, src_data: &[u8], internal_path: &InternalPath) -> Result<InternalFileId> {
+        let file_id = self.add_new_file(internal_path)?;
+        let path = self.get_system_path(file_id);
+        std::fs::write(path, src_data)?;
+        return Ok(file_id);
+    }
+
+    pub fn add_and_copy_file(&self, src_path: &Path, internal_path: &InternalPath) -> Result<InternalFileId> {
+        let file_id = self.add_new_file(internal_path)?;
+        let path = self.get_system_path(file_id);
+        std::fs::copy(src_path, path)?;
+        return Ok(file_id);
+    }
+
+    pub fn delete_file(&self, file_id: InternalFileId) -> Result<()> {
+        let path = self.get_system_path(file_id);
+        std::fs::remove_file(path)?;
+        self.db.delete_file(file_id)?;
+        return Ok(());
+    }
+
+    fn get_binary_rpc_handler(&self, path: &str) -> Result<Vec<u8>, std::io::Error> {
         let mut abs_path = self.local_storage.get_collection_base_path();
         abs_path.push(path);
         let file_content = std::fs::read(abs_path)?;
@@ -85,11 +91,11 @@ impl ServiceInitializer for InternalFiles {
             local_storage,
         });
 
-        register_rpc_handler!(rpc, internal_files, "lappi.collection.internal_files.get_file_path", get_file_path(file_id: InternalFileId));
+        register_rpc_handler!(rpc, internal_files, "lappi.collection.internal_files.get_internal_path", get_internal_path(file_id: InternalFileId));
 
         let internal_files_copy = internal_files.clone();
         rpc.add_get_file_handler(FILE_HANDLER_KEY, move|path| {
-            internal_files_copy.get_binary(path)
+            internal_files_copy.get_binary_rpc_handler(path)
         });
 
         return internal_files;

@@ -42,10 +42,9 @@ impl PlaybackSource {
                     item_desc.name
                 };
 
-                let internal_path = internal_files.get_file_path(file_desc.internal_file_id);
-                let abs_path = internal_files.get_storage_abs_path(&internal_path);
+                let path = internal_files.get_system_path(file_desc.internal_file_id);
 
-                let mut playback_source = Self::local_file(name, abs_path.to_str().unwrap().to_string());
+                let mut playback_source = Self::local_file(name, path.to_str().unwrap().to_string());
                 playback_source.cover_picture = music.get_item_cover(music_item_id);
 
                 Some(playback_source)

@@ -5,6 +5,7 @@ use rusqlite::{params, OptionalExtension};
 
 use crate::collection::folders::database_api::FoldersDbApi;
 use crate::collection::folders::{FolderDescription, FolderId, FolderType};
+use crate::collection::internal_files::InternalFileId;
 use crate::collection::music::MusicItemId;
 use crate::collection::pictures::PictureId;
 use crate::database::sqlite::utils::{DatabaseContext, DatabaseUtils, ProtobufExporter, ProtobufImporter};
@@ -67,11 +68,16 @@ impl FoldersDb {
     pub fn import(&self, base_path: &Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut importer = ProtobufImporter::create(base_path, "folders.pb")?;
+        let sql = "INSERT INTO folders (id, parent_id, name, folder_type, avatar_picture_id, description_file_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
         while let Some(row) = importer.read_next_row::<crate::proto::collection::FoldersRow>()? {
-            db_context.connection().execute(
-                "INSERT INTO folders (id, parent_id, name, folder_type, avatar_picture_id) VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![row.folder_id, row.parent_folder_id, row.name, row.folder_type, row.avatar_picture_id],
-            )?;
+            db_context.connection().execute(sql, params![
+                row.folder_id,
+                row.parent_folder_id,
+                row.name,
+                row.folder_type,
+                row.avatar_picture_id,
+                row.description_file_id
+            ])?;
         }
         Ok(())
     }
@@ -79,7 +85,8 @@ impl FoldersDb {
     pub fn export(&self, base_path: &Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut exporter = ProtobufExporter::create(base_path, "folders.pb")?;
-        let mut stmt = db_context.connection().prepare("SELECT id, parent_id, name, folder_type, avatar_picture_id FROM folders")?;
+        let sql = "SELECT id, parent_id, name, folder_type, avatar_picture_id, description_file_id FROM folders";
+        let mut stmt = db_context.connection().prepare(sql)?;
         let rows = stmt.query_map([], |row| {
             let mut folders_row = crate::proto::collection::FoldersRow::new();
             folders_row.folder_id = row.get::<_, i64>(0)?;
@@ -87,6 +94,7 @@ impl FoldersDb {
             folders_row.name = row.get::<_, String>(2)?;
             folders_row.folder_type = row.get::<_, i32>(3)?;
             folders_row.avatar_picture_id = row.get::<_, Option<i64>>(4)?;
+            folders_row.description_file_id = row.get::<_, Option<i64>>(5)?;
             Ok(folders_row)
         })?;
         for row in rows {
@@ -122,6 +130,10 @@ impl FoldersDbApi for FoldersDb {
         self.get_folder_description(&context, folder_id)
     }
 
+    fn get_description_file(&self, folder_id: FolderId) -> Result<Option<InternalFileId>> {
+        self.db_utils.lock().get_field_value(folder_id, "folders", "description_file_id")
+    }
+
     fn set_folder_name(&self, folder_id: FolderId, name: &str) -> Result<()> {
         let mut context = self.db_utils.lock();
         context.set_field_value(folder_id, "folders", "name", name)?;
@@ -138,7 +150,14 @@ impl FoldersDbApi for FoldersDb {
 
     fn set_folder_cover(&self, folder_id: FolderId, picture_id: PictureId) -> Result<()> {
         let mut context = self.db_utils.lock();
-        context.set_field_value(folder_id, "folders", "avatar_picture_id", picture_id as i32)?;
+        context.set_field_value(folder_id, "folders", "avatar_picture_id", picture_id)?;
+        context.on_folders_updated();
+        Ok(())
+    }
+
+    fn set_description_file(&self, folder_id: FolderId, file_id: InternalFileId) -> Result<()> {
+        let mut context = self.db_utils.lock();
+        context.set_field_value(folder_id, "folders", "description_file_id", file_id)?;
         context.on_folders_updated();
         Ok(())
     }

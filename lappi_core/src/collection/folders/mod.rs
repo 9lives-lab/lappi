@@ -1,7 +1,6 @@
 pub mod types;
 pub mod database_api;
 
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::{Serialize, Deserialize};
@@ -9,8 +8,7 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
-use crate::collection::internal_files::InternalPath;
-use crate::collection::storage::local::LocalStorage;
+use crate::collection::internal_files::{InternalFiles, InternalPath};
 use crate::database::Database;
 
 use super::folders::database_api::FoldersDbApi;
@@ -41,7 +39,7 @@ pub struct FolderFullContent {
 }
 
 pub struct FoldersCollection {
-    local_storage: Service<LocalStorage>,
+    internal_files: Service<InternalFiles>,
     folders_db: Arc<Box<dyn FoldersDbApi>>,
     tags_db: Arc<Box<dyn TagsDbApi>>,
     music_db: Arc<Box<dyn MusicDbApi>>,
@@ -233,21 +231,33 @@ impl FoldersCollection {
     }
 
     pub fn save_description(&self, folder_id: FolderId, text: String) {
-        let path = self.get_description_storage_path(folder_id);
-        std::fs::write(path, text.as_bytes()).unwrap();
+        match self.folders_db.get_description_file(folder_id).unwrap() {
+            Some(file_id) => {
+                let path = self.internal_files.get_system_path(file_id);
+                std::fs::write(path, text).unwrap();
+            },
+            None => {
+                let internal_path = self.gen_description_internal_path(folder_id);
+                let file_id = self.internal_files.add_and_write_file(text.as_bytes(), &internal_path).unwrap();
+                self.folders_db.set_description_file(folder_id, file_id).unwrap();
+            }
+        }
     }
 
     pub fn get_description(&self, folder_id: FolderId) -> String {
-        let path = self.get_description_storage_path(folder_id);
-        let file_content = std::fs::read_to_string(path).unwrap_or("".to_string());
-        return file_content;
+        match self.folders_db.get_description_file(folder_id).unwrap() {
+            Some(file_id) => {
+                let path = self.internal_files.get_system_path(file_id);
+                let file = std::fs::read(path).unwrap();
+                return String::from_utf8(file).unwrap();
+            }
+            None => {
+                return String::new();
+            }
+        }
     }
 
-    fn get_description_storage_path(&self, folder_id: FolderId) -> PathBuf {
-        return self.local_storage.get_internal_storage_folder("folders/about").join(format!("{}.txt", folder_id));
-    }
-
-    pub fn get_internal_path(&self, folder_id: FolderId) -> InternalPath {
+    pub fn gen_internal_path(&self, folder_id: FolderId) -> InternalPath {
         let folders_chain = self.get_folders_chain(folder_id);
         let mut path = InternalPath::new();
         for folder_desc in folders_chain {
@@ -261,6 +271,13 @@ impl FoldersCollection {
         }
         return path;
     }
+
+    pub fn gen_description_internal_path(&self, folder_id: FolderId) -> InternalPath {
+        let mut path = self.gen_internal_path(folder_id);
+        let file_name = self.get_folder_name(folder_id) + ".txt";
+        path.push(&file_name);
+        return path;
+    }
 }
 
 impl ServiceApi for FoldersCollection {
@@ -269,12 +286,12 @@ impl ServiceApi for FoldersCollection {
 
 impl ServiceInitializer for FoldersCollection {
     fn initialize(context: &Context) -> Arc<Self> {
-        let local_storage = context.get_service::<LocalStorage>();
+        let internal_files = context.get_service::<InternalFiles>();
         let rpc: Service<Rpc> = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
 
         let folders = Arc::new(Self {
-            local_storage,
+            internal_files,
             folders_db: Arc::new(database.get_folders_api()),
             tags_db: Arc::new(database.get_tags_api()),
             music_db: Arc::new(database.get_music_api()),
@@ -294,7 +311,7 @@ impl ServiceInitializer for FoldersCollection {
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.delete_tag", delete_tag(folder_id: FolderId, tag_name: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.save_description", save_description(folder_id: FolderId, text: String));
         register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_description", get_description(folder_id: FolderId));
-        register_rpc_handler!(rpc, folders, "lappi.collection.folders.get_internal_path", get_internal_path(folder_id: FolderId));
+        register_rpc_handler!(rpc, folders, "lappi.collection.folders.gen_internal_path", gen_internal_path(folder_id: FolderId));
 
         return folders;
     }

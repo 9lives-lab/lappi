@@ -24,200 +24,6 @@
 /// of protobuf runtime.
 const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_7_2;
 
-// @@protoc_insertion_point(message:FoldersRow)
-#[derive(PartialEq,Clone,Default,Debug)]
-pub struct FoldersRow {
-    // message fields
-    // @@protoc_insertion_point(field:FoldersRow.folder_id)
-    pub folder_id: i64,
-    // @@protoc_insertion_point(field:FoldersRow.parent_folder_id)
-    pub parent_folder_id: i64,
-    // @@protoc_insertion_point(field:FoldersRow.name)
-    pub name: ::std::string::String,
-    // @@protoc_insertion_point(field:FoldersRow.folder_type)
-    pub folder_type: i32,
-    // @@protoc_insertion_point(field:FoldersRow.avatar_picture_id)
-    pub avatar_picture_id: ::std::option::Option<i64>,
-    // special fields
-    // @@protoc_insertion_point(special_field:FoldersRow.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
-}
-
-impl<'a> ::std::default::Default for &'a FoldersRow {
-    fn default() -> &'a FoldersRow {
-        <FoldersRow as ::protobuf::Message>::default_instance()
-    }
-}
-
-impl FoldersRow {
-    pub fn new() -> FoldersRow {
-        ::std::default::Default::default()
-    }
-
-    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(5);
-        let mut oneofs = ::std::vec::Vec::with_capacity(0);
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "folder_id",
-            |m: &FoldersRow| { &m.folder_id },
-            |m: &mut FoldersRow| { &mut m.folder_id },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "parent_folder_id",
-            |m: &FoldersRow| { &m.parent_folder_id },
-            |m: &mut FoldersRow| { &mut m.parent_folder_id },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "name",
-            |m: &FoldersRow| { &m.name },
-            |m: &mut FoldersRow| { &mut m.name },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "folder_type",
-            |m: &FoldersRow| { &m.folder_type },
-            |m: &mut FoldersRow| { &mut m.folder_type },
-        ));
-        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
-            "avatar_picture_id",
-            |m: &FoldersRow| { &m.avatar_picture_id },
-            |m: &mut FoldersRow| { &mut m.avatar_picture_id },
-        ));
-        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<FoldersRow>(
-            "FoldersRow",
-            fields,
-            oneofs,
-        )
-    }
-}
-
-impl ::protobuf::Message for FoldersRow {
-    const NAME: &'static str = "FoldersRow";
-
-    fn is_initialized(&self) -> bool {
-        true
-    }
-
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
-        while let Some(tag) = is.read_raw_tag_or_eof()? {
-            match tag {
-                8 => {
-                    self.folder_id = is.read_int64()?;
-                },
-                16 => {
-                    self.parent_folder_id = is.read_int64()?;
-                },
-                26 => {
-                    self.name = is.read_string()?;
-                },
-                32 => {
-                    self.folder_type = is.read_int32()?;
-                },
-                40 => {
-                    self.avatar_picture_id = ::std::option::Option::Some(is.read_int64()?);
-                },
-                tag => {
-                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
-                },
-            };
-        }
-        ::std::result::Result::Ok(())
-    }
-
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u64 {
-        let mut my_size = 0;
-        if self.folder_id != 0 {
-            my_size += ::protobuf::rt::int64_size(1, self.folder_id);
-        }
-        if self.parent_folder_id != 0 {
-            my_size += ::protobuf::rt::int64_size(2, self.parent_folder_id);
-        }
-        if !self.name.is_empty() {
-            my_size += ::protobuf::rt::string_size(3, &self.name);
-        }
-        if self.folder_type != 0 {
-            my_size += ::protobuf::rt::int32_size(4, self.folder_type);
-        }
-        if let Some(v) = self.avatar_picture_id {
-            my_size += ::protobuf::rt::int64_size(5, v);
-        }
-        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-        self.special_fields.cached_size().set(my_size as u32);
-        my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-        if self.folder_id != 0 {
-            os.write_int64(1, self.folder_id)?;
-        }
-        if self.parent_folder_id != 0 {
-            os.write_int64(2, self.parent_folder_id)?;
-        }
-        if !self.name.is_empty() {
-            os.write_string(3, &self.name)?;
-        }
-        if self.folder_type != 0 {
-            os.write_int32(4, self.folder_type)?;
-        }
-        if let Some(v) = self.avatar_picture_id {
-            os.write_int64(5, v)?;
-        }
-        os.write_unknown_fields(self.special_fields.unknown_fields())?;
-        ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
-        &self.special_fields
-    }
-
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
-        &mut self.special_fields
-    }
-
-    fn new() -> FoldersRow {
-        FoldersRow::new()
-    }
-
-    fn clear(&mut self) {
-        self.folder_id = 0;
-        self.parent_folder_id = 0;
-        self.name.clear();
-        self.folder_type = 0;
-        self.avatar_picture_id = ::std::option::Option::None;
-        self.special_fields.clear();
-    }
-
-    fn default_instance() -> &'static FoldersRow {
-        static instance: FoldersRow = FoldersRow {
-            folder_id: 0,
-            parent_folder_id: 0,
-            name: ::std::string::String::new(),
-            folder_type: 0,
-            avatar_picture_id: ::std::option::Option::None,
-            special_fields: ::protobuf::SpecialFields::new(),
-        };
-        &instance
-    }
-}
-
-impl ::protobuf::MessageFull for FoldersRow {
-    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
-        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
-        descriptor.get(|| file_descriptor().message_by_package_relative_name("FoldersRow").unwrap()).clone()
-    }
-}
-
-impl ::std::fmt::Display for FoldersRow {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-        ::protobuf::text_format::fmt(self, f)
-    }
-}
-
-impl ::protobuf::reflect::ProtobufValue for FoldersRow {
-    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
-}
-
 // @@protoc_insertion_point(message:InternalFilesRow)
 #[derive(PartialEq,Clone,Default,Debug)]
 pub struct InternalFilesRow {
@@ -355,6 +161,218 @@ impl ::std::fmt::Display for InternalFilesRow {
 }
 
 impl ::protobuf::reflect::ProtobufValue for InternalFilesRow {
+    type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
+}
+
+// @@protoc_insertion_point(message:FoldersRow)
+#[derive(PartialEq,Clone,Default,Debug)]
+pub struct FoldersRow {
+    // message fields
+    // @@protoc_insertion_point(field:FoldersRow.folder_id)
+    pub folder_id: i64,
+    // @@protoc_insertion_point(field:FoldersRow.parent_folder_id)
+    pub parent_folder_id: i64,
+    // @@protoc_insertion_point(field:FoldersRow.name)
+    pub name: ::std::string::String,
+    // @@protoc_insertion_point(field:FoldersRow.folder_type)
+    pub folder_type: i32,
+    // @@protoc_insertion_point(field:FoldersRow.avatar_picture_id)
+    pub avatar_picture_id: ::std::option::Option<i64>,
+    // @@protoc_insertion_point(field:FoldersRow.description_file_id)
+    pub description_file_id: ::std::option::Option<i64>,
+    // special fields
+    // @@protoc_insertion_point(special_field:FoldersRow.special_fields)
+    pub special_fields: ::protobuf::SpecialFields,
+}
+
+impl<'a> ::std::default::Default for &'a FoldersRow {
+    fn default() -> &'a FoldersRow {
+        <FoldersRow as ::protobuf::Message>::default_instance()
+    }
+}
+
+impl FoldersRow {
+    pub fn new() -> FoldersRow {
+        ::std::default::Default::default()
+    }
+
+    fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
+        let mut fields = ::std::vec::Vec::with_capacity(6);
+        let mut oneofs = ::std::vec::Vec::with_capacity(0);
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "folder_id",
+            |m: &FoldersRow| { &m.folder_id },
+            |m: &mut FoldersRow| { &mut m.folder_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "parent_folder_id",
+            |m: &FoldersRow| { &m.parent_folder_id },
+            |m: &mut FoldersRow| { &mut m.parent_folder_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "name",
+            |m: &FoldersRow| { &m.name },
+            |m: &mut FoldersRow| { &mut m.name },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "folder_type",
+            |m: &FoldersRow| { &m.folder_type },
+            |m: &mut FoldersRow| { &mut m.folder_type },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
+            "avatar_picture_id",
+            |m: &FoldersRow| { &m.avatar_picture_id },
+            |m: &mut FoldersRow| { &mut m.avatar_picture_id },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_option_accessor::<_, _>(
+            "description_file_id",
+            |m: &FoldersRow| { &m.description_file_id },
+            |m: &mut FoldersRow| { &mut m.description_file_id },
+        ));
+        ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<FoldersRow>(
+            "FoldersRow",
+            fields,
+            oneofs,
+        )
+    }
+}
+
+impl ::protobuf::Message for FoldersRow {
+    const NAME: &'static str = "FoldersRow";
+
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+        while let Some(tag) = is.read_raw_tag_or_eof()? {
+            match tag {
+                8 => {
+                    self.folder_id = is.read_int64()?;
+                },
+                16 => {
+                    self.parent_folder_id = is.read_int64()?;
+                },
+                26 => {
+                    self.name = is.read_string()?;
+                },
+                32 => {
+                    self.folder_type = is.read_int32()?;
+                },
+                40 => {
+                    self.avatar_picture_id = ::std::option::Option::Some(is.read_int64()?);
+                },
+                48 => {
+                    self.description_file_id = ::std::option::Option::Some(is.read_int64()?);
+                },
+                tag => {
+                    ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+        let mut my_size = 0;
+        if self.folder_id != 0 {
+            my_size += ::protobuf::rt::int64_size(1, self.folder_id);
+        }
+        if self.parent_folder_id != 0 {
+            my_size += ::protobuf::rt::int64_size(2, self.parent_folder_id);
+        }
+        if !self.name.is_empty() {
+            my_size += ::protobuf::rt::string_size(3, &self.name);
+        }
+        if self.folder_type != 0 {
+            my_size += ::protobuf::rt::int32_size(4, self.folder_type);
+        }
+        if let Some(v) = self.avatar_picture_id {
+            my_size += ::protobuf::rt::int64_size(5, v);
+        }
+        if let Some(v) = self.description_file_id {
+            my_size += ::protobuf::rt::int64_size(6, v);
+        }
+        my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+        self.special_fields.cached_size().set(my_size as u32);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+        if self.folder_id != 0 {
+            os.write_int64(1, self.folder_id)?;
+        }
+        if self.parent_folder_id != 0 {
+            os.write_int64(2, self.parent_folder_id)?;
+        }
+        if !self.name.is_empty() {
+            os.write_string(3, &self.name)?;
+        }
+        if self.folder_type != 0 {
+            os.write_int32(4, self.folder_type)?;
+        }
+        if let Some(v) = self.avatar_picture_id {
+            os.write_int64(5, v)?;
+        }
+        if let Some(v) = self.description_file_id {
+            os.write_int64(6, v)?;
+        }
+        os.write_unknown_fields(self.special_fields.unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn special_fields(&self) -> &::protobuf::SpecialFields {
+        &self.special_fields
+    }
+
+    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+        &mut self.special_fields
+    }
+
+    fn new() -> FoldersRow {
+        FoldersRow::new()
+    }
+
+    fn clear(&mut self) {
+        self.folder_id = 0;
+        self.parent_folder_id = 0;
+        self.name.clear();
+        self.folder_type = 0;
+        self.avatar_picture_id = ::std::option::Option::None;
+        self.description_file_id = ::std::option::Option::None;
+        self.special_fields.clear();
+    }
+
+    fn default_instance() -> &'static FoldersRow {
+        static instance: FoldersRow = FoldersRow {
+            folder_id: 0,
+            parent_folder_id: 0,
+            name: ::std::string::String::new(),
+            folder_type: 0,
+            avatar_picture_id: ::std::option::Option::None,
+            description_file_id: ::std::option::Option::None,
+            special_fields: ::protobuf::SpecialFields::new(),
+        };
+        &instance
+    }
+}
+
+impl ::protobuf::MessageFull for FoldersRow {
+    fn descriptor() -> ::protobuf::reflect::MessageDescriptor {
+        static descriptor: ::protobuf::rt::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::rt::Lazy::new();
+        descriptor.get(|| file_descriptor().message_by_package_relative_name("FoldersRow").unwrap()).clone()
+    }
+}
+
+impl ::std::fmt::Display for FoldersRow {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for FoldersRow {
     type RuntimeType = ::protobuf::reflect::rt::RuntimeTypeMessage<Self>;
 }
 
@@ -1919,48 +1937,50 @@ impl MusicLinkType {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x10collection.proto\"\xcf\x01\n\nFoldersRow\x12\x1b\n\tfolder_id\x18\
-    \x01\x20\x01(\x03R\x08folderId\x12(\n\x10parent_folder_id\x18\x02\x20\
-    \x01(\x03R\x0eparentFolderId\x12\x12\n\x04name\x18\x03\x20\x01(\tR\x04na\
-    me\x12\x1f\n\x0bfolder_type\x18\x04\x20\x01(\x05R\nfolderType\x12/\n\x11\
-    avatar_picture_id\x18\x05\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\
-    \x01B\x14\n\x12_avatar_picture_id\"P\n\x10InternalFilesRow\x12\x17\n\x07\
-    file_id\x18\x01\x20\x01(\x03R\x06fileId\x12#\n\rinternal_path\x18\x02\
-    \x20\x01(\tR\x0cinternalPath\"d\n\rMusicItemsRow\x12\"\n\rmusic_item_id\
-    \x18\x01\x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\x01(\
-    \tR\x04name\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"w\n\
-    \x0eLyricsItemsRow\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyr\
-    icsItemId\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\
-    \x12\x1b\n\tlang_code\x18\x03\x20\x01(\tR\x08langCode\"\x99\x01\n\x0fPic\
-    tureItemsRow\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfold\
-    er_id\x18\x03\x20\x01(\x03R\x08folderId\x12(\n\x10internal_file_id\x18\
-    \x04\x20\x01(\x03R\x0einternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\
-    \x01(\x0e2\x0c.PictureTypeR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\
-    \x15\n\x06tag_id\x18\x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\
-    \x18\x02\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_i\
-    d\x18\x03\x20\x01(\x03H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_na\
-    me\x18\x04\x20\x01(\tR\x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01\
-    (\tH\x02R\x0bstringValue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\
-    \x01(\x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\
-    \n_folder_idB\x0f\n\r_string_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRo\
-    w\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\
-    \x18\x02\x20\x01(\x03R\x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\
-    \x01(\x0e2\x0e.MusicFileTypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\
-    \x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\
-    \x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04l\
-    ink\x12+\n\tlink_type\x18\x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkTy\
-    pe\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\
-    \x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\
-    \x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0favatarPictureId\x88\
-    \x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10PlaylistItemsRow\
-    \x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplaylistItemId\x12\
-    \x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\n\rmusic_it\
-    em_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\x10\n\x0e_mus\
-    ic_item_id*E\n\x0bPictureType\x12\x07\n\x03JPG\x10\0\x12\x07\n\x03PNG\
-    \x10\x01\x12\x07\n\x03GIF\x10\x02\x12\x08\n\x04WEBP\x10\x03\x12\x07\n\
-    \x03BMP\x10\x04\x12\x08\n\x04AVIF\x10\x05*\"\n\rMusicFileType\x12\x07\n\
-    \x03MP3\x10\0\x12\x08\n\x04FLAC\x10\x01*+\n\rMusicLinkType\x12\x11\n\rEX\
-    TERNAL_FILE\x10\0\x12\x07\n\x03URL\x10\x01b\x06proto3\
+    \n\x10collection.proto\"P\n\x10InternalFilesRow\x12\x17\n\x07file_id\x18\
+    \x01\x20\x01(\x03R\x06fileId\x12#\n\rinternal_path\x18\x02\x20\x01(\tR\
+    \x0cinternalPath\"\x9c\x02\n\nFoldersRow\x12\x1b\n\tfolder_id\x18\x01\
+    \x20\x01(\x03R\x08folderId\x12(\n\x10parent_folder_id\x18\x02\x20\x01(\
+    \x03R\x0eparentFolderId\x12\x12\n\x04name\x18\x03\x20\x01(\tR\x04name\
+    \x12\x1f\n\x0bfolder_type\x18\x04\x20\x01(\x05R\nfolderType\x12/\n\x11av\
+    atar_picture_id\x18\x05\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01\
+    \x123\n\x13description_file_id\x18\x06\x20\x01(\x03H\x01R\x11description\
+    FileId\x88\x01\x01B\x14\n\x12_avatar_picture_idB\x16\n\x14_description_f\
+    ile_id\"d\n\rMusicItemsRow\x12\"\n\rmusic_item_id\x18\x01\x20\x01(\x03R\
+    \x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12\x1b\n\
+    \tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"w\n\x0eLyricsItemsRow\x12\
+    $\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyricsItemId\x12\"\n\rmus\
+    ic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1b\n\tlang_code\x18\
+    \x03\x20\x01(\tR\x08langCode\"\x99\x01\n\x0fPictureItemsRow\x12\x0e\n\
+    \x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\
+    \x03R\x08folderId\x12(\n\x10internal_file_id\x18\x04\x20\x01(\x03R\x0ein\
+    ternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\x01(\x0e2\x0c.PictureTyp\
+    eR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06tag_id\x18\x01\x20\
+    \x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\x01(\x03H\0R\x0bmu\
+    sicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\x20\x01(\x03H\x01R\
+    \x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\x04\x20\x01(\tR\x07ta\
+    gName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\x02R\x0bstringValue\x88\
+    \x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\x05H\x03R\x08intValue\x88\
+    \x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_folder_idB\x0f\n\r_string_val\
+    ueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\x0e\n\x02id\x18\x01\x20\
+    \x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\x02\x20\x01(\x03R\x0eint\
+    ernalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\x0e2\x0e.MusicFileTypeR\
+    \x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\n\x02id\x18\x01\x20\x01(\
+    \x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\
+    \x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\x12+\n\tlink_type\x18\x04\
+    \x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\"\x8a\x01\n\x0cPlaylistsRo\
+    w\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\
+    \x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\x11avatar_picture_id\x18\x03\
+    \x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01B\x14\n\x12_avatar_pictu\
+    re_id\"\x98\x01\n\x10PlaylistItemsRow\x12(\n\x10playlist_item_id\x18\x01\
+    \x20\x01(\x03R\x0eplaylistItemId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\
+    \x01(\x03R\nplaylistId\x12'\n\rmusic_item_id\x18\x03\x20\x01(\x03H\0R\
+    \x0bmusicItemId\x88\x01\x01B\x10\n\x0e_music_item_id*E\n\x0bPictureType\
+    \x12\x07\n\x03JPG\x10\0\x12\x07\n\x03PNG\x10\x01\x12\x07\n\x03GIF\x10\
+    \x02\x12\x08\n\x04WEBP\x10\x03\x12\x07\n\x03BMP\x10\x04\x12\x08\n\x04AVI\
+    F\x10\x05*\"\n\rMusicFileType\x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\
+    \x10\x01*+\n\rMusicLinkType\x12\x11\n\rEXTERNAL_FILE\x10\0\x12\x07\n\x03\
+    URL\x10\x01b\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file
@@ -1979,8 +1999,8 @@ pub fn file_descriptor() -> &'static ::protobuf::reflect::FileDescriptor {
         let generated_file_descriptor = generated_file_descriptor_lazy.get(|| {
             let mut deps = ::std::vec::Vec::with_capacity(0);
             let mut messages = ::std::vec::Vec::with_capacity(10);
-            messages.push(FoldersRow::generated_message_descriptor_data());
             messages.push(InternalFilesRow::generated_message_descriptor_data());
+            messages.push(FoldersRow::generated_message_descriptor_data());
             messages.push(MusicItemsRow::generated_message_descriptor_data());
             messages.push(LyricsItemsRow::generated_message_descriptor_data());
             messages.push(PictureItemsRow::generated_message_descriptor_data());

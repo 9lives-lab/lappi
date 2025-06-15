@@ -7,5 +7,6 @@ pub trait InternalFilesDbApi: Send + Sync {
 
     fn add_file_path(&self, path: &InternalPath) -> Result<InternalFileId>;
     fn get_file_path(&self, file_id: InternalFileId) -> Result<InternalPath>;
+    fn delete_file(&self, file_id: InternalFileId) -> Result<()>;
 }
 

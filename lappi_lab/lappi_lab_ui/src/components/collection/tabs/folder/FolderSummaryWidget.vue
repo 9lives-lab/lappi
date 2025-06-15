@@ -63,7 +63,7 @@ async function update (newFolderId) {
   folderName.value = folderDescription.name
   folderType.value = folderDescription.folder_type
 
-  const newInternalPath = await aminaApi.sendRequest('lappi.collection.folders.get_internal_path', { folder_id: newFolderId })
+  const newInternalPath = await aminaApi.sendRequest('lappi.collection.folders.gen_internal_path', { folder_id: newFolderId })
   internalPath.value = newInternalPath.path
 }
 
