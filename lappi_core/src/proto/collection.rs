@@ -542,8 +542,10 @@ pub struct LyricsItemsRow {
     pub lyrics_item_id: i64,
     // @@protoc_insertion_point(field:LyricsItemsRow.music_item_id)
     pub music_item_id: i64,
-    // @@protoc_insertion_point(field:LyricsItemsRow.lang_code)
-    pub lang_code: ::std::string::String,
+    // @@protoc_insertion_point(field:LyricsItemsRow.lyrics_tag)
+    pub lyrics_tag: ::std::string::String,
+    // @@protoc_insertion_point(field:LyricsItemsRow.internal_file_id)
+    pub internal_file_id: i64,
     // special fields
     // @@protoc_insertion_point(special_field:LyricsItemsRow.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -561,7 +563,7 @@ impl LyricsItemsRow {
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(3);
+        let mut fields = ::std::vec::Vec::with_capacity(4);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "lyrics_item_id",
@@ -574,9 +576,14 @@ impl LyricsItemsRow {
             |m: &mut LyricsItemsRow| { &mut m.music_item_id },
         ));
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
-            "lang_code",
-            |m: &LyricsItemsRow| { &m.lang_code },
-            |m: &mut LyricsItemsRow| { &mut m.lang_code },
+            "lyrics_tag",
+            |m: &LyricsItemsRow| { &m.lyrics_tag },
+            |m: &mut LyricsItemsRow| { &mut m.lyrics_tag },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "internal_file_id",
+            |m: &LyricsItemsRow| { &m.internal_file_id },
+            |m: &mut LyricsItemsRow| { &mut m.internal_file_id },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<LyricsItemsRow>(
             "LyricsItemsRow",
@@ -603,7 +610,10 @@ impl ::protobuf::Message for LyricsItemsRow {
                     self.music_item_id = is.read_int64()?;
                 },
                 26 => {
-                    self.lang_code = is.read_string()?;
+                    self.lyrics_tag = is.read_string()?;
+                },
+                32 => {
+                    self.internal_file_id = is.read_int64()?;
                 },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
@@ -623,8 +633,11 @@ impl ::protobuf::Message for LyricsItemsRow {
         if self.music_item_id != 0 {
             my_size += ::protobuf::rt::int64_size(2, self.music_item_id);
         }
-        if !self.lang_code.is_empty() {
-            my_size += ::protobuf::rt::string_size(3, &self.lang_code);
+        if !self.lyrics_tag.is_empty() {
+            my_size += ::protobuf::rt::string_size(3, &self.lyrics_tag);
+        }
+        if self.internal_file_id != 0 {
+            my_size += ::protobuf::rt::int64_size(4, self.internal_file_id);
         }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
@@ -638,8 +651,11 @@ impl ::protobuf::Message for LyricsItemsRow {
         if self.music_item_id != 0 {
             os.write_int64(2, self.music_item_id)?;
         }
-        if !self.lang_code.is_empty() {
-            os.write_string(3, &self.lang_code)?;
+        if !self.lyrics_tag.is_empty() {
+            os.write_string(3, &self.lyrics_tag)?;
+        }
+        if self.internal_file_id != 0 {
+            os.write_int64(4, self.internal_file_id)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -660,7 +676,8 @@ impl ::protobuf::Message for LyricsItemsRow {
     fn clear(&mut self) {
         self.lyrics_item_id = 0;
         self.music_item_id = 0;
-        self.lang_code.clear();
+        self.lyrics_tag.clear();
+        self.internal_file_id = 0;
         self.special_fields.clear();
     }
 
@@ -668,7 +685,8 @@ impl ::protobuf::Message for LyricsItemsRow {
         static instance: LyricsItemsRow = LyricsItemsRow {
             lyrics_item_id: 0,
             music_item_id: 0,
-            lang_code: ::std::string::String::new(),
+            lyrics_tag: ::std::string::String::new(),
+            internal_file_id: 0,
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -1948,34 +1966,35 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     FileId\x88\x01\x01B\x14\n\x12_avatar_picture_idB\x16\n\x14_description_f\
     ile_id\"d\n\rMusicItemsRow\x12\"\n\rmusic_item_id\x18\x01\x20\x01(\x03R\
     \x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12\x1b\n\
-    \tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"w\n\x0eLyricsItemsRow\x12\
-    $\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyricsItemId\x12\"\n\rmus\
-    ic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1b\n\tlang_code\x18\
-    \x03\x20\x01(\tR\x08langCode\"\x99\x01\n\x0fPictureItemsRow\x12\x0e\n\
-    \x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\
-    \x03R\x08folderId\x12(\n\x10internal_file_id\x18\x04\x20\x01(\x03R\x0ein\
-    ternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\x01(\x0e2\x0c.PictureTyp\
-    eR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06tag_id\x18\x01\x20\
-    \x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\x01(\x03H\0R\x0bmu\
-    sicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\x20\x01(\x03H\x01R\
-    \x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\x04\x20\x01(\tR\x07ta\
-    gName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\x02R\x0bstringValue\x88\
-    \x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\x05H\x03R\x08intValue\x88\
-    \x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_folder_idB\x0f\n\r_string_val\
-    ueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\x0e\n\x02id\x18\x01\x20\
-    \x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\x02\x20\x01(\x03R\x0eint\
-    ernalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\x0e2\x0e.MusicFileTypeR\
-    \x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\n\x02id\x18\x01\x20\x01(\
-    \x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\
-    \x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\x12+\n\tlink_type\x18\x04\
-    \x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\"\x8a\x01\n\x0cPlaylistsRo\
-    w\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\
-    \x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\x11avatar_picture_id\x18\x03\
-    \x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01B\x14\n\x12_avatar_pictu\
-    re_id\"\x98\x01\n\x10PlaylistItemsRow\x12(\n\x10playlist_item_id\x18\x01\
-    \x20\x01(\x03R\x0eplaylistItemId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\
-    \x01(\x03R\nplaylistId\x12'\n\rmusic_item_id\x18\x03\x20\x01(\x03H\0R\
-    \x0bmusicItemId\x88\x01\x01B\x10\n\x0e_music_item_id*E\n\x0bPictureType\
+    \tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"\xa3\x01\n\x0eLyricsItems\
+    Row\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyricsItemId\x12\"\
+    \n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1d\n\nlyrics\
+    _tag\x18\x03\x20\x01(\tR\tlyricsTag\x12(\n\x10internal_file_id\x18\x04\
+    \x20\x01(\x03R\x0einternalFileId\"\x99\x01\n\x0fPictureItemsRow\x12\x0e\
+    \n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfolder_id\x18\x03\x20\
+    \x01(\x03R\x08folderId\x12(\n\x10internal_file_id\x18\x04\x20\x01(\x03R\
+    \x0einternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\x01(\x0e2\x0c.Pict\
+    ureTypeR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06tag_id\x18\
+    \x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\x01(\x03H\
+    \0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\x20\x01(\x03\
+    H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\x04\x20\x01(\tR\
+    \x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\x02R\x0bstringVal\
+    ue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\x05H\x03R\x08intVal\
+    ue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_folder_idB\x0f\n\r_stri\
+    ng_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\x0e\n\x02id\x18\x01\
+    \x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\x02\x20\x01(\x03R\
+    \x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\x0e2\x0e.MusicFile\
+    TypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\n\x02id\x18\x01\x20\
+    \x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicIt\
+    emId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\x12+\n\tlink_type\x18\
+    \x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\"\x8a\x01\n\x0cPlaylis\
+    tsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\
+    \n\x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\x11avatar_picture_id\x18\
+    \x03\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01B\x14\n\x12_avatar_p\
+    icture_id\"\x98\x01\n\x10PlaylistItemsRow\x12(\n\x10playlist_item_id\x18\
+    \x01\x20\x01(\x03R\x0eplaylistItemId\x12\x1f\n\x0bplaylist_id\x18\x02\
+    \x20\x01(\x03R\nplaylistId\x12'\n\rmusic_item_id\x18\x03\x20\x01(\x03H\0\
+    R\x0bmusicItemId\x88\x01\x01B\x10\n\x0e_music_item_id*E\n\x0bPictureType\
     \x12\x07\n\x03JPG\x10\0\x12\x07\n\x03PNG\x10\x01\x12\x07\n\x03GIF\x10\
     \x02\x12\x08\n\x04WEBP\x10\x03\x12\x07\n\x03BMP\x10\x04\x12\x08\n\x04AVI\
     F\x10\x05*\"\n\rMusicFileType\x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\

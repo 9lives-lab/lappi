@@ -130,8 +130,8 @@ impl BasicYamlCollectionImporter {
                 log::debug!("Adding lyrics file {} to item {}", file_path, music_item_id);
                 let mut file = File::open(file_path).unwrap();
                 file.read_to_string(&mut lyrics_txt)?;
-                let lang_code = "".to_string();
-                let lyrics_id = self.collection.lyrics().add_lyrics_item(music_item_id, lang_code);
+                let lyrics_tag = "original".to_string();
+                let lyrics_id = self.collection.lyrics().add_lyrics_item(music_item_id, lyrics_tag);
                 self.collection.lyrics().save_lyrics(lyrics_id, lyrics_txt);
             }
         }

@@ -16,7 +16,7 @@ import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
 import ToolPane from 'src/amina_ui/components/ToolPane.vue'
 import { ref, getCurrentInstance } from 'vue'
 
-const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
+const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
 
 const text = ref('')
 
@@ -25,10 +25,10 @@ let currentLyricsId = -1
 
 async function updateItem (itemId) {
   currentMusicItemId = itemId
-  const lyricsList = await aminaApi.sendRequest('lappi.collection.lyrics.get_lyrics_list', { music_id: currentMusicItemId })
+  const lyricsList = await lappiApi.sendRequest('lappi.collection.lyrics.get_lyrics_list', { music_id: currentMusicItemId })
   if (lyricsList.length > 0) {
     currentLyricsId = lyricsList[0].lyrics_id
-    const lyricsText = await aminaApi.sendRequest('lappi.collection.lyrics.get_lyrics', { lyrics_id: currentLyricsId })
+    const lyricsText = await lappiApi.sendRequest('lappi.collection.lyrics.get_lyrics', { lyrics_id: currentLyricsId })
     text.value = lyricsText
   } else {
     currentLyricsId = -1
@@ -39,9 +39,9 @@ async function updateItem (itemId) {
 async function saveLyrics () {
   if (currentMusicItemId >= 0) {
     if (currentLyricsId < 0) {
-      currentLyricsId = await aminaApi.sendRequest('lappi.collection.lyrics.add_lyrics_item', { music_item_id: currentMusicItemId, lang_code: 'en' })
+      currentLyricsId = await lappiApi.sendRequest('lappi.collection.lyrics.add_lyrics_item', { music_item_id: currentMusicItemId, lyrics_tag: 'original' })
     }
-    await aminaApi.sendRequest('lappi.collection.lyrics.save_lyrics', { lyrics_id: currentLyricsId, text: text.value })
+    await lappiApi.sendRequest('lappi.collection.lyrics.save_lyrics', { lyrics_id: currentLyricsId, text: text.value })
   }
 }
 
@@ -51,7 +51,7 @@ async function undoChanges () {
 
 async function findLyrics () {
   try {
-    text.value = await aminaApi.sendRequest('lappi.exploring.lyrics.find_lyrics', { music_item_id: currentMusicItemId })
+    text.value = await lappiApi.sendRequest('lappi.exploring.lyrics.find_lyrics', { music_item_id: currentMusicItemId })
   } catch (err) {
     text.value = 'Error: ' + err
   }

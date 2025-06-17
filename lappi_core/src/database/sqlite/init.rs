@@ -50,8 +50,11 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
         "CREATE TABLE lyrics_items (
                 id                              INTEGER NOT NULL PRIMARY KEY,
                 music_item_id                   INTEGER NOT NULL,
-                lang_code                       TEXT    NOT NULL,
-                FOREIGN KEY(music_item_id)      REFERENCES music_items(id)
+                lyrics_tag                      TEXT    NOT NULL,
+                internal_file_id                INTEGER NOT NULL,
+                FOREIGN KEY(music_item_id)      REFERENCES music_items(id),
+                CONSTRAINT unique_lyrics        UNIQUE (music_item_id, lyrics_tag),
+                CONSTRAINT unique_file          UNIQUE (internal_file_id)
         )",
         [],
     )?;

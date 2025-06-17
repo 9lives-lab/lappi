@@ -45,7 +45,8 @@ impl MusicSourcesCollection {
             
         };
 
-        let internal_path = self.music.gen_internal_path(item_id, &extention);
+        let template: String = "{file_name}.".to_string() + extention.as_str();
+        let internal_path = self.music.gen_internal_path(item_id, &template);
 
         let file_id = self.internal_files.add_and_copy_file(src_path, &internal_path)?;
 

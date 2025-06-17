@@ -94,21 +94,17 @@ impl MusicCollection {
         self.tags_db.delete_item_tag(item_id, &tag_name).unwrap();
     }
 
-    pub fn gen_internal_path(&self, item_id: MusicItemId, extention: &str) -> InternalPath {
+    pub fn gen_internal_path(&self, item_id: MusicItemId, template: &str) -> InternalPath {
         let decription = self.get_item_description(item_id);
     
         let mut file_name = String::new();
-
         if let Some(tag) = self.get_caption_tag(item_id) {
             file_name = tag.to_string() + " - ";
         }
-
         file_name += &decription.name;
-        file_name += ".";
-        file_name += extention;
 
         let mut path = self.folders.gen_internal_path(decription.folder_id);
-        path.push(&file_name);
+        path.push(&template.replace("{file_name}", &file_name));
 
         return path;
     }
