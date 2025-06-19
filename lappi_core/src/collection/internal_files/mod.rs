@@ -7,7 +7,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
 use database_api::InternalFilesDbApi;
 use crate::database::Database;
@@ -24,54 +24,54 @@ pub struct InternalFiles {
 }
 
 impl InternalFiles {
-    pub fn get_internal_path(&self, file_id: InternalFileId) -> InternalPath {
-        return self.db.get_file_path(file_id).unwrap();
+    pub fn get_internal_path(&self, file_id: InternalFileId) -> Result<InternalPath> {
+        self.db.get_file_path(file_id)
     }
 
-    pub fn get_system_path(&self, file_id: InternalFileId) -> PathBuf {
+    pub fn get_system_path(&self, file_id: InternalFileId) -> Result<PathBuf> {
         let internal_path = self.get_internal_path(file_id);
         let mut path = self.local_storage.get_collection_base_path();
-        path.push(internal_path.as_str());
-        return path;
+        path.push(internal_path?.as_str());
+        Ok(path)
     }
 
     pub fn add_new_file(&self, internal_path: &InternalPath) -> Result<InternalFileId> {
         let file_id = self.db.add_file_path(internal_path)?;
 
-        let path = self.get_system_path(file_id);
+        let path = self.get_system_path(file_id)?;
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
         std::fs::File::create(path)?;
-        return Ok(file_id);
+        Ok(file_id)
     }
 
     pub fn add_and_write_file(&self, src_data: &[u8], internal_path: &InternalPath) -> Result<InternalFileId> {
         let file_id = self.add_new_file(internal_path)?;
-        let path = self.get_system_path(file_id);
+        let path = self.get_system_path(file_id)?;
         std::fs::write(path, src_data)?;
-        return Ok(file_id);
+        Ok(file_id)
     }
 
     pub fn add_and_copy_file(&self, src_path: &Path, internal_path: &InternalPath) -> Result<InternalFileId> {
         let file_id = self.add_new_file(internal_path)?;
-        let path = self.get_system_path(file_id);
+        let path = self.get_system_path(file_id)?;
         std::fs::copy(src_path, path)?;
-        return Ok(file_id);
+        Ok(file_id)
     }
 
     pub fn delete_file(&self, file_id: InternalFileId) -> Result<()> {
-        let path = self.get_system_path(file_id);
+        let path = self.get_system_path(file_id)?;
         std::fs::remove_file(path)?;
         self.db.delete_file(file_id)?;
-        return Ok(());
+        Ok(())
     }
 
     fn get_binary_rpc_handler(&self, path: &str) -> Result<Vec<u8>, std::io::Error> {
         let mut abs_path = self.local_storage.get_collection_base_path();
         abs_path.push(path);
         let file_content = std::fs::read(abs_path)?;
-        return Ok(file_content);
+        Ok(file_content)
     }
 }
 
@@ -80,7 +80,7 @@ impl ServiceApi for InternalFiles {
 }
 
 impl ServiceInitializer for InternalFiles {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let database = context.get_service::<Database>();
         let db_api = Arc::new(database.get_internal_files_api());
         let local_storage = context.get_service::<LocalStorage>();

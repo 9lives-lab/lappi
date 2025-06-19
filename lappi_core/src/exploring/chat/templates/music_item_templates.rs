@@ -1,4 +1,6 @@
-use amina_core::service::{Context, Service};
+use anyhow::{Context, Result};
+use amina_core::service::{AppContext, Service};
+
 use crate::collection::Collection;
 use super::{ChatTemplate, ChatTemplateContext};
 
@@ -7,33 +9,29 @@ struct LyricsTemplate {
 }
 
 impl LyricsTemplate {
-    pub fn create(context: &Context) -> LyricsTemplate {
-        return Self {
+    pub fn create(context: &AppContext) -> LyricsTemplate {
+        Self {
             collection: context.get_service::<Collection>(),
-        };
-    }
-
-    pub fn is_applicable(&self, context: &ChatTemplateContext) -> bool {
-        match context {
-            ChatTemplateContext::Folder(_) => false,
-            ChatTemplateContext::MusicItem(_) => true,
         }
     }
 
-    pub fn get_lyrics(&self, context: &ChatTemplateContext) -> String {
-        match context {
+    pub fn is_applicable(&self, context: &ChatTemplateContext) -> Result<bool> {
+        Ok(self.get_lyrics(context)?.is_some())
+    }
+
+    pub fn get_lyrics(&self, context: &ChatTemplateContext) -> Result<Option<String>> {
+        Ok(match context {
             ChatTemplateContext::MusicItem(music_item_id) => {
-                let lyrics_list = self.collection.lyrics().get_lyrics_list(*music_item_id);
-                if lyrics_list.len() > 0 {
-                    let desc = lyrics_list.get(0).unwrap();
-                    let lyrics = self.collection.lyrics().get_lyrics(desc.lyrics_id);
-                    return lyrics;
+                let lyrics_list = self.collection.lyrics().get_lyrics_list(*music_item_id)?;
+                if let Some(desc) = lyrics_list.get(0) {
+                    let lyrics = self.collection.lyrics().get_lyrics(desc.lyrics_id)?;
+                    Some(lyrics)
                 } else {
-                    return "".to_string();
+                    None
                 }
             },
-            ChatTemplateContext::Folder(_) => return "".to_string(),
-        }
+            ChatTemplateContext::Folder(_) => None,
+        })
     }
 }
 
@@ -42,8 +40,8 @@ struct TranslateLyrics {
 }
 
 impl TranslateLyrics {
-    fn create(context: &Context) -> Box<dyn ChatTemplate> {
-        return Box::new(Self {
+    fn create(context: &AppContext) -> Box<dyn ChatTemplate> {
+        Box::new(Self {
             lyrics_template: LyricsTemplate::create(context),
         })
     }
@@ -51,16 +49,16 @@ impl TranslateLyrics {
 
 impl ChatTemplate for TranslateLyrics {
     fn get_name(&self) -> &str {
-        return "Translate lyrics"
+        "Translate lyrics"
     }
 
-    fn is_applicable(&self, context: &ChatTemplateContext) -> bool {
-        return self.lyrics_template.is_applicable(context);
+    fn is_applicable(&self, context: &ChatTemplateContext) -> Result<bool> {
+        self.lyrics_template.is_applicable(context)
     }
 
-    fn get_message(&self, context: &ChatTemplateContext) -> String {
-        let lyrics = self.lyrics_template.get_lyrics(context);
-        return format!("Could you translate the following lyrics to English? \n\n {}", lyrics);
+    fn get_message(&self, context: &ChatTemplateContext) -> Result<String> {
+        let lyrics = self.lyrics_template.get_lyrics(context)?.context("No lyrics found")?;
+        Ok(format!("Translate the following lyrics to English \n\n {}", lyrics))
     }
 }
 
@@ -69,8 +67,8 @@ struct ExplainLyrics {
 }
 
 impl ExplainLyrics {
-    fn create(context: &Context) -> Box<dyn ChatTemplate> {
-        return Box::new(Self {
+    fn create(context: &AppContext) -> Box<dyn ChatTemplate> {
+        Box::new(Self {
             lyrics_template: LyricsTemplate::create(context),
         })
     }
@@ -78,20 +76,20 @@ impl ExplainLyrics {
 
 impl ChatTemplate for ExplainLyrics {
     fn get_name(&self) -> &str {
-        return "Explain lyrics"
+        "Explain lyrics"
     }
 
-    fn is_applicable(&self, context: &ChatTemplateContext) -> bool {
-        return self.lyrics_template.is_applicable(context);
+    fn is_applicable(&self, context: &ChatTemplateContext) -> Result<bool> {
+        self.lyrics_template.is_applicable(context)
     }
 
-    fn get_message(&self, context: &ChatTemplateContext) -> String {
-        let lyrics = self.lyrics_template.get_lyrics(context);
-        return format!("Could you explain the following lyrics? \n\n {}", lyrics);
+    fn get_message(&self, context: &ChatTemplateContext) -> Result<String> {
+        let lyrics = self.lyrics_template.get_lyrics(context)?.context("No lyrics found")?;
+        Ok(format!("Explain the following lyrics \n\n {}", lyrics))
     }
 }
 
-pub fn get_templates(context: &Context) -> Vec<Box<dyn ChatTemplate>> {
+pub fn get_templates(context: &AppContext) -> Vec<Box<dyn ChatTemplate>> {
     let mut templates = Vec::new();
     templates.push(TranslateLyrics::create(context));
     templates.push(ExplainLyrics::create(context));

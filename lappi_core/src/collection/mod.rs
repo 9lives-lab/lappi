@@ -108,7 +108,8 @@ impl Collection {
                 }
             }
         }
-        debug::init();
+
+        debug::init().unwrap();
     }
 }
 

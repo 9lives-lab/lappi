@@ -4,7 +4,7 @@ use anyhow::Result;
 use rusqlite::{params, OptionalExtension};
 
 use crate::collection::folders::database_api::FoldersDbApi;
-use crate::collection::folders::{FolderDescription, FolderId, FolderType};
+use crate::collection::folders::{FolderDesc, FolderId, FolderType};
 use crate::collection::internal_files::InternalFileId;
 use crate::collection::music::MusicItemId;
 use crate::collection::pictures::PictureId;
@@ -30,9 +30,9 @@ impl FoldersDb {
         }
     }
 
-    fn get_folder_description(&self, context: &DatabaseContext, folder_id: FolderId) -> Result<FolderDescription> {
+    fn get_folder_description(&self, context: &DatabaseContext, folder_id: FolderId) -> Result<FolderDesc> {
         if folder_id == self.get_root_folder() {
-            return Ok(FolderDescription {
+            return Ok(FolderDesc {
                 folder_id: 0,
                 name: String::from("Root"),
                 folder_type: FolderType::Folder,
@@ -44,7 +44,7 @@ impl FoldersDb {
             "SELECT id, name, folder_type, avatar_picture_id FROM folders WHERE id=(?1)",
             params![folder_id],
             |row| {
-                Ok(FolderDescription {
+                Ok(FolderDesc {
                     folder_id:   row.get::<_, i64>(0)? as FolderId,
                     name:        row.get::<_, String>(1)?,
                     folder_type: self.i32_to_folder_type(row.get::<_, i32>(2)?),
@@ -125,7 +125,7 @@ impl FoldersDbApi for FoldersDb {
         self.db_utils.lock().get_field_value(folder_id, "folders", "name")
     }
 
-    fn get_folder_description(&self, folder_id: FolderId) -> Result<FolderDescription> {
+    fn get_folder_description(&self, folder_id: FolderId) -> Result<FolderDesc> {
         let context = self.db_utils.lock();
         self.get_folder_description(&context, folder_id)
     }
@@ -180,9 +180,9 @@ impl FoldersDbApi for FoldersDb {
         return Ok(folder_id);
     }
 
-    fn get_folders_in_folder(&self, folder_id: FolderId) -> Result<Vec<FolderDescription>> {
+    fn get_folders_in_folder(&self, folder_id: FolderId) -> Result<Vec<FolderDesc>> {
         let context = self.db_utils.lock();
-        let id_list = context.get_fields_list_by_field_i64_value("folders", "id", "parent_id", folder_id).unwrap();
+        let id_list = context.get_fields_list_by_field_i64_value("folders", "id", "parent_id", folder_id)?;
         let mut result = Vec::new();
         for folder_id in id_list {
             result.push(self.get_folder_description(&context, folder_id)?);

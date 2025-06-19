@@ -14,7 +14,7 @@ pub enum FolderType {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct FolderDescription {
+pub struct FolderDesc {
     pub folder_id: FolderId,
     pub name: String,
     pub folder_type: FolderType,

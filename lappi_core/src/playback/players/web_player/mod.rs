@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::{Arc, RwLock};
 
 use anyhow::{Context, Result};
@@ -53,7 +53,7 @@ impl Player for WebPlayer {
     fn play(&self, source: Box<PlaybackSource>) {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
-                self.web_player_service.play_file(path.clone()).unwrap();
+                self.web_player_service.play_file(path).unwrap();
             },
         }
     }
@@ -123,12 +123,11 @@ pub struct WebPlayerService {
 }
 
 impl WebPlayerService {
-    pub fn play_file(&self, path: String) -> Result<()> {
-        let path_buf = PathBuf::from(path.clone());
-        let file_name = path_buf.file_name()
-                .context(format!("Path '{}' has no file name", &path))?
+    pub fn play_file(&self, path: &Path) -> Result<()> {
+        let file_name = path.file_name()
+                .with_context(|| format!("Path '{:?}' has no file name", &path))?
                 .to_str()
-                .context("Invalid string")?
+                .with_context(|| format!("Path '{:?}' is not valid UTF-8 string", &path))?
                 .to_string();
 
         let event = OnWebPlayerCommand {
@@ -138,7 +137,10 @@ impl WebPlayerService {
         };
 
         let mut state = self.state.write().unwrap();
-        state.current_file_path = path;
+        state.current_file_path = path.as_os_str()
+            .to_str()
+            .context("Path is not valid UTF-8 string")?
+            .to_string();
         state.player_state = PlayerState::Playing(0.);
         drop(state);
 

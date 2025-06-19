@@ -1,4 +1,7 @@
 use std::fmt::Debug;
+use std::path::PathBuf;
+
+use anyhow::Result;
 
 use crate::collection::internal_files::InternalFiles;
 use crate::collection::music::{MusicCollection, MusicItemId};
@@ -7,7 +10,7 @@ use crate::collection::pictures::PictureId;
 
 #[derive(Clone, Debug)]
 pub enum SourceType {
-    LocalFile(String),
+    LocalFile(PathBuf),
 }
 
 #[derive(Clone, Debug)]
@@ -18,7 +21,7 @@ pub struct PlaybackSource {
 }
 
 impl PlaybackSource {
-    pub fn local_file(name: String, path: String) -> Box<PlaybackSource> {
+    pub fn local_file(name: String, path: PathBuf) -> Box<PlaybackSource> {
         Box::new(Self {
             name,
             source_type: SourceType::LocalFile(path),
@@ -26,30 +29,30 @@ impl PlaybackSource {
         })
     }
 
-    pub fn default_from_music_item(music_item_id: MusicItemId) -> Option<Box<PlaybackSource>> {
+    pub fn default_from_music_item(music_item_id: MusicItemId) -> Result<Option<Box<PlaybackSource>>> {
         let music = crate::context().get_service::<MusicCollection>();
         let music_sources = crate::context().get_service::<MusicSourcesCollection>();
         let internal_files = crate::context().get_service::<InternalFiles>();
 
-        match music_sources.get_music_file(music_item_id) {
+        match music_sources.get_music_file(music_item_id)? {
             Some(file_desc) => {
-                let item_desc = music.get_item_description(music_item_id);
+                let item_desc = music.get_item_description(music_item_id)?;
 
-                let artist_tag = music.get_tag(music_item_id, "artist");
+                let artist_tag = music.get_tag(music_item_id, "artist")?;
                 let name = if let Some(artist_tag) = artist_tag {
                     format!("{} - {}", artist_tag.to_string(), item_desc.name)
                 } else {
                     item_desc.name
                 };
 
-                let path = internal_files.get_system_path(file_desc.internal_file_id);
+                let path = internal_files.get_system_path(file_desc.internal_file_id)?;
 
-                let mut playback_source = Self::local_file(name, path.to_str().unwrap().to_string());
-                playback_source.cover_picture = music.get_item_cover(music_item_id);
+                let mut playback_source = Self::local_file(name, path);
+                playback_source.cover_picture = music.get_item_cover(music_item_id)?;
 
-                Some(playback_source)
+                Ok(Some(playback_source))
             },
-            None => None
+            None => Ok(None)
         }
     }
 

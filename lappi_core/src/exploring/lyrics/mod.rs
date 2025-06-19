@@ -1,15 +1,17 @@
 pub mod sources;
 
 use std::sync::Arc;
-use amina_core::{register_rpc_handler, rpc::Rpc};
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
 
-use sources::{lyrics_ovh::LyricsOvhSource, LyricsSource};
+use anyhow::Result;
+use amina_core::{register_rpc_handler, rpc::Rpc};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
+
 use crate::collection::folders::FolderType;
 use crate::collection::music::MusicItemId;
 use crate::collection::Collection;
 
-use super::{ExploringError, ExploringResult, SourceList};
+use sources::{lyrics_ovh::LyricsOvhSource, LyricsSource};
+use super::SourceList;
 
 
 pub struct LyricsExplorer {
@@ -22,13 +24,13 @@ impl LyricsExplorer {
         self.sources.get_source_list()
     }
 
-    pub fn find_lyrics(&self, music_item_id: MusicItemId) -> ExploringResult<String> {
-        let description = self.collection.music().get_item_description(music_item_id);
+    pub fn find_lyrics(&self, music_item_id: MusicItemId) -> Result<String> {
+        let description = self.collection.music().get_item_description(music_item_id)?;
 
         let title = description.name;
-        let artist = match self.collection.folders().find_parent_node(description.folder_id, FolderType::Artist) {
+        let artist = match self.collection.folders().find_parent_node(description.folder_id, FolderType::Artist)? {
             Some(folder_description) => folder_description.name,
-            None => return Err(ExploringError::GenericError("No artist folder found".to_string()))
+            None => return Err(anyhow::anyhow!("Artist not found"))
         };
 
         log::info!("Search lyrics for item_id: {}, artist: {}, song: {}", music_item_id, &artist, &title);
@@ -49,7 +51,7 @@ impl LyricsExplorer {
 
         log::error!("No lyrics found");
 
-        return Err(ExploringError::GenericError("No lyrics found".to_string()));
+        Err(anyhow::anyhow!("No lyrics found"))
     }
 }
 
@@ -58,7 +60,7 @@ impl ServiceApi for LyricsExplorer {
 }
 
 impl ServiceInitializer for LyricsExplorer {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let collection = context.get_service::<Collection>();
 

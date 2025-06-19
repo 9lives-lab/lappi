@@ -42,10 +42,7 @@ impl InternalFilesDb {
             picture_row.internal_path = row.get::<_, String>(1)?;
             Ok(picture_row)
         })?;
-        for row in rows {
-            exporter.write_row(&row?)?;
-        }
-        Ok(())
+        exporter.write_rows(rows)
     }
 }
 

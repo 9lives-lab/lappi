@@ -3,9 +3,10 @@ mod music_item_templates;
 
 use std::sync::Arc;
 
+use anyhow::{Context, Result};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
 use crate::collection::folders::FolderId;
 use crate::collection::music::MusicItemId;
@@ -28,8 +29,8 @@ pub enum ChatTemplateContext {
 
 pub trait ChatTemplate: Send + Sync {
     fn get_name(&self) -> &str;
-    fn is_applicable(&self, context: &ChatTemplateContext) -> bool;
-    fn get_message(&self, context: &ChatTemplateContext) -> String;
+    fn is_applicable(&self, context: &ChatTemplateContext) -> Result<bool>;
+    fn get_message(&self, context: &ChatTemplateContext) -> Result<String>;
 }
 
 pub struct ChatTemplates {
@@ -38,31 +39,31 @@ pub struct ChatTemplates {
 }
 
 impl ChatTemplates {
-    pub fn get_templates_list(&self, context: ChatTemplateContext) -> Vec<TemplateDesc> {
-        self.templates.iter()
-        .enumerate()
-        .filter_map(|(i, template)| {
-            if template.is_applicable(&context) {
-                return Some(TemplateDesc {
+    pub fn get_templates_list(&self, context: ChatTemplateContext) -> Result<Vec<TemplateDesc>> {
+        let mut result = Vec::new();
+
+        for (i, template) in self.templates.iter().enumerate() {
+            if template.is_applicable(&context)? {
+                result.push(TemplateDesc {
                     id: i as TemplateId,
                     name: template.get_name().to_string(),
-                })
-            } else {
-                return None;
+                });
             }
-        })
-        .collect()
+        }
+
+        Ok(result)
     }
 
-    pub fn get_message(&self, id: TemplateId, context: ChatTemplateContext) -> String {
-        let template = self.templates.get(id as usize).unwrap();
-        return template.get_message(&context);
+    pub fn get_message(&self, id: TemplateId, context: ChatTemplateContext) -> Result<String> {
+        let template = self.templates.get(id as usize).context("Template not found")?;
+        template.get_message(&context)
     }
 
-    pub fn create_chat_from_template(&self, id: TemplateId, context: ChatTemplateContext) {
-        let message = self.get_message(id, context);
+    pub fn create_chat_from_template(&self, id: TemplateId, context: ChatTemplateContext) -> Result<()> {
+        let message = self.get_message(id, context)?;
         self.chat_service.create_chat();
-        self.chat_service.send_message(message);
+        self.chat_service.send_message(message)?;
+        Ok(())
     }
 }
 
@@ -71,7 +72,7 @@ impl ServiceApi for ChatTemplates {
 }
 
 impl ServiceInitializer for ChatTemplates {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let chat_service = context.get_service::<ChatService>();
 

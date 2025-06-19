@@ -8,11 +8,12 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use anyhow::{Context, Result};
 use walkdir::WalkDir;
 use amina_core::cmd_manager::{ArgDescription, ArgType, CmdDescription, CmdManager};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 use amina_core::tasks::{TaskContext, TaskManager};
 
 use crate::collection::music_sources::MusicLinkType;
@@ -22,7 +23,7 @@ use crate::platform_api::PlatformApi;
 use crate::metadata;
 
 trait ImportLogger {
-    fn log_song(&mut self, tags: &TagsMap);
+    fn log_song(&mut self, tags: &TagsMap) -> Result<()>;
 }
 
 struct DummyLogger {
@@ -38,8 +39,8 @@ impl DummyLogger {
 }
 
 impl ImportLogger for DummyLogger {
-    fn log_song(&mut self, _tags: &TagsMap) {
-
+    fn log_song(&mut self, _tags: &TagsMap) -> Result<()> {
+        Ok(())
     }
 }
 
@@ -49,10 +50,10 @@ struct CsvLogger {
 
 impl CsvLogger {
 
-    pub fn new(path: &Path) -> Self {
-        Self {
-            file: File::options().append(true).create(true).open(path).unwrap()
-        }
+    pub fn open(path: &Path) -> Result<Self> {
+        Ok(Self {
+            file: File::options().append(true).create(true).open(path)?
+        })
     }
 
     fn tag_to_string(tags: &TagsMap, key: &str) -> String {
@@ -66,17 +67,18 @@ impl CsvLogger {
 }
 
 impl ImportLogger for CsvLogger {
-    fn log_song(&mut self, tags: &TagsMap) {
+    fn log_song(&mut self, tags: &TagsMap) -> Result<()> {
         let artist = Self::tag_to_string(tags, "artist");
         let album = Self::tag_to_string(tags, "album");
         let title = Self::tag_to_string(tags, "title");
         let line = format!("{artist}|{album}|{title}|\n");
-        self.file.write_all(line.as_bytes()).unwrap();
+        self.file.write_all(line.as_bytes())?;
+        Ok(())
     }
 }
 
 trait Importer: Send + Sync {
-    fn import(&self, path: &Path, logger: &mut dyn ImportLogger);
+    fn import(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()>;
 }
 
 #[derive(Clone)]
@@ -85,13 +87,17 @@ struct AudioImporter {
 }
 
 impl Importer for AudioImporter {
-    fn import(&self, path: &Path, logger: &mut dyn ImportLogger) {
-        let metadata = metadata::read_from_path(path).unwrap();
-        let item_id = utils::import_song(&self.collection, &metadata.tags);
-        if let Some(item_id) = item_id {
-            self.collection.music_sources().add_music_link(item_id, MusicLinkType::ExternalFile, String::from(path.to_str().unwrap()));
-            logger.log_song(&metadata.tags);
+    fn import(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()> {
+        if let Some(metadata) = metadata::read_from_path(path)? {
+            if let Some(item_id) = utils::import_song(&self.collection, &metadata.tags)? {
+                let link = path.to_str()
+                    .context("Failed to convert path to string")?
+                    .to_string();
+                self.collection.music_sources().add_music_link(item_id, MusicLinkType::ExternalFile, link)?;
+                logger.log_song(&metadata.tags)?;
+            }
         }
+        Ok(())
     }
 }
 
@@ -103,7 +109,8 @@ struct ImportTask {
 
 impl ImportTask {
 
-    pub fn new(collection: Service<Collection>, path: PathBuf, log_path: Option<PathBuf>) -> Self {
+    pub fn new(path: PathBuf, log_path: Option<PathBuf>) -> Self {
+        let collection = crate::context().get_service::<Collection>();
         let mut importers = HashMap::<String, Box<dyn Importer>>::new();
 
         let audio_importer = Box::new(AudioImporter {
@@ -119,11 +126,18 @@ impl ImportTask {
     }
 
     pub fn run(&self, _: &TaskContext) {
-        log::debug!("Import start");
+        let result = self.import();
+        if let Err(err) = result {
+            log::error!("Import failed: {}", err);
+        }
+    }
+
+    fn import(&self) -> Result<()> {
+        log::info!("Import start");
 
         let mut logger: Box<dyn ImportLogger> = match self.log_path.as_ref() {
             Some(log_path) => {
-                Box::new(CsvLogger::new(log_path))
+                Box::new(CsvLogger::open(log_path)?)
             },
             None => {
                 Box::new(DummyLogger::new())
@@ -131,23 +145,31 @@ impl ImportTask {
         };
 
         for entry in WalkDir::new(&self.root_folder) {
-            let entry = entry.unwrap();
+            let entry = entry?;
             if entry.path().is_file() {
-                self.import_file(entry.path(), logger.as_mut());
+                self.import_file(entry.path(), logger.as_mut())?;
             }
         }
+
+        log::info!("Import done");
+
+        Ok(())
     }
 
-    fn import_file(&self, path: &Path, logger: &mut dyn ImportLogger) {
-        println!("{}", path.display());
+    fn import_file(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()> {
+        log::info!("Importing file: {}", path.display());
 
-        let extension = path.extension().unwrap().to_str().unwrap();
-        match self.importers.get(extension) {
+        let extension = path.extension()
+            .context("File has no extension")?
+            .to_str()
+            .context("Extension is not valid UTF-8")?;
+
+        Ok(match self.importers.get(extension) {
             Some(importer) => {
-                importer.import(path, logger);
+                importer.import(path, logger)?;
             },
             None => {}
-        }
+        })
     }
 
 }
@@ -166,17 +188,18 @@ impl CollectionImporter {
         } else {
             None
         };
-        let task = ImportTask::new(self.collection.clone(), path, log_path);
+        let task = ImportTask::new(path, log_path);
         self.task_manager.run_instant_task(move |task_feedback| {
             task.run(task_feedback);
         })
     }
 
-    pub fn import_basic(&self, tags: HashMap<String, String>, file_path: String) {
-        let music_item_id = utils::import_song(&self.collection, &TagsMap::from_map(tags));
+    pub fn import_basic(&self, tags: HashMap<String, String>, file_path: String) -> Result<()> {
+        let music_item_id = utils::import_song(&self.collection, &TagsMap::from_map(tags))?;
         if let Some(music_item_id) = music_item_id {
-            self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path)).unwrap();
+            self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path))?;
         }
+        Ok(())
     }
 
 }
@@ -186,7 +209,7 @@ impl ServiceApi for CollectionImporter {
 }
 
 impl ServiceInitializer for CollectionImporter {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let cmd_manager = context.get_service::<CmdManager>();
         let collection = context.get_service::<Collection>();

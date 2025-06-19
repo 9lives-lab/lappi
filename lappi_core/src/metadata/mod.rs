@@ -5,6 +5,7 @@ use std::io::Read;
 use std::path::Path;
 use std::fs::File;
 
+use anyhow::{Context, Result};
 use serde::Serialize;
 
 use crate::collection::tags::TagsMap;
@@ -15,15 +16,24 @@ pub struct Metadata {
     pub tags: TagsMap,
 }
 
-pub fn read(reader: Box<dyn Read>, extension: &str) -> Option<Metadata> {
-    let mut metadata_readers: HashMap<String, Box<dyn Fn(Box<dyn Read>) -> Metadata>> = HashMap::new();
+pub fn read(reader: Box<dyn Read>, extension: &str) -> Result<Option<Metadata>> {
+    let mut metadata_readers: HashMap<String, Box<dyn Fn(Box<dyn Read>) -> Result<Metadata>>> = HashMap::new();
     metadata_readers.insert("mp3".to_string(), Box::new(mp3::read));
-    let reader_option = metadata_readers.get(extension);
-    reader_option.map(|metadata_reader| metadata_reader(reader))
+
+    Ok(if let Some(metadata_reader) = metadata_readers.get(extension) {
+        Some(metadata_reader(reader)?)
+    } else {
+        None
+    })
 }
 
-pub fn read_from_path<P: AsRef<Path>>(path: P) -> Option<Metadata> {
-    let extension = path.as_ref().extension().unwrap().to_str().unwrap().to_string();
-    let reader = File::open(path).unwrap();
-    return read(Box::new(reader), extension.as_str());
+pub fn read_from_path<P: AsRef<Path>>(path: P) -> Result<Option<Metadata>> {
+    let extension = path.as_ref()
+        .extension()
+        .context("File has no extension")?
+        .to_str()
+        .context("File extension is not valid UTF-8")?
+        .to_string();
+    let reader = File::open(path)?;
+    read(Box::new(reader), extension.as_str())
 }

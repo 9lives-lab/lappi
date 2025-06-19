@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use amina_core::service::Context;
 use amina_core::settings::Property;
+use anyhow::Result;
 
 use crate::exploring::chat::{ChatApi, ChatFactory, ChatRole, Message};
 use crate::exploring::chat::chatgpt::http_api::CompletionMessage;
@@ -15,7 +16,7 @@ pub struct ChatGpt {
 }
 
 impl ChatApi for ChatGpt {
-    fn send_message(&self, message: String) {
+    fn send_message(&self, message: String) -> Result<()> {
         let api = http_api::ChatGptApi::new(self.api_key.get());
 
         let mut dialog = self.dialog.lock().unwrap();
@@ -28,9 +29,11 @@ impl ChatApi for ChatGpt {
             model: "gpt-3.5-turbo".to_string(),
             messages: dialog.clone()
         };
-        let response = api.get_completion(&request);
+        let response = api.get_completion(&request)?;
 
         dialog.push(response.choices[0].message.clone());
+
+        Ok(())
     }
 
     fn get_dialog(&self) -> Vec<Message> {

@@ -1,11 +1,10 @@
 use std::path::Path;
 
 use anyhow::Result;
-use num_traits::FromPrimitive;
-use protobuf::EnumOrUnknown;
-use protobuf::Enum;
 use rusqlite::params;
 
+use crate::database::sqlite::utils::parse_enum;
+use crate::database::sqlite::utils::parse_pb_enum;
 use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
 use crate::collection::folders::FolderId;
 use crate::collection::pictures::{PictureDesc, PictureId, PictureType};
@@ -47,13 +46,10 @@ impl PicturesDb {
             picture_row.id = row.get(0)?;
             picture_row.folder_id = row.get(1)?;
             picture_row.internal_file_id = row.get(2)?;
-            picture_row.picture_type = EnumOrUnknown::new(crate::proto::collection::PictureType::from_i32(row.get::<_, i32>(3)?).unwrap());
+            picture_row.picture_type = parse_pb_enum::<crate::proto::collection::PictureType>(row.get::<_, i32>(3)?)?;
             Ok(picture_row)
         })?;
-        for row in rows {
-            exporter.write_row(&row?)?;
-        }
-        Ok(())
+        exporter.write_rows(rows)
     }
 }
 
@@ -99,7 +95,7 @@ impl PicturesDbApi for PicturesDb {
                 picture_id,
                 folder_id: row.get(0)?,
                 internal_file_id: row.get(1)?,
-                picture_type: PictureType::from_i32(row.get(2)?).unwrap()
+                picture_type: parse_enum::<PictureType>(row.get(2)?)?,
             })
         })?;
         Ok(row)
@@ -113,7 +109,7 @@ impl PicturesDbApi for PicturesDb {
                 picture_id: row.get(0)?,
                 folder_id,
                 internal_file_id: row.get(1)?,
-                picture_type: PictureType::from_i32(row.get(2)?).unwrap()
+                picture_type: parse_enum::<PictureType>(row.get(2)?)?,
             })
         })?;
         Ok(rows.collect::<Result<Vec<_>, _>>()?)

@@ -92,7 +92,7 @@ impl <'a> TagsUtils<'a> {
             };
             Ok(Tag::new(tag_name, tag_value))
         })?;
-        Ok(tags_rows.map(|x| x.unwrap()).collect())
+        Ok(tags_rows.collect::<Result<Vec<_>, _>>()?)
     }
 
     fn get_tag(&self, id_field: i64, tag_name: &str) -> Result<Option<Tag>> {

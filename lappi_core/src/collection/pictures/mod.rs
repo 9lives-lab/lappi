@@ -4,10 +4,11 @@ pub mod database_api;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use anyhow::{Context, Result};
 use base64::{Engine as _, engine::general_purpose};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
 use crate::collection::internal_files::{InternalFiles, InternalPath};
 use crate::collection::folders::{FolderId, FoldersCollection};
@@ -25,66 +26,67 @@ pub struct PicturesCollection {
 }
 
 impl PicturesCollection {
-    fn add_picture_data_to_collection(&self, folder_id: FolderId, picture_data: &[u8], path: &str) -> PictureId {
+    fn add_picture_data_to_collection(&self, folder_id: FolderId, picture_data: &[u8], path: &str) -> Result<PictureId> {
         log::debug!("Add picture to collection. file_name: {:?}", path);
 
         let file_path = PathBuf::from(path);
-        let file_extension = file_path.extension().unwrap().to_str().unwrap().to_lowercase();
+        let file_extension = file_path
+            .extension().context("File extension not found")?
+            .to_str().context("File extension is not valid utf-8")?
+            .to_lowercase();
 
         let mut picture_desc = PictureDesc {
             picture_id: 0,
             folder_id,
             internal_file_id: 0,
-            picture_type: PictureType::from_str(&file_extension).unwrap(),
+            picture_type: PictureType::from_str(&file_extension)?,
         };
 
-        let picture_id = self.db.add_picture_item(&picture_desc).unwrap();
+        let picture_id = self.db.add_picture_item(&picture_desc)?;
         picture_desc.picture_id = picture_id;
 
-        let internal_path = self.gen_internal_path(picture_id);
-        let internal_file_id = self.internal_files.add_and_write_file(picture_data, &internal_path).unwrap();
+        let internal_path = self.gen_internal_path(picture_id)?;
+        let internal_file_id = self.internal_files.add_and_write_file(picture_data, &internal_path)?;
         
         picture_desc.internal_file_id = internal_file_id;
-        self.db.update_picture_item(&picture_desc).unwrap();
+        self.db.update_picture_item(&picture_desc)?;
 
-        return picture_id;
+        Ok(picture_id)
     }
 
-    pub fn add_blob_to_collection(&self, blob: PictureBlob, folder_id: FolderId) -> PictureId {
-        let blob_data = general_purpose::STANDARD.decode(blob.data_base64).unwrap();
-        return self.add_picture_data_to_collection(folder_id, &blob_data, &blob.file_name);
+    pub fn add_blob_to_collection(&self, blob: PictureBlob, folder_id: FolderId) -> Result<PictureId> {
+        let blob_data = general_purpose::STANDARD.decode(blob.data_base64)?;
+        self.add_picture_data_to_collection(folder_id, &blob_data, &blob.file_name)
     }
 
-    pub fn copy_to_collection_by_path(&self, file_path: String, folder_id: FolderId) -> PictureId {
-        let picture_data = std::fs::read(file_path.clone()).unwrap();
-        return self.add_picture_data_to_collection(folder_id, &picture_data, &file_path);
+    pub fn copy_to_collection_by_path(&self, file_path: String, folder_id: FolderId) -> Result<PictureId> {
+        let picture_data = std::fs::read(file_path.clone())?;
+        self.add_picture_data_to_collection(folder_id, &picture_data, &file_path)
     }
 
-    pub fn delete_picture(&self, picture_id: PictureId) {
-        let picture_desc = self.db.get_picture_descriptor(picture_id).unwrap();
+    pub fn delete_picture(&self, picture_id: PictureId) -> Result<()> {
+        let picture_desc = self.db.get_picture_descriptor(picture_id)?;
         log::debug!("Deleting picture {:?}", picture_desc);
-        let remove_result = self.internal_files.delete_file(picture_desc.internal_file_id);
-        if remove_result.is_err() {
-            log::error!("Failed to picture file: {:?}", remove_result.err().unwrap());
-        }
-        self.db.delete_picture_item(picture_id).unwrap();
+        self.internal_files.delete_file(picture_desc.internal_file_id)?;
+        self.db.delete_picture_item(picture_id)?;
+        Ok(())
     }
 
-    pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Vec<PictureDesc> {
-        return self.db.get_pictures_in_folder(folder_id).unwrap();
+    pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Result<Vec<PictureDesc>> {
+        self.db.get_pictures_in_folder(folder_id)
     }
 
-    pub fn get_picture_descriptor(&self, picture_id: PictureId) -> PictureDesc {
-        return self.db.get_picture_descriptor(picture_id).unwrap();
+    pub fn get_picture_descriptor(&self, picture_id: PictureId) -> Result<PictureDesc> {
+        self.db.get_picture_descriptor(picture_id)
     }
 
-    pub fn gen_internal_path(&self, picture_id: PictureId) -> InternalPath {
-        let picture_desc = self.db.get_picture_descriptor(picture_id).unwrap();
-        let folder_name = self.folders.get_folder_name(picture_desc.folder_id);
-        let mut internal_path = self.folders.gen_internal_path(picture_desc.folder_id);
+    pub fn gen_internal_path(&self, picture_id: PictureId) -> Result<InternalPath> {
+        let picture_desc = self.db.get_picture_descriptor(picture_id)?;
+        let folder_name = self.folders.get_folder_name(picture_desc.folder_id)?;
+        let mut internal_path = self.folders.gen_internal_path(picture_desc.folder_id)?;
         internal_path.push("pictures");
         internal_path.push(format!("{} - {}.{}", &folder_name, picture_desc.picture_id, picture_desc.picture_type.to_str()).as_str());
-        return internal_path;
+        Ok(internal_path)
     }
 }
 
@@ -93,7 +95,7 @@ impl ServiceApi for PicturesCollection {
 }
 
 impl ServiceInitializer for PicturesCollection {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
         let db_api: Arc<Box<dyn PicturesDbApi + 'static>> = Arc::new(database.get_pictures_api());

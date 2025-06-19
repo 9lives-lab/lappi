@@ -7,7 +7,7 @@ use std::sync::Arc;
 use anyhow::{Error, Result};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
-use amina_core::service::{Context, Service, ServiceApi, ServiceInitializer};
+use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
 use crate::collection::music::{MusicCollection, MusicItemId};
 use crate::database::Database;
@@ -25,7 +25,7 @@ pub struct MusicSourcesCollection {
 
 impl MusicSourcesCollection {
     pub fn import_music_file(&self, item_id: MusicItemId, src_path: &Path) -> Result<()> {
-        self.delete_music_file(item_id);
+        self.delete_music_file(item_id)?;
 
         if !src_path.exists() {
             return Err(Error::msg("Path does not exist"));
@@ -46,7 +46,7 @@ impl MusicSourcesCollection {
         };
 
         let template: String = "{file_name}.".to_string() + extention.as_str();
-        let internal_path = self.music.gen_internal_path(item_id, &template);
+        let internal_path = self.music.gen_internal_path(item_id, &template)?;
 
         let file_id = self.internal_files.add_and_copy_file(src_path, &internal_path)?;
 
@@ -60,31 +60,32 @@ impl MusicSourcesCollection {
         Ok(())
     }
 
-    pub fn get_music_file(&self, item_id: MusicItemId) -> Option<MusicFileDesc> {
-        self.music_sources_db.get_music_file(item_id).unwrap()
+    pub fn get_music_file(&self, item_id: MusicItemId) -> Result<Option<MusicFileDesc>> {
+        self.music_sources_db.get_music_file(item_id)
     }
 
-    pub fn delete_music_file(&self, item_id: MusicItemId) {
-        if let Some(file_desc) = self.music_sources_db.get_music_file(item_id).unwrap() {
-            self.internal_files.delete_file(file_desc.internal_file_id).unwrap();
-            self.music_sources_db.delete_music_file(item_id).unwrap();
+    pub fn delete_music_file(&self, item_id: MusicItemId) -> Result<()> {
+        if let Some(file_desc) = self.music_sources_db.get_music_file(item_id)? {
+            self.internal_files.delete_file(file_desc.internal_file_id)?;
+            self.music_sources_db.delete_music_file(item_id)?;
         }
+        Ok(())
     }
 
-    pub fn add_music_link(&self, item_id: MusicItemId, link_type: MusicLinkType, link: String) {
-        self.music_sources_db.add_music_link(item_id, link_type, &link).unwrap();
+    pub fn add_music_link(&self, item_id: MusicItemId, link_type: MusicLinkType, link: String) -> Result<()> {
+        self.music_sources_db.add_music_link(item_id, link_type, &link)
     }
 
-    pub fn set_music_link(&self, link_id: MusicLinkId, link: String) {
-        self.music_sources_db.set_music_link(link_id, &link).unwrap();
+    pub fn set_music_link(&self, link_id: MusicLinkId, link: String) -> Result<()> {
+        self.music_sources_db.set_music_link(link_id, &link)
     }
 
-    pub fn get_music_links(&self, item_id: MusicItemId) -> Vec<MusicLinkDesc> {
-        self.music_sources_db.get_music_links(item_id).unwrap()
+    pub fn get_music_links(&self, item_id: MusicItemId) -> Result<Vec<MusicLinkDesc>> {
+        self.music_sources_db.get_music_links(item_id)
     }
 
-    pub fn delete_music_link(&self, link_id: MusicLinkId) {
-        self.music_sources_db.delete_music_link(link_id).unwrap();
+    pub fn delete_music_link(&self, link_id: MusicLinkId) -> Result<()> {
+        self.music_sources_db.delete_music_link(link_id)
     }
 }
 
@@ -93,7 +94,7 @@ impl ServiceApi for MusicSourcesCollection {
 }
 
 impl ServiceInitializer for MusicSourcesCollection {
-    fn initialize(context: &Context) -> Arc<Self> {
+    fn initialize(context: &AppContext) -> Arc<Self> {
         let rpc = context.get_service::<Rpc>();
         let database = context.get_service::<Database>();
 

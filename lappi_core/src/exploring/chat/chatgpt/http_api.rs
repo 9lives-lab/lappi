@@ -1,3 +1,4 @@
+use anyhow::Result;
 use reqwest::blocking::Client;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -47,19 +48,17 @@ impl ChatGptApi {
         }
     }
 
-    pub fn get_completion(&self, request: &CompletionReq) -> CompletionResp {
+    pub fn get_completion(&self, request: &CompletionReq) -> Result<CompletionResp> {
         let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert("Authorization", format!("Bearer {}", &self.api_key).parse().unwrap());
+        headers.insert("Authorization", format!("Bearer {}", &self.api_key).parse()?);
 
         let client = Client::new();
         let response: CompletionResp = client.post("https://api.openai.com/v1/chat/completions")
             .headers(headers)
             .json(request)
-            .send()
-            .unwrap()
-            .json()
-            .unwrap();
+            .send()?
+            .json()?;
 
-        return response;
+        Ok(response)
     }
 }

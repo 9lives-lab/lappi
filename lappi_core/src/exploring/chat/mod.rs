@@ -3,6 +3,7 @@ pub mod templates;
 
 use std::sync::{Arc, Mutex};
 
+use anyhow::Result;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{Context, ServiceApi, ServiceInitializer};
@@ -21,7 +22,7 @@ pub struct Message {
     content: String,
 }
 pub trait ChatApi: Send + Sync {
-    fn send_message(&self, message: String);
+    fn send_message(&self, message: String) -> Result<()>;
     fn get_dialog(&self) -> Vec<Message>;
 }
 
@@ -42,10 +43,10 @@ impl ChatService {
         *current_chat = chat;
     }
 
-    pub fn send_message(&self, message: String) -> Vec<Message> {
+    pub fn send_message(&self, message: String) -> Result<Vec<Message>> {
         let chat = self.current_chat.lock().unwrap();
-        chat.send_message(message);
-        return chat.get_dialog();
+        chat.send_message(message)?;
+        Ok(chat.get_dialog())
     }
 
     pub fn get_dialog(&self) -> Vec<Message> {

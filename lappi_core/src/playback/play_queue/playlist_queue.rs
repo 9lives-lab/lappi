@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 use crate::collection::pictures::PictureId;
 use crate::collection::playlists::types::{PlaylistId, PlaylistItemId};
 use crate::collection::playlists::PlaylistsCollection;
@@ -16,7 +18,7 @@ pub struct PlaylistQueue {
 }
 
 impl PlaylistQueue {
-    pub fn create(playlist_id: PlaylistId, playlist_item: PlaylistItemId) -> Self {
+    pub fn create(playlist_id: PlaylistId, playlist_item: PlaylistItemId) -> Result<Self> {
         let mut playlist_queue = Self {
             playlist_id,
             current_playlist_item: playlist_item,
@@ -24,9 +26,9 @@ impl PlaylistQueue {
             queue: vec![],
         };
 
-        playlist_queue.refresh();
+        playlist_queue.refresh()?;
 
-        return playlist_queue;
+        Ok(playlist_queue)
     }    
 }
 
@@ -65,14 +67,14 @@ impl PlayQueue for PlaylistQueue {
         }
     }
 
-    fn refresh(&mut self) {
+    fn refresh(&mut self) -> Result<()> {
         let playlists = crate::context().get_service::<PlaylistsCollection>();
 
         let mut new_queue = vec![];
         let mut current_idx = 0;
 
-        for item in playlists.get_playlist_items(self.playlist_id) {
-            let playback_source = PlaybackSource::default_from_music_item(item.music_item_id);
+        for item in playlists.get_playlist_items(self.playlist_id)? {
+            let playback_source = PlaybackSource::default_from_music_item(item.music_item_id)?;
             if let Some(playback_source) = playback_source {
                 if item.id == self.current_playlist_item {
                     current_idx = new_queue.len();
@@ -87,6 +89,8 @@ impl PlayQueue for PlaylistQueue {
 
         self.queue = new_queue;
         self.current_idx = current_idx;
+
+        Ok(())
     }
 }
 

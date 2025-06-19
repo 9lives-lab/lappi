@@ -1,17 +1,14 @@
 use std::path::Path;
 
 use anyhow::Result;
-use num_traits::FromPrimitive;
 use rusqlite::params;
-use protobuf::EnumOrUnknown;
-use protobuf::Enum;
 
 use crate::collection::music::{MusicItemId};
 use crate::collection::music_sources::database_api::MusicSourcesDbApi;
 use crate::collection::music_sources::MusicFileDesc;
 use crate::collection::music_sources::MusicFileType;
 use crate::collection::music_sources::{MusicLinkDesc, MusicLinkId, MusicLinkType};
-use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
+use crate::database::sqlite::utils::{parse_enum, parse_pb_enum, DatabaseUtils, ProtobufExporter, ProtobufImporter};
 
 pub struct MusicSourcesDb {
     db_utils: DatabaseUtils,
@@ -55,12 +52,10 @@ impl MusicSourcesDb {
             let mut music_items_row = crate::proto::collection::MusicFilesRow::new();
             music_items_row.id = row.get::<_, i64>(0)?;
             music_items_row.internal_file_id = row.get::<_, i64>(1)?;
-            music_items_row.file_type = EnumOrUnknown::new(crate::proto::collection::MusicFileType::from_i32(row.get::<_, i32>(2)?).unwrap());
+            music_items_row.file_type = parse_pb_enum::<crate::proto::collection::MusicFileType>(row.get::<_, i32>(2)?)?;
             Ok(music_items_row)
         })?;
-        for row in rows {
-            exporter.write_row(&row?)?;
-        }
+        exporter.write_rows(rows)?;
 
         let mut exporter = ProtobufExporter::create(base_path, "music_links.pb")?;
         let mut stmt = db_context.connection().prepare("SELECT id, music_item_id, link, link_type FROM music_links")?;
@@ -69,12 +64,10 @@ impl MusicSourcesDb {
             music_src_links_row.id = row.get::<_, i64>(0)?;
             music_src_links_row.music_item_id = row.get::<_, i64>(1)?;
             music_src_links_row.link = row.get::<_, String>(2)?;
-            music_src_links_row.link_type = EnumOrUnknown::new(crate::proto::collection::MusicLinkType::from_i32(row.get::<_, i32>(3)?).unwrap());
+            music_src_links_row.link_type = parse_pb_enum::<crate::proto::collection::MusicLinkType>(row.get::<_, i32>(3)?)?;
             Ok(music_src_links_row)
         })?;
-        for row in rows {
-            exporter.write_row(&row?)?;
-        }
+        exporter.write_rows(rows)?;
 
         Ok(())
     }
@@ -105,7 +98,7 @@ impl MusicSourcesDbApi for MusicSourcesDb {
                 MusicFileDesc {
                     music_item_id: row.get::<_, i64>(0)? as MusicItemId,
                     internal_file_id: row.get::<_, i64>(1)?,
-                    file_type: MusicFileType::from_i32(row.get::<_, i32>(2)?).unwrap(),
+                    file_type: parse_enum::<MusicFileType>(row.get::<_, i32>(2)?)?,
                 }
             )
         )?;
@@ -152,7 +145,7 @@ impl MusicSourcesDbApi for MusicSourcesDb {
                     id: row.get::<_, i32>(0)? as MusicLinkId,
                     music_item_id: row.get::<_, i32>(1)? as MusicItemId,
                     link: row.get::<_, String>(2)?,
-                    link_type: MusicLinkType::from_i32(row.get::<_, i32>(3)?).unwrap(),
+                    link_type: parse_enum::<MusicLinkType>(row.get::<_, i32>(3)?)?,
                 }
             )
         )?;

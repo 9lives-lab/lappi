@@ -4,23 +4,7 @@ pub mod chat;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use serde::Serialize;
-
-#[derive(Debug, Serialize)]
-pub enum ExploringError {
-    NoSource,
-    ConnectionError,
-    RequestError(String),
-    GenericError(String),
-}
-
-impl From<reqwest::Error> for ExploringError {
-    fn from(value: reqwest::Error) -> Self {
-        ExploringError::RequestError(value.to_string())
-    }
-}
-
-pub type ExploringResult<T> = Result<T, ExploringError>;
+use anyhow::{Context, Result};
 
 pub trait ExploringSource: Send + Sync {
     fn source_name(&self) -> &str;
@@ -39,17 +23,23 @@ impl <T: ExploringSource> SourceList<T> {
 
     pub fn get_sources(&self) -> Vec<Arc<T>> {
         let source_list = self.sources.read().unwrap();
-        return source_list.values().map(|s| s.clone()).collect();
+        source_list.values()
+            .map(|s| s.clone())
+            .collect()
     }
 
     pub fn get_source_list(&self) -> Vec<String> {
         let source_list = self.sources.read().unwrap();
-        return source_list.keys().cloned().collect();
+        source_list.keys()
+            .cloned()
+            .collect()
     }
 
-    pub fn get_source(&self, source: &str) -> ExploringResult<Arc<T>> {
+    pub fn get_source(&self, source: &str) -> Result<Arc<T>> {
         let source_list = self.sources.read().unwrap();
-        return source_list.get(source).cloned().ok_or(ExploringError::NoSource);
+        source_list.get(source)
+           .cloned()
+           .context(format!("No source found '{}'", source))
     }
 
     pub fn add_source(&self, source: T) {

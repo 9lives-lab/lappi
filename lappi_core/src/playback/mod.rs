@@ -87,17 +87,19 @@ impl Playback {
         }).collect()
     }
 
-    pub fn play_item(&self, item_id: MusicItemId) {
-        if let Some(source) = PlaybackSource::default_from_music_item(item_id) {
+    pub fn play_item(&self, item_id: MusicItemId) -> Result<()> {
+        if let Some(source) = PlaybackSource::default_from_music_item(item_id)? {
             self.play_queue(Box::new(SingleSourceQueue::new(source)));
         } else {
             log::debug!("No source files for music item {}", item_id);
         }
+        Ok(())
     }
 
-    pub fn play_playlist(&self, playlist_id: PlaylistId, playlist_item: PlaylistItemId) {
-        let play_queue = PlaylistQueue::create(playlist_id, playlist_item);
+    pub fn play_playlist(&self, playlist_id: PlaylistId, playlist_item: PlaylistItemId) -> Result<()> {
+        let play_queue = PlaylistQueue::create(playlist_id, playlist_item)?;
         self.play_queue(Box::new(play_queue));
+        Ok(())
     }
 
     pub fn play_queue(&self, play_queue: Box<dyn PlayQueue>) {
@@ -257,7 +259,9 @@ impl Playback {
 
     fn on_collection_updated(&self, _event: &OnCollectionUpdated) {
         if let Some(queue) = self.current_queue.lock().unwrap().as_mut() {
-            queue.refresh();
+            if let Err(err) = queue.refresh() {
+                log::error!("Failed to refresh queue: {}", err);
+            }
         }
     }
 }

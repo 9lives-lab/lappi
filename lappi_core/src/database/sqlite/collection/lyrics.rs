@@ -46,9 +46,7 @@ impl LyricsDb {
 
             Ok(lyrics_row)
         })?;
-        for row in rows {
-            exporter.write_row(&row?)?;
-        }
+        exporter.write_rows(rows)?;
         Ok(())
     }
 }

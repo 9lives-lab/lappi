@@ -1,7 +1,7 @@
+use anyhow::Result;
 use serde::Deserialize;
 use reqwest::blocking::Client;
 
-use crate::exploring::ExploringResult;
 use crate::exploring::lyrics::sources::LyricsSourceApi;
 
 #[derive(Deserialize, Debug)]
@@ -26,7 +26,7 @@ impl LyricsSourceApi for LyricsOvhSource {
         return "lyrics.ovh";
     }
 
-    fn find_lyrics(&self, artist: &str, title: &str) -> ExploringResult<String> {
+    fn find_lyrics(&self, artist: &str, title: &str) -> Result<String> {
         let url = format!("https://api.lyrics.ovh/v1/{}/{}", artist, title);
 
         let client = Client::new();

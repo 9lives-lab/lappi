@@ -1,5 +1,7 @@
 pub mod playlist_queue;
 
+use anyhow::Result;
+
 use crate::{collection::pictures::PictureId, playback::sources::PlaybackSource};
 
 pub trait PlayQueue: Send + Sync {
@@ -10,7 +12,7 @@ pub trait PlayQueue: Send + Sync {
     fn has_previous(&self) -> bool;
     fn switch_to_next(&mut self);
     fn switch_to_previous(&mut self);
-    fn refresh(&mut self);
+    fn refresh(&mut self) -> Result<()>;
 }
 
 pub struct SingleSourceQueue {
@@ -18,13 +20,11 @@ pub struct SingleSourceQueue {
 }
 
 impl SingleSourceQueue {
-
     pub fn new(source: Box<PlaybackSource>) -> Self {
         Self {
             source,
         }
     }
-
 }
 
 impl PlayQueue for SingleSourceQueue {
@@ -57,7 +57,7 @@ impl PlayQueue for SingleSourceQueue {
         unreachable!()
     }
 
-    fn refresh(&mut self) {
-
+    fn refresh(&mut self) -> Result<()> {
+        Ok(())
     }
 }

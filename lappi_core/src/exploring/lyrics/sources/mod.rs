@@ -1,12 +1,12 @@
 pub mod lyrics_ovh;
 
 use std::ops::Deref;
-
-use crate::exploring::{ExploringResult, ExploringSource};
+use anyhow::Result;
+use crate::exploring::ExploringSource;
 
 pub trait LyricsSourceApi: Send + Sync {
     fn source_name(&self) -> &str;
-    fn find_lyrics(&self, artist_name: &str, song_name: &str) -> ExploringResult<String>;
+    fn find_lyrics(&self, artist_name: &str, song_name: &str) -> Result<String>;
 }
 
 pub struct LyricsSource {

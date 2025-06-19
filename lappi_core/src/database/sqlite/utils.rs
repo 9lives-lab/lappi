@@ -4,6 +4,8 @@ use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use anyhow::Result;
+use num_traits::FromPrimitive;
+use protobuf::EnumOrUnknown;
 use rusqlite::{Connection, OptionalExtension, params, Rows, ToSql};
 use rusqlite::types::FromSql;
 use amina_core::events::EventEmitter;
@@ -282,6 +284,37 @@ impl ProtobufExporter {
         // Write the message bytes
         self.file.write_all(&message_bytes)?;
         Ok(())
+    }
+
+    pub fn write_rows<M, I>(&mut self, messages: I) -> Result<()>
+    where
+        M: protobuf::Message,
+        I: IntoIterator<Item = rusqlite::Result<M>>
+    {
+        for message in messages {
+            self.write_row(&message?)?;
+        }
+        Ok(())
+    }
+}
+
+pub fn parse_enum<T>(value: i32) -> rusqlite::Result<T>
+where 
+    T: FromPrimitive
+{
+    match T::from_i32(value) {
+        Some(enum_value) => Ok(enum_value),
+        None => Err(rusqlite::Error::InvalidParameterName(value.to_string())),
+    }
+}
+
+pub fn parse_pb_enum<T>(value: i32) -> rusqlite::Result<EnumOrUnknown<T>>
+where 
+    T: protobuf::Enum
+{
+    match T::from_i32(value) {
+        Some(enum_value) => Ok(EnumOrUnknown::new(enum_value)),
+        None => Err(rusqlite::Error::InvalidParameterName(value.to_string())),
     }
 }
 
