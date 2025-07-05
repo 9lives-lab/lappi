@@ -1,8 +1,9 @@
 pub mod search;
 
-use std::path::Path;
 use std::sync::Arc;
 
+use anyhow::Result;
+use camino::Utf8Path;
 use serde::Serialize;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
@@ -20,57 +21,81 @@ pub struct FileManager {
 
 impl FileManager {
 
-    pub fn get_files_list(&self, path: String) -> FilesList {
+    pub fn get_files_list(&self, path: String) -> Result<FilesList> {
         let mut folders = Vec::new();
         let mut files = Vec::new();
 
-        let path = Path::new(&path);
+        let path = Utf8Path::new(&path);
 
-        for entry in path.read_dir().expect("read_dir call failed") {
-            let entry = entry.expect("read_dir entry failed");
-            let path = entry.path();
-            let path = path.to_str().unwrap().to_string();
+        for entry in path.read_dir_utf8()? {
+            match entry {
+                Ok(entry) => {
+                    let path = entry.path().to_string();
 
-            if entry.file_type().unwrap().is_dir() {
-                folders.push(path);
-            } else {
-                files.push(path);
+                    match entry.file_type() {
+                        Ok(file_type) => {
+                            if file_type.is_dir() {
+                                folders.push(path);
+                            } else {
+                                files.push(path);
+                            }
+                        },
+                        Err(e) => {
+                            log::error!("Failed to get file type: {}", e);
+                        }
+                    }
+                },
+                Err(e) => {
+                    log::error!("Failed to read dir entry: {}", e);
+                }
             }
         }
 
-        return FilesList {
+        Ok(FilesList {
             folders,
             files,
-        };
+        })
     }
 
     pub fn get_parent_folder(&self, path: String) -> String {
-        let path = Path::new(&path);
+        let path = Utf8Path::new(&path);
         let parent = path.parent();
         match parent {
             None => String::from("/"),
-            Some(parent) => parent.to_str().unwrap().to_string(),
+            Some(parent) => parent.to_string(),
         }
     }
 
-    pub fn get_files_in_dir(&self, path: String, recursive: bool) -> Vec<String> {
+    pub fn get_files_in_dir(&self, path: String, recursive: bool) -> Result<Vec<String>> {
         let mut files = Vec::new();
 
-        let path = Path::new(&path);
+        let path = Utf8Path::new(&path);
 
-        for entry in path.read_dir().expect("read_dir call failed") {
-            let entry = entry.expect("read_dir entry failed");
-            let path = entry.path();
-            let path = path.to_str().unwrap().to_string();
+        for entry in path.read_dir_utf8()? {
+            match entry {
+                Ok(entry) => {
+                    let path = entry.path().to_string();
 
-            if entry.file_type().unwrap().is_file() {
-                files.push(path);
-            } else if recursive {
-                files.append(&mut self.get_files_in_dir(path, recursive));
+                    match entry.file_type() {
+                        Ok(file_type) => {
+                            if file_type.is_file() {
+                                files.push(path);
+                            } else if recursive {
+                                files.append(&mut self.get_files_in_dir(path, recursive)?);
+                            }
+                        },
+                        Err(e) => {
+                            log::error!("Failed to get file type: {}", e);
+                        }
+                    }
+                },
+                Err(e) => {
+                    log::error!("Failed to read directory entry: {}", e);
+                }
             }
         }
 
-        return files;
+        Ok(files)
     }
 
 }

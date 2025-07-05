@@ -1,9 +1,9 @@
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use anyhow::Result;
+use camino::Utf8Path;
 use num_traits::FromPrimitive;
 use protobuf::EnumOrUnknown;
 use rusqlite::{Connection, OptionalExtension, params, Rows, ToSql};
@@ -219,7 +219,7 @@ pub struct ProtobufImporter {
 }
 
 impl ProtobufImporter {
-    pub fn create(base_path: &Path, file_name: &str) -> Result<Self> {
+    pub fn create(base_path: &Utf8Path, file_name: &str) -> Result<Self> {
         log::debug!("Import {}", file_name);
 
         let file_path = base_path.join(file_name);
@@ -264,7 +264,7 @@ pub struct ProtobufExporter {
 }
 
 impl ProtobufExporter {
-    pub fn create(base_path: &Path, file_name: &str) -> Result<Self> {
+    pub fn create(base_path: &Utf8Path, file_name: &str) -> Result<Self> {
         let file_path = base_path.join(file_name);
         let file = File::create(file_path)?;
         Ok(Self {

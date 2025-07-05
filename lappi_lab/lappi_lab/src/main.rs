@@ -58,7 +58,11 @@ fn main() {
         ("hyper".to_string(), LevelFilter::Info),
         ("reqwest".to_string(), LevelFilter::Info)
     ];
-    let mut cli_context = SimpleCliContext::create(Box::new(cli_adapter), cli_filters, &cli_history_file);
+    let mut cli_context = SimpleCliContext::create(
+        Box::new(cli_adapter), 
+        cli_filters,
+        cli_history_file.as_std_path()
+    );
 
     log::info!("Lappi Lab");
 

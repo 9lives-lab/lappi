@@ -1,4 +1,4 @@
-use std::path::Path;
+use camino::Utf8Path;
 use reqwest::blocking::Client;
 use reqwest::Result as ReqwestResult;
 use serde::{Deserialize, Serialize};
@@ -47,7 +47,7 @@ impl VlcHttpApi {
         self.send_command(&[])
     }
 
-    pub fn play_file(&self, file_path: &Path) -> ReqwestResult<StatusResponse> {
+    pub fn play_file(&self, file_path: &Utf8Path) -> ReqwestResult<StatusResponse> {
         let url = Url::from_file_path(file_path).expect("Invalid file path");
         self.send_command(&[
             ("command", "in_play"),

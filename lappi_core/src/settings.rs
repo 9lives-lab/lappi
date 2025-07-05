@@ -46,9 +46,9 @@ impl ServiceInitializer for Settings {
             let mut file = File::open(path.as_path()).unwrap();
             let mut buffer = String::new();
             file.read_to_string(&mut buffer).unwrap();
-            SettingsEntry::init_from_string(&buffer, path.as_path())
+            SettingsEntry::init_from_string(&buffer, path.as_std_path())
         } else {
-            SettingsEntry::create_empty(path.as_path())
+            SettingsEntry::create_empty(path.as_std_path())
         };
         let settings_entry = Arc::new(settings_entry);
         let settings = Arc::new(Settings {

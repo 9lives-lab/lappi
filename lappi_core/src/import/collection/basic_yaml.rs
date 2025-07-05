@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::Read;
-use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use camino::Utf8PathBuf;
 use serde::Deserialize;
 use amina_core::service::Service;
 
@@ -43,15 +43,15 @@ struct SongEntry {
 
 pub struct BasicYamlCollectionImporter {
     collection: Service<Collection>,
-    dir_path: PathBuf,
+    dir_path: Utf8PathBuf,
 }
 
 impl BasicYamlCollectionImporter {
 
-    pub fn new(dir_path: &Path) -> Self {
+    pub fn new(dir_path: Utf8PathBuf) -> Self {
         Self {
             collection: crate::context().get_service::<Collection>(),
-            dir_path: dir_path.to_path_buf(),
+            dir_path,
         }
     }
 
@@ -122,8 +122,8 @@ impl BasicYamlCollectionImporter {
 
             if let Some(file) = &song_entry.file {
                 log::debug!("Adding file {} to item {}", file, music_item_id);
-                let file_path = self.dir_path.clone().join(file).canonicalize()?.to_string_lossy().to_string();
-                self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path))?;
+                let file_path = self.dir_path.clone().join(file).canonicalize_utf8()?;
+                self.collection.music_sources().import_music_file(music_item_id, &file_path)?;
             }
 
             if let Some(lyrics_file) = &song_entry.lyrics_file {
@@ -145,7 +145,7 @@ impl BasicYamlCollectionImporter {
         for picture_entry in pictures.unwrap_or_default() {
             let mut file_path = self.dir_path.clone();
             file_path.push(picture_entry);
-            let file_path = file_path.to_string_lossy().to_string();
+            let file_path = file_path.to_string();
             let picture_id = self.collection.pictures().copy_to_collection_by_path(file_path, folder_id)?;
             if first {
                 self.collection.folders().set_folder_cover(folder_id, picture_id)?;

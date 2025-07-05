@@ -1,7 +1,7 @@
-use std::path::Path;
 use std::sync::{Arc, RwLock};
 
 use anyhow::{Context, Result};
+use camino::Utf8Path;
 use serde::{Deserialize, Serialize};
 
 use amina_core::events::EventEmitter;
@@ -53,7 +53,7 @@ impl Player for WebPlayer {
     fn play(&self, source: Box<PlaybackSource>) {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
-                self.web_player_service.play_file(path).unwrap();
+                self.web_player_service.play_file(&path).unwrap();
             },
         }
     }
@@ -123,11 +123,9 @@ pub struct WebPlayerService {
 }
 
 impl WebPlayerService {
-    pub fn play_file(&self, path: &Path) -> Result<()> {
+    pub fn play_file(&self, path: &Utf8Path) -> Result<()> {
         let file_name = path.file_name()
                 .with_context(|| format!("Path '{:?}' has no file name", &path))?
-                .to_str()
-                .with_context(|| format!("Path '{:?}' is not valid UTF-8 string", &path))?
                 .to_string();
 
         let event = OnWebPlayerCommand {
@@ -137,10 +135,7 @@ impl WebPlayerService {
         };
 
         let mut state = self.state.write().unwrap();
-        state.current_file_path = path.as_os_str()
-            .to_str()
-            .context("Path is not valid UTF-8 string")?
-            .to_string();
+        state.current_file_path = path.to_string();
         state.player_state = PlayerState::Playing(0.);
         drop(state);
 

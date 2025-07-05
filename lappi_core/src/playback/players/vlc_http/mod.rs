@@ -1,5 +1,4 @@
 use std::cell::Cell;
-use std::path::Path;
 
 use anyhow::Result;
 use amina_core::service::{Context, Service};
@@ -26,7 +25,7 @@ impl Player for VlcHttpPlayer {
     fn play(&self, source: Box<PlaybackSource>) {
         match source.get_source_type() {
             SourceType::LocalFile(path) => {
-                let _ = self.api.play_file(Path::new(path));
+                let _ = self.api.play_file(&path);
                 self.is_playing.set(true);
             },
         }

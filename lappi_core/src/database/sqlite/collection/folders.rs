@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use anyhow::Result;
+use camino::Utf8Path;
 use rusqlite::{params, OptionalExtension};
 
 use crate::collection::folders::database_api::FoldersDbApi;
@@ -65,7 +64,7 @@ impl FoldersDb {
         Ok(result)
     }
 
-    pub fn import(&self, base_path: &Path) -> Result<()> {
+    pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut importer = ProtobufImporter::create(base_path, "folders.pb")?;
         let sql = "INSERT INTO folders (id, parent_id, name, folder_type, avatar_picture_id, description_file_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
@@ -82,7 +81,7 @@ impl FoldersDb {
         Ok(())
     }
 
-    pub fn export(&self, base_path: &Path) -> Result<()> {
+    pub fn export(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut exporter = ProtobufExporter::create(base_path, "folders.pb")?;
         let sql = "SELECT id, parent_id, name, folder_type, avatar_picture_id, description_file_id FROM folders";

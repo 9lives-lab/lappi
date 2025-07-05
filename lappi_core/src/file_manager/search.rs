@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::Result;
+use camino::Utf8Path;
 use serde::Serialize;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
@@ -24,7 +24,7 @@ pub struct FilesExplorer {
 impl FilesExplorer {
 
     pub fn get_file_description(&self, path: String) -> Result<FileDescription> {
-        let path = Path::new(&path);
+        let path = Utf8Path::new(&path);
 
         let metadata = metadata::read_from_path(path)?;
         Ok(match metadata {

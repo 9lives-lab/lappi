@@ -1,10 +1,10 @@
 pub mod types;
 pub mod database_api;
 
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use camino::Utf8PathBuf;
 use base64::{Engine as _, engine::general_purpose};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
@@ -29,10 +29,9 @@ impl PicturesCollection {
     fn add_picture_data_to_collection(&self, folder_id: FolderId, picture_data: &[u8], path: &str) -> Result<PictureId> {
         log::debug!("Add picture to collection. file_name: {:?}", path);
 
-        let file_path = PathBuf::from(path);
-        let file_extension = file_path
-            .extension().context("File extension not found")?
-            .to_str().context("File extension is not valid utf-8")?
+        let file_path = Utf8PathBuf::from(path);
+        let file_extension = file_path.extension()
+            .context("File extension not found")?
             .to_lowercase();
 
         let mut picture_desc = PictureDesc {

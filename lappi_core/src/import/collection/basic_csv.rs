@@ -1,8 +1,8 @@
 use std::fs::File;
-use std::path::Path;
 
 use amina_core::service::Service;
 use anyhow::Result;
+use camino::Utf8Path;
 
 use crate::collection::Collection;
 use crate::collection::tags::TagsMap;
@@ -19,7 +19,7 @@ impl BasicCsvCollectionImporter {
         }
     }
 
-    fn import_items(&self, dir_path: &Path) -> Result<()> {
+    fn import_items(&self, dir_path: &Utf8Path) -> Result<()> {
         let mut file_path = dir_path.to_path_buf();
         file_path.push("items.csv");
  
@@ -42,7 +42,7 @@ impl BasicCsvCollectionImporter {
         Ok(())
     }
 
-    pub fn import(&self, path: &Path) -> Result<()> {
+    pub fn import(&self, path: &Utf8Path) -> Result<()> {
         self.import_items(path)
     }
 

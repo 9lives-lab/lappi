@@ -1,10 +1,10 @@
 pub mod types;
 pub mod database_api;
 
-use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use anyhow::Result;
+use camino::{Utf8Path, Utf8PathBuf};
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
@@ -28,7 +28,7 @@ impl InternalFiles {
         self.db.get_file_path(file_id)
     }
 
-    pub fn get_system_path(&self, file_id: InternalFileId) -> Result<PathBuf> {
+    pub fn get_system_path(&self, file_id: InternalFileId) -> Result<Utf8PathBuf> {
         let internal_path = self.get_internal_path(file_id);
         let mut path = self.local_storage.get_collection_base_path();
         path.push(internal_path?.as_str());
@@ -53,7 +53,7 @@ impl InternalFiles {
         Ok(file_id)
     }
 
-    pub fn add_and_copy_file(&self, src_path: &Path, internal_path: &InternalPath) -> Result<InternalFileId> {
+    pub fn add_and_copy_file(&self, src_path: &Utf8Path, internal_path: &InternalPath) -> Result<InternalFileId> {
         let file_id = self.add_new_file(internal_path)?;
         let path = self.get_system_path(file_id)?;
         std::fs::copy(src_path, path)?;

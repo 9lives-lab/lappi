@@ -1,7 +1,7 @@
 use std::fmt::Debug;
-use std::path::PathBuf;
 
 use anyhow::Result;
+use camino::Utf8PathBuf;
 
 use crate::collection::internal_files::InternalFiles;
 use crate::collection::music::{MusicCollection, MusicItemId};
@@ -10,7 +10,7 @@ use crate::collection::pictures::PictureId;
 
 #[derive(Clone, Debug)]
 pub enum SourceType {
-    LocalFile(PathBuf),
+    LocalFile(Utf8PathBuf),
 }
 
 #[derive(Clone, Debug)]
@@ -21,7 +21,7 @@ pub struct PlaybackSource {
 }
 
 impl PlaybackSource {
-    pub fn local_file(name: String, path: PathBuf) -> Box<PlaybackSource> {
+    pub fn local_file(name: String, path: Utf8PathBuf) -> Box<PlaybackSource> {
         Box::new(Self {
             name,
             source_type: SourceType::LocalFile(path),

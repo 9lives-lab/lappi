@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use anyhow::Result;
+use camino::Utf8Path;
 use rusqlite::params;
 
 use crate::collection::music::{MusicItemId};
@@ -21,7 +20,7 @@ impl MusicSourcesDb {
         }
     }
 
-    pub fn import(&self, base_path: &Path) -> Result<()> {
+    pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
         let mut importer = ProtobufImporter::create(base_path, "music_files.pb")?;
@@ -43,7 +42,7 @@ impl MusicSourcesDb {
         Ok(())
     }
 
-    pub fn export(&self, base_path: &Path) -> Result<()> {
+    pub fn export(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
         let mut exporter = ProtobufExporter::create(base_path, "music_files.pb")?;

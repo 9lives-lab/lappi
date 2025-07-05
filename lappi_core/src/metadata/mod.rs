@@ -2,10 +2,10 @@ pub mod mp3;
 
 use std::collections::HashMap;
 use std::io::Read;
-use std::path::Path;
 use std::fs::File;
 
 use anyhow::{Context, Result};
+use camino::Utf8Path;
 use serde::Serialize;
 
 use crate::collection::tags::TagsMap;
@@ -27,12 +27,10 @@ pub fn read(reader: Box<dyn Read>, extension: &str) -> Result<Option<Metadata>> 
     })
 }
 
-pub fn read_from_path<P: AsRef<Path>>(path: P) -> Result<Option<Metadata>> {
-    let extension = path.as_ref()
+pub fn read_from_path(path: &Utf8Path) -> Result<Option<Metadata>> {
+    let extension = path
         .extension()
         .context("File has no extension")?
-        .to_str()
-        .context("File extension is not valid UTF-8")?
         .to_string();
     let reader = File::open(path)?;
     read(Box::new(reader), extension.as_str())

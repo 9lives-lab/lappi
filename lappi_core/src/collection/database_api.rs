@@ -1,6 +1,5 @@
-use std::path::Path;
-
 use anyhow::Result;
+use camino::Utf8Path;
 use serde::{Serialize, Deserialize};
 use amina_core::events::Event;
 
@@ -36,6 +35,6 @@ pub trait CollectionDbApi: Send + Sync {
     fn start_batch(&self);
     fn stop_batch(&self);
  
-    fn export(&self, base_path: &Path) -> Result<()>;
-    fn import(&self, base_path: &Path) -> Result<()>;
+    fn export(&self, base_path: &Utf8Path) -> Result<()>;
+    fn import(&self, base_path: &Utf8Path) -> Result<()>;
 }

@@ -2,9 +2,8 @@ pub mod utils;
 pub mod init;
 pub mod collection;
 
-use std::path::Path;
-
 use anyhow::Result;
+use camino::Utf8Path;
 use rusqlite::Connection;
 use amina_core::service::Context;
 
@@ -82,7 +81,7 @@ impl CollectionDbApi for SqliteDb {
         self.db_utils.lock().stop_batch();
     }
  
-    fn export(&self, base_path: &Path) -> Result<()> {
+    fn export(&self, base_path: &Utf8Path) -> Result<()> {
         std::fs::create_dir_all(base_path)?;
         self.internal_files_api.export(base_path)?;
         self.folders_api.export(base_path)?;
@@ -95,7 +94,7 @@ impl CollectionDbApi for SqliteDb {
         Ok(())
     }
 
-    fn import(&self, base_path: &Path) -> Result<()> {
+    fn import(&self, base_path: &Utf8Path) -> Result<()> {
         self.internal_files_api.import(base_path)?;
         self.folders_api.import(base_path)?;
         self.music_api.import(base_path)?;

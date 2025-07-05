@@ -1,13 +1,13 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::Arc;
 
+use camino::Utf8PathBuf;
 use amina_core::service::ServiceApi;
 
 use crate::playback::PlayerFactory;
 
 pub trait FileSystemApi: Send + Sync {
-    fn get_workspace_dir(&self) -> PathBuf;
+    fn get_workspace_dir(&self) -> Utf8PathBuf;
 }
 
 pub trait PlaybackApi: Send + Sync {

@@ -1,7 +1,7 @@
-use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Arc;
 
+use camino::Utf8PathBuf;
 use rhai::{Dynamic, Engine, Scope};
 use serde::Serialize;
 use amina_core::register_rpc_handler;
@@ -67,7 +67,8 @@ impl ScriptingEngine {
         engine.on_print(|msg| log::info!("{}", msg));
 
         let scripts_folder = self.get_scripts_folder();
-        let cmd_result = engine.run_file_with_scope(scope, scripts_folder.join(script_name));
+        let path = scripts_folder.join(script_name).into_std_path_buf();
+        let cmd_result = engine.run_file_with_scope(scope, path);
         log::error!("Script failed: {:?}", cmd_result);
     }
 
@@ -77,7 +78,7 @@ impl ScriptingEngine {
         self.run(&script_name, &mut scope);
     }
 
-    fn get_scripts_folder(&self) -> PathBuf {
+    fn get_scripts_folder(&self) -> Utf8PathBuf {
         self.platform_api.file_system.get_workspace_dir().join("scripts")
     }
 }

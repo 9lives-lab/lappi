@@ -1,15 +1,16 @@
-use std::path::PathBuf;
 use std::sync::Arc;
+use std::path::PathBuf;
+use camino::Utf8PathBuf;
 use directories::ProjectDirs;
 use lappi_core::platform_api::FileSystemApi;
 
 pub struct DesktopFileSystemApi {
-    workspace_dir: PathBuf,
+    workspace_dir: Utf8PathBuf,
 }
 
 impl FileSystemApi for DesktopFileSystemApi {
 
-    fn get_workspace_dir(&self) -> PathBuf {
+    fn get_workspace_dir(&self) -> Utf8PathBuf {
         self.workspace_dir.clone()
     }
 
@@ -36,6 +37,7 @@ pub fn initialize() -> Arc<DesktopFileSystemApi> {
         },
     };
 
+    let workspace_dir = Utf8PathBuf::from_path_buf(workspace_dir).unwrap();
     log::info!("Workspace dir: {:?}", workspace_dir);
 
     let api = DesktopFileSystemApi {

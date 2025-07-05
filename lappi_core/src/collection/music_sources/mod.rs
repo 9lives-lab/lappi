@@ -1,10 +1,10 @@
 pub mod types;
 pub mod database_api;
 
-use std::path::Path;
 use std::sync::Arc;
 
 use anyhow::{Error, Result};
+use camino::Utf8Path;
 use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
@@ -24,7 +24,7 @@ pub struct MusicSourcesCollection {
 }
 
 impl MusicSourcesCollection {
-    pub fn import_music_file(&self, item_id: MusicItemId, src_path: &Path) -> Result<()> {
+    pub fn import_music_file(&self, item_id: MusicItemId, src_path: &Utf8Path) -> Result<()> {
         self.delete_music_file(item_id)?;
 
         if !src_path.exists() {
@@ -35,9 +35,9 @@ impl MusicSourcesCollection {
             return Err(Error::msg("Path is not a file"));
         }
 
-        let extention = src_path.extension().ok_or_else(|| Error::msg("File has no extention"))?;
-        let extention = extention.to_str().ok_or_else(|| Error::msg("File extention is not valid utf8"))?;
-        let extention = extention.to_lowercase();
+        let extention = src_path.extension()
+            .ok_or_else(|| Error::msg("File has no extention"))?
+            .to_lowercase();
 
         let file_type = match extention.as_str() {
             "mp3" => MusicFileType::MP3,

@@ -5,10 +5,11 @@ pub mod utils;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use camino::{Utf8Path, Utf8PathBuf};
 use walkdir::WalkDir;
 use amina_core::cmd_manager::{ArgDescription, ArgType, CmdDescription, CmdManager};
 use amina_core::register_rpc_handler;
@@ -50,7 +51,7 @@ struct CsvLogger {
 
 impl CsvLogger {
 
-    pub fn open(path: &Path) -> Result<Self> {
+    pub fn open(path: &Utf8Path) -> Result<Self> {
         Ok(Self {
             file: File::options().append(true).create(true).open(path)?
         })
@@ -78,7 +79,7 @@ impl ImportLogger for CsvLogger {
 }
 
 trait Importer: Send + Sync {
-    fn import(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()>;
+    fn import(&self, path: &Utf8Path, logger: &mut dyn ImportLogger) -> Result<()>;
 }
 
 #[derive(Clone)]
@@ -87,12 +88,10 @@ struct AudioImporter {
 }
 
 impl Importer for AudioImporter {
-    fn import(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()> {
+    fn import(&self, path: &Utf8Path, logger: &mut dyn ImportLogger) -> Result<()> {
         if let Some(metadata) = metadata::read_from_path(path)? {
             if let Some(item_id) = utils::import_song(&self.collection, &metadata.tags)? {
-                let link = path.to_str()
-                    .context("Failed to convert path to string")?
-                    .to_string();
+                let link = path.to_string();
                 self.collection.music_sources().add_music_link(item_id, MusicLinkType::ExternalFile, link)?;
                 logger.log_song(&metadata.tags)?;
             }
@@ -102,14 +101,14 @@ impl Importer for AudioImporter {
 }
 
 struct ImportTask {
-    root_folder: PathBuf,
-    log_path: Option<PathBuf>,
+    root_folder: Utf8PathBuf,
+    log_path: Option<Utf8PathBuf>,
     importers: HashMap<String, Box<dyn Importer>>,
 }
 
 impl ImportTask {
 
-    pub fn new(path: PathBuf, log_path: Option<PathBuf>) -> Self {
+    pub fn new(path: Utf8PathBuf, log_path: Option<Utf8PathBuf>) -> Self {
         let collection = crate::context().get_service::<Collection>();
         let mut importers = HashMap::<String, Box<dyn Importer>>::new();
 
@@ -146,8 +145,19 @@ impl ImportTask {
 
         for entry in WalkDir::new(&self.root_folder) {
             let entry = entry?;
-            if entry.path().is_file() {
-                self.import_file(entry.path(), logger.as_mut())?;
+            let path = entry.path();
+
+            if !path.is_file() {
+                continue;
+            }
+
+            match Utf8Path::from_path(path) {
+                Some(utf8_path) => {
+                    self.import_file(&utf8_path, logger.as_mut())?;
+                },
+                None => {
+                    log::warn!("Skip invalid path {}", path.display());
+                }
             }
         }
 
@@ -156,13 +166,11 @@ impl ImportTask {
         Ok(())
     }
 
-    fn import_file(&self, path: &Path, logger: &mut dyn ImportLogger) -> Result<()> {
-        log::info!("Importing file: {}", path.display());
+    fn import_file(&self, path: &Utf8Path, logger: &mut dyn ImportLogger) -> Result<()> {
+        log::info!("Importing file: {}", path);
 
         let extension = path.extension()
-            .context("File has no extension")?
-            .to_str()
-            .context("Extension is not valid UTF-8")?;
+            .context("File has no extension")?;
 
         Ok(match self.importers.get(extension) {
             Some(importer) => {
@@ -177,12 +185,12 @@ impl ImportTask {
 pub struct CollectionImporter {
     task_manager: Service<TaskManager>,
     collection: Service<Collection>,
-    log_path: PathBuf,
+    log_path: Utf8PathBuf,
 }
 
 impl CollectionImporter {
 
-    pub fn import(&self, path: PathBuf, create_log: bool) {
+    pub fn import(&self, path: Utf8PathBuf, create_log: bool) {
         let log_path = if create_log {
             Some(self.log_path.clone())
         } else {
@@ -197,7 +205,8 @@ impl CollectionImporter {
     pub fn import_basic(&self, tags: HashMap<String, String>, file_path: String) -> Result<()> {
         let music_item_id = utils::import_song(&self.collection, &TagsMap::from_map(tags))?;
         if let Some(music_item_id) = music_item_id {
-            self.collection.music_sources().import_music_file(music_item_id, Path::new(&file_path))?;
+            let path = Utf8PathBuf::from_str(&file_path)?;
+            self.collection.music_sources().import_music_file(music_item_id, &path)?;
         }
         Ok(())
     }
@@ -245,7 +254,7 @@ impl ServiceInitializer for CollectionImporter {
         let importer_copy = importer.clone();
         cmd_manager.add_command(import_collection_cmd_description, move |args| {
             let path_str = args.get_string("dir");
-            let path = PathBuf::from(path_str);
+            let path = Utf8PathBuf::from(path_str);
             let create_log = args.get_bool("create_log");
             importer_copy.import(path, create_log);
         });
