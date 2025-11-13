@@ -71,6 +71,10 @@ impl PicturesCollection {
         Ok(())
     }
 
+    pub fn get_all_pictures(&self) -> Result<Vec<PictureId>> {
+        self.db.get_all_pictures()
+    }
+
     pub fn get_pictures_in_folder(&self, folder_id: FolderId) -> Result<Vec<PictureDesc>> {
         self.db.get_pictures_in_folder(folder_id)
     }

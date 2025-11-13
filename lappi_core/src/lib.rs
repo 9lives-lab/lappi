@@ -6,6 +6,7 @@ pub mod import;
 pub mod metadata;
 pub mod playback;
 pub mod proto;
+pub mod jobs;
 pub mod scripting_engine;
 pub mod workspace;
 

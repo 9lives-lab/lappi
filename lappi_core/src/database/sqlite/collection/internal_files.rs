@@ -66,6 +66,11 @@ impl InternalFilesDbApi for InternalFilesDb {
         Ok(InternalPath::from_string(row))
     }
 
+    fn set_file_path(&self, file_id: InternalFileId, path: &InternalPath) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        db_context.set_field_value(file_id, "internal_files", "internal_path", path.as_str())
+    }
+
     fn delete_file(&self, file_id: InternalFileId) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut stmt = db_context.connection().prepare("DELETE FROM internal_files WHERE id = ?1")?;

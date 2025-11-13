@@ -113,4 +113,8 @@ impl PicturesDbApi for PicturesDb {
         })?;
         Ok(rows.collect::<Result<Vec<_>, _>>()?)
     }
+
+    fn get_all_pictures(&self) -> Result<Vec<PictureId>> {
+        self.db_utils.lock().get_rows_list("picture_items")
+    }
 }

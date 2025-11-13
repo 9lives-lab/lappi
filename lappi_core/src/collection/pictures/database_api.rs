@@ -10,4 +10,5 @@ pub trait PicturesDbApi: Send + Sync {
     fn delete_picture_item(&self, picture_id: PictureId) -> Result<()>;
     fn get_picture_descriptor(&self, picture_id: PictureId) -> Result<PictureDesc>;
     fn get_pictures_in_folder(&self, folder_id: FolderId) -> Result<Vec<PictureDesc>>;
+    fn get_all_pictures(&self) -> Result<Vec<PictureId>>;
 }

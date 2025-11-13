@@ -55,6 +55,13 @@ const linksList = [
     link: '/file_manager'
   },
   {
+    title: 'Jobs',
+    caption: '',
+    icon: 'work_outline',
+    color_style: 'color: #caf4ad;',
+    link: '/jobs'
+  },
+  {
     title: 'Settings',
     caption: '',
     icon: 'settings',

@@ -9,7 +9,7 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
-use crate::collection::internal_files::{InternalFiles, InternalPath};
+use crate::collection::internal_files::{InternalFileId, InternalFiles, InternalPath};
 use crate::database::Database;
 
 use super::folders::database_api::FoldersDbApi;
@@ -53,6 +53,10 @@ impl FoldersCollection {
 
     pub fn get_root_folder(&self) -> FolderId {
         self.folders_db.get_root_folder()
+    }
+
+    pub fn get_all_folders(&self) -> Result<Vec<FolderId>> {
+        self.folders_db.get_all_folders()
     }
 
     pub fn get_folder_parent(&self, folder_id: FolderId) -> Result<FolderId> {
@@ -245,6 +249,10 @@ impl FoldersCollection {
             }
         }
         Ok(())
+    }
+
+    pub fn get_description_file(&self, folder_id: FolderId) -> Result<Option<InternalFileId>> {
+        self.folders_db.get_description_file(folder_id)
     }
 
     pub fn get_description(&self, folder_id: FolderId) -> Result<String> {

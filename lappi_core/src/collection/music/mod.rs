@@ -31,6 +31,10 @@ impl MusicCollection {
         self.music_db.add_music_item(&name, folder_id)
     }
 
+    pub fn get_all_music_items(&self) -> Result<Vec<MusicItemId>> {
+        self.music_db.get_all_music_items()
+    }
+
     pub fn set_item_name(&self, item_id: MusicItemId, name: String) -> Result<()> {
         self.music_db.set_item_name(item_id, &name)
     }

@@ -26,7 +26,7 @@ pub struct LyricsCollection {
 
 impl LyricsCollection {
     pub fn add_lyrics_item(&self, music_item_id: MusicItemId, lyrics_tag: String) -> Result<LyricsId> {
-        let internal_path = self.gen_internal_path(music_item_id, &lyrics_tag)?;
+        let internal_path = self.gen_generic_internal_path(music_item_id, &lyrics_tag)?;
         let file_id = self.internal_files.add_new_file(&internal_path)?;
         let lyrics_id = self.lyrics_db.add_lyrics_item(music_item_id, &lyrics_tag, file_id)?;
         Ok(lyrics_id)
@@ -34,6 +34,10 @@ impl LyricsCollection {
 
     pub fn get_lyrics_list(&self, music_id: MusicItemId) -> Result<Vec<LyricsDesc>> {
         self.lyrics_db.get_lyrics_list(music_id)
+    }
+
+    pub fn get_all_lyrics_list(&self) -> Result<Vec<LyricsId>> {
+        self.lyrics_db.get_all_lyrics_list()
     }
 
     pub fn save_lyrics(&self, lyrics_id: LyricsId, text: String) -> Result<()> {
@@ -50,10 +54,19 @@ impl LyricsCollection {
         Ok(file_content)
     }
 
-    pub fn gen_internal_path(&self, music_item_id: MusicItemId, lyrics_tag: &str) -> Result<InternalPath> {
+    pub fn get_lyrics_descriptor(&self, lyrics_id: LyricsId) -> Result<LyricsDesc> {
+        self.lyrics_db.get_lyrics_descriptor(lyrics_id)
+    }
+
+    fn gen_generic_internal_path(&self, music_item_id: MusicItemId, lyrics_tag: &str) -> Result<InternalPath> {
         let template = "lyrics/{file_name} (".to_string() +  lyrics_tag + ").txt";
         let internal_path = self.music.gen_internal_path(music_item_id, &template)?;
         Ok(internal_path)
+    }
+
+    pub fn gen_internal_path(&self, lyrics_id: LyricsId) -> Result<InternalPath> {
+        let descriptor = self.lyrics_db.get_lyrics_descriptor(lyrics_id)?;
+        self.gen_generic_internal_path(descriptor.music_item_id, &descriptor.lyrics_tag)
     }
 }
 

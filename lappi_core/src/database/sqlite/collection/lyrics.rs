@@ -64,12 +64,14 @@ impl LyricsDbApi for LyricsDb {
 
     fn get_lyrics_descriptor(&self, lyrics_id: LyricsId) -> Result<LyricsDesc> {
         let context = self.db_utils.lock();
-        let mut stmt = context.connection().prepare("SELECT lyrics_tag, internal_file_id FROM lyrics_items WHERE id = ?1")?;
+        let sql = "SELECT lyrics_tag, internal_file_id, music_item_id FROM lyrics_items WHERE id = ?1";
+        let mut stmt = context.connection().prepare(sql)?;
         let row = stmt.query_row(params![lyrics_id], |row| {
             Ok(LyricsDesc {
                 lyrics_id,
                 lyrics_tag: row.get(0)?,
                 internal_file_id: row.get(1)?,
+                music_item_id: row.get(2)?,
             })
         })?;
         Ok(row)
@@ -77,15 +79,22 @@ impl LyricsDbApi for LyricsDb {
 
     fn get_lyrics_list(&self, music_id: MusicItemId) -> Result<Vec<LyricsDesc>> {
         let context = self.db_utils.lock();
-        let mut stmt = context.connection().prepare("SELECT id, lyrics_tag, internal_file_id FROM lyrics_items WHERE music_item_id=(?1)")?;
+        let sql = "SELECT id, lyrics_tag, internal_file_id, music_item_id FROM lyrics_items WHERE music_item_id=(?1)";
+        let mut stmt = context.connection().prepare(sql)?;
         let rows = stmt.query([music_id])?;
         let rows = rows.map(|row| {
             Ok(LyricsDesc {
                 lyrics_id: row.get(0)?,
                 lyrics_tag: row.get(1)?,
                 internal_file_id: row.get(2)?,
+                music_item_id: row.get(3)?,
             })
         });
         Ok(rows.collect()?)
     }
+
+    fn get_all_lyrics_list(&self) -> Result<Vec<LyricsId>> {
+        self.db_utils.lock().get_rows_list("lyrics_items")
+    }
 }
+

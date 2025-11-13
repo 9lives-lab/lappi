@@ -11,6 +11,7 @@ pub trait FoldersDbApi: Send + Sync {
     fn is_empty(&self) -> bool;
 
     fn get_root_folder(&self) -> FolderId;
+    fn get_all_folders(&self) -> Result<Vec<FolderId>>;
     fn get_folder_parent(&self, folder_id: FolderId) -> Result<FolderId>;
     fn get_folder_name(&self, folder_id: FolderId) -> Result<String>;
     fn get_folder_description(&self, folder_id: FolderId) -> Result<FolderDesc>;

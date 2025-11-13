@@ -9,6 +9,7 @@ pub mod folders;
 pub mod tags;
 pub mod lyrics;
 pub mod playlists;
+pub mod jobs;
 
 use std::sync::Arc;
 
@@ -130,14 +131,6 @@ impl ServiceInitializer for Collection {
         let database = context.get_service::<Database>();
         let local_storage = context.get_service::<LocalStorage>();
 
-        context.init_service::<InternalFiles>();
-        context.init_service::<FoldersCollection>();
-        context.init_service::<MusicCollection>();
-        context.init_service::<MusicSourcesCollection>();
-        context.init_service::<LyricsCollection>();
-        context.init_service::<PicturesCollection>();
-        context.init_service::<PlaylistsCollection>();
-
         let collection = Arc::new(Self {
             local_storage,
             internal_files: context.get_service::<InternalFiles>(),
@@ -152,4 +145,20 @@ impl ServiceInitializer for Collection {
 
         return collection;
     }
+}
+
+pub fn initialize() {
+    let context = crate::context();
+
+    context.init_service::<InternalFiles>();
+    context.init_service::<FoldersCollection>();
+    context.init_service::<MusicCollection>();
+    context.init_service::<MusicSourcesCollection>();
+    context.init_service::<LyricsCollection>();
+    context.init_service::<PicturesCollection>();
+    context.init_service::<PlaylistsCollection>();
+
+    context.init_service::<Collection>();
+
+    jobs::initialize();
 }

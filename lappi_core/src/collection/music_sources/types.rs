@@ -8,6 +8,15 @@ pub enum MusicFileType {
     FLAC = 1,
 }
 
+impl MusicFileType {
+    pub fn get_extention(&self) -> &str {
+        match self {
+            Self::MP3 => "mp3",
+            Self::FLAC => "flac",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MusicFileDesc {
     pub music_item_id: MusicItemId,

@@ -116,6 +116,10 @@ impl FoldersDbApi for FoldersDb {
         0
     }
 
+    fn get_all_folders(&self) -> Result<Vec<FolderId>> {
+        self.db_utils.lock().get_rows_list("folders")
+    }
+
     fn get_folder_parent(&self, folder_id: FolderId) -> Result<FolderId> {
         self.db_utils.lock().get_field_value(folder_id, "folders", "parent_id")
     }

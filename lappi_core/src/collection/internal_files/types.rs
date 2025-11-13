@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 pub type InternalFileId = i64;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InternalPath {
     path: String,
 }

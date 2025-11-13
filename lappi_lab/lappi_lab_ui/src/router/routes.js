@@ -7,6 +7,7 @@ const routes = [
       { path: 'collection_tree', component: () => import('pages/CollectionPage.vue') },
       { path: 'playlists', component: () => import('pages/PlaylistsPage.vue') },
       { path: 'file_manager', component: () => import('pages/FileManagerPage.vue') },
+      { path: 'jobs', component: () => import('pages/JobsPage.vue') },
       { path: 'settings', component: () => import('pages/SettingsPage.vue') },
       { path: 'commands', component: () => import('pages/CommandsPage.vue') }
     ]

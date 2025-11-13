@@ -17,7 +17,6 @@ use amina_server::cli::adapters::cmd_manager_adapter::CmdManagerAdapter;
 use lappi_core::platform_api::PlatformApi;
 use lappi_core::platform_api::FileSystemApi;
 use lappi_core::app_config::AppConfig;
-use lappi_core::collection::Collection;
 use lappi_core::collection::storage::local::LocalStorage;
 use lappi_core::playback::players::web_player::WebPlayerService;
 use lappi_core::playback::Playback;
@@ -28,6 +27,8 @@ use lappi_core::import::collection::CollectionImporter;
 use lappi_core::scripting_engine::ScriptingEngine;
 use lappi_core::settings::Settings;
 use lappi_core::exploring::lyrics::LyricsExplorer;
+use lappi_core::workspace::Workspace;
+use lappi_core::jobs::Jobs;
 use lappi_core::file_manager::FileManager;
 use lappi_core::file_manager::search::FilesExplorer;
 use lappi_core::py_server_client::PyServerClient;
@@ -66,14 +67,16 @@ fn main() {
 
     log::info!("Lappi Lab");
 
+    context.init_service::<Workspace>();
     context.init_service::<SettingsManager>();
     context.init_service::<Settings>();
+    context.init_service::<Jobs>();
     context.init_service::<ScriptingEngine>();
     context.init_service::<FileManager>();
     context.init_service::<FilesExplorer>();
     context.init_service::<Database>();
     context.init_service::<LocalStorage>();
-    context.init_service::<Collection>();
+    lappi_core::collection::initialize();
     context.init_service::<WebPlayerService>();
     context.init_service::<Playback>();
     context.init_service::<CollectionImporter>();

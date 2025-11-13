@@ -9,9 +9,9 @@ use amina_core::register_rpc_handler;
 use amina_core::rpc::Rpc;
 use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
-use crate::collection::music::{MusicCollection, MusicItemId};
 use crate::database::Database;
-use crate::collection::internal_files::InternalFiles;
+use crate::collection::internal_files::{InternalFiles, InternalPath};
+use crate::collection::music::{MusicCollection, MusicItemId};
 
 use database_api::MusicSourcesDbApi;
 
@@ -45,8 +45,7 @@ impl MusicSourcesCollection {
             
         };
 
-        let template: String = "{file_name}.".to_string() + extention.as_str();
-        let internal_path = self.music.gen_internal_path(item_id, &template)?;
+        let internal_path = self.gen_generic_internal_path(item_id, file_type)?;
 
         let file_id = self.internal_files.add_and_copy_file(src_path, &internal_path)?;
 
@@ -70,6 +69,20 @@ impl MusicSourcesCollection {
             self.music_sources_db.delete_music_file(item_id)?;
         }
         Ok(())
+    }
+
+    fn gen_generic_internal_path(&self, music_item_id: MusicItemId, file_type: MusicFileType) -> Result<InternalPath> {
+        let extention = file_type.get_extention();
+        let template: String = "{file_name}.".to_string() + extention;
+        let internal_path = self.music.gen_internal_path(music_item_id, &template)?;
+        Ok(internal_path)
+    }
+
+    pub fn gen_internal_path(&self, music_item_id: MusicItemId) -> Result<Option<InternalPath>> {
+        match self.get_music_file(music_item_id)? {
+            Some(desc) => Ok(Some(self.gen_generic_internal_path(music_item_id, desc.file_type)?)),
+            None => Ok(None)
+        }
     }
 
     pub fn add_music_link(&self, item_id: MusicItemId, link_type: MusicLinkType, link: String) -> Result<()> {
