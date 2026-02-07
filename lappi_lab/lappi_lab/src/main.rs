@@ -17,7 +17,8 @@ use amina_server::cli::adapters::cmd_manager_adapter::CmdManagerAdapter;
 use lappi_core::platform_api::PlatformApi;
 use lappi_core::platform_api::FileSystemApi;
 use lappi_core::app_config::AppConfig;
-use lappi_core::collection::storage::local::LocalStorage;
+use lappi_core::storage::local::LocalStorage;
+use lappi_core::storage::remote::RemoteStorage;
 use lappi_core::playback::players::web_player::WebPlayerService;
 use lappi_core::playback::Playback;
 use lappi_core::database::Database;
@@ -76,6 +77,7 @@ fn main() {
     context.init_service::<FilesExplorer>();
     context.init_service::<Database>();
     context.init_service::<LocalStorage>();
+    context.init_service::<RemoteStorage>();
     lappi_core::collection::initialize();
     context.init_service::<WebPlayerService>();
     context.init_service::<Playback>();

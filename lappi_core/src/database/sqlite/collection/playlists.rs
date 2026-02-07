@@ -22,7 +22,7 @@ impl PlaylistsDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "playlists.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("playlists.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::PlaylistsRow>()? {
             db_context.connection().execute(
                 "INSERT INTO playlists (id, name) VALUES (?1, ?2)",
@@ -30,7 +30,7 @@ impl PlaylistsDb {
             )?;
         }
 
-        let mut importer = ProtobufImporter::create(base_path, "playlist_items.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("playlist_items.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::PlaylistItemsRow>()? {
             db_context.connection().execute(
                 "INSERT INTO playlist_items (id, playlist_id, music_item_id) VALUES (?1, ?2, ?3)",
@@ -54,6 +54,7 @@ impl PlaylistsDb {
         for row in rows {
             exporter.write_row(&row?)?;
         }
+        exporter.generate_hash()?;
 
         let mut exporter = ProtobufExporter::create(base_path, "playlist_items.pb")?;
         let mut stmt = db_context.connection().prepare("SELECT id, playlist_id, music_item_id FROM playlist_items")?;
@@ -67,6 +68,7 @@ impl PlaylistsDb {
         for row in rows {
             exporter.write_row(&row?)?;
         }
+        exporter.generate_hash()?;
 
         Ok(())
     }

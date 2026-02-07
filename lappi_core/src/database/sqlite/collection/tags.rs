@@ -126,7 +126,7 @@ impl TagsDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "tags.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("tags.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::TagsRow>()? {
             db_context.connection().execute(
                 "INSERT INTO tags (id, music_item_id, folder_id, tag_name, string_value, int_value) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -154,6 +154,7 @@ impl TagsDb {
         for row in rows {
             exporter.write_row(&row?)?;
         }
+        exporter.generate_hash()?;
         Ok(())
     }
 }

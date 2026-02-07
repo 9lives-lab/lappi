@@ -66,7 +66,7 @@ impl FoldersDb {
 
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
-        let mut importer = ProtobufImporter::create(base_path, "folders.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join( "folders.pb"))?;
         let sql = "INSERT INTO folders (id, parent_id, name, folder_type, avatar_picture_id, description_file_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6)";
         while let Some(row) = importer.read_next_row::<crate::proto::collection::FoldersRow>()? {
             db_context.connection().execute(sql, params![
@@ -99,6 +99,7 @@ impl FoldersDb {
         for row in rows {
             exporter.write_row(&row?)?;
         }
+        exporter.generate_hash()?;
         Ok(())
     }
 }

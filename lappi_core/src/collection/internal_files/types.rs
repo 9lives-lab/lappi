@@ -37,3 +37,25 @@ impl Into<String> for InternalPath {
         self.path
     }
 }
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FileHash {
+    pub bytes: Vec<u8>
+}
+
+impl From<&[u8]> for FileHash {
+    fn from(bytes: &[u8]) -> Self {
+        Self {
+            bytes: Vec::from(bytes)
+        }
+    }
+}
+
+impl From<Vec<u8>> for FileHash {
+    fn from(bytes: Vec<u8>) -> Self {
+        Self {
+            bytes
+        }
+    }
+}
+

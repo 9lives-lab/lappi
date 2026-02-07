@@ -23,7 +23,7 @@ impl PicturesDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "picture_items.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("picture_items.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::PictureItemsRow>()? {
             db_context.connection().execute("INSERT INTO picture_items (id, folder_id, internal_file_id, picture_type) VALUES (?1, ?2, ?3, ?4)", params![
                 row.id, 
@@ -48,7 +48,9 @@ impl PicturesDb {
             picture_row.picture_type = parse_pb_enum::<crate::proto::collection::PictureType>(row.get::<_, i32>(3)?)?;
             Ok(picture_row)
         })?;
-        exporter.write_rows(rows)
+        exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
+        Ok(())
     }
 }
 

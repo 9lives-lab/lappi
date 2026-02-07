@@ -22,7 +22,7 @@ impl LyricsDb {
 
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
-        let mut importer = ProtobufImporter::create(base_path, "lyrics.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("lyrics.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::LyricsItemsRow>()? {
             db_context.connection().execute(
                 "INSERT INTO lyrics_items (id, music_item_id, lyrics_tag, internal_file_id) VALUES (?1, ?2, ?3, ?4)",
@@ -46,6 +46,7 @@ impl LyricsDb {
             Ok(lyrics_row)
         })?;
         exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
         Ok(())
     }
 }

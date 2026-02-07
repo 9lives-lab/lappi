@@ -3,7 +3,7 @@ use camino::Utf8Path;
 use rusqlite::params;
 
 use crate::collection::internal_files::database_api::InternalFilesDbApi;
-use crate::collection::internal_files::{InternalFileId, InternalPath};
+use crate::collection::internal_files::{FileHash, InternalFileId, InternalPath};
 use crate::database::sqlite::utils::{DatabaseUtils, ProtobufExporter, ProtobufImporter};
 
 pub struct InternalFilesDb {
@@ -20,11 +20,11 @@ impl InternalFilesDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "internal_files.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("internal_files.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::InternalFilesRow>()? {
             db_context.connection().execute(
-                "INSERT INTO internal_files (id, internal_path) VALUES (?1, ?2)",
-                params![row.file_id, row.internal_path],
+                "INSERT INTO internal_files (id, internal_path, hash) VALUES (?1, ?2, ?3)",
+                params![row.file_id, row.internal_path, row.hash],
             )?;
         }
 
@@ -34,14 +34,18 @@ impl InternalFilesDb {
     pub fn export(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
         let mut exporter = ProtobufExporter::create(base_path, "internal_files.pb")?;
-        let mut stmt = db_context.connection().prepare("SELECT id, internal_path FROM internal_files")?;
+        let mut stmt = db_context.connection().prepare("SELECT id, internal_path, hash FROM internal_files")?;
         let rows = stmt.query_map([], |row| {
-            let mut picture_row = crate::proto::collection::InternalFilesRow::new();
-            picture_row.file_id = row.get::<_, i64>(0)?;
-            picture_row.internal_path = row.get::<_, String>(1)?;
-            Ok(picture_row)
+            let mut internal_files_row = crate::proto::collection::InternalFilesRow::new();
+            internal_files_row.file_id = row.get::<_, i64>(0)?;
+            internal_files_row.internal_path = row.get::<_, String>(1)?;
+            internal_files_row.hash = row.get::<_, Vec<u8>>(2)?;
+
+            Ok(internal_files_row)
         })?;
-        exporter.write_rows(rows)
+        exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
+        Ok(())
     }
 }
 
@@ -52,8 +56,9 @@ impl InternalFilesDbApi for InternalFilesDb {
 
     fn add_file_path(&self, path: &InternalPath) -> Result<InternalFileId> {
         let db_context = self.db_utils.lock();
-        let mut stmt = db_context.connection().prepare("INSERT INTO internal_files (internal_path) VALUES (?1)")?;
-        stmt.execute([path.as_str()])?;
+        let mut stmt = db_context.connection().prepare("INSERT INTO internal_files (internal_path, hash) VALUES (?1, ?2)")?;
+        let hash = Vec::<u8>::new();
+        stmt.execute(params![path.as_str(), hash.as_slice()])?;
         Ok(db_context.connection().last_insert_rowid())
     }
 
@@ -66,9 +71,20 @@ impl InternalFilesDbApi for InternalFilesDb {
         Ok(InternalPath::from_string(row))
     }
 
+    fn get_file_hash(&self, file_id: InternalFileId) -> Result<FileHash> {
+        let db_context = self.db_utils.lock();
+        let hash_bytes = db_context.get_field_value::<Vec<u8>>(file_id, "internal_files", "hash");
+        Ok(FileHash::from(hash_bytes?))
+    }
+
     fn set_file_path(&self, file_id: InternalFileId, path: &InternalPath) -> Result<()> {
         let db_context = self.db_utils.lock();
         db_context.set_field_value(file_id, "internal_files", "internal_path", path.as_str())
+    }
+
+    fn set_file_hash(&self, file_id: InternalFileId, hash: &FileHash) -> Result<()> {
+        let db_context = self.db_utils.lock();
+        db_context.set_field_value(file_id, "internal_files", "hash", hash.bytes.as_slice())
     }
 
     fn delete_file(&self, file_id: InternalFileId) -> Result<()> {
@@ -76,5 +92,10 @@ impl InternalFilesDbApi for InternalFilesDb {
         let mut stmt = db_context.connection().prepare("DELETE FROM internal_files WHERE id = ?1")?;
         stmt.execute([file_id])?;
         Ok(())
+    }
+
+    fn get_all_files(&self) -> Result<Vec<InternalFileId>> {
+        let db_context = self.db_utils.lock();
+        db_context.get_rows_list("internal_files")
     }
 }

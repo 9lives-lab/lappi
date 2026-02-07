@@ -23,7 +23,7 @@ impl MusicSourcesDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "music_files.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("music_files.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::MusicFilesRow>()? {
             db_context.connection().execute(
                 "INSERT INTO music_files (id, internal_file_id, file_type) VALUES (?1, ?2, ?3)",
@@ -31,7 +31,7 @@ impl MusicSourcesDb {
             )?;
         }
 
-        let mut importer = ProtobufImporter::create(base_path, "music_links.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("music_links.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::MusicLinksRow>()? {
             db_context.connection().execute(
                 "INSERT INTO music_links (id, music_item_id, link, link_type) VALUES (?1, ?2, ?3, ?4)",
@@ -55,6 +55,7 @@ impl MusicSourcesDb {
             Ok(music_items_row)
         })?;
         exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
 
         let mut exporter = ProtobufExporter::create(base_path, "music_links.pb")?;
         let mut stmt = db_context.connection().prepare("SELECT id, music_item_id, link, link_type FROM music_links")?;
@@ -67,6 +68,7 @@ impl MusicSourcesDb {
             Ok(music_src_links_row)
         })?;
         exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
 
         Ok(())
     }

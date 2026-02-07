@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use anyhow::Result;
-use camino::Utf8Path;
+use camino::{Utf8Path, Utf8PathBuf};
 use num_traits::FromPrimitive;
 use protobuf::EnumOrUnknown;
 use rusqlite::{Connection, OptionalExtension, params, Rows, ToSql};
@@ -219,12 +219,11 @@ pub struct ProtobufImporter {
 }
 
 impl ProtobufImporter {
-    pub fn create(base_path: &Utf8Path, file_name: &str) -> Result<Self> {
-        log::debug!("Import {}", file_name);
+    pub fn create(pb_file_path: &Utf8Path) -> Result<Self> {
+        log::debug!("Import {}", pb_file_path);
 
-        let file_path = base_path.join(file_name);
-        let file = if file_path.is_file() {
-            Some(File::open(file_path)?)
+        let file = if pb_file_path.is_file() {
+            Some(File::open(pb_file_path)?)
         } else {
             None
         };
@@ -260,14 +259,16 @@ impl ProtobufImporter {
 }
 
 pub struct ProtobufExporter {
+    file_path: Utf8PathBuf,
     file: File,
 }
 
 impl ProtobufExporter {
     pub fn create(base_path: &Utf8Path, file_name: &str) -> Result<Self> {
         let file_path = base_path.join(file_name);
-        let file = File::create(file_path)?;
+        let file = File::create(&file_path)?;
         Ok(Self {
+            file_path,
             file,
         })
     }
@@ -294,6 +295,12 @@ impl ProtobufExporter {
         for message in messages {
             self.write_row(&message?)?;
         }
+        Ok(())
+    }
+
+    pub fn generate_hash(self) -> Result<()> {
+        drop(self.file);
+        crate::utils::hash::blake3::create_hash_file(&self.file_path)?;
         Ok(())
     }
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 message InternalFilesRow {
     int64 file_id = 1;
     string internal_path = 2;
+    bytes hash = 3;
 }
 
 message FoldersRow {

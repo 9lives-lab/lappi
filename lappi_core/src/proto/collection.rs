@@ -32,6 +32,8 @@ pub struct InternalFilesRow {
     pub file_id: i64,
     // @@protoc_insertion_point(field:InternalFilesRow.internal_path)
     pub internal_path: ::std::string::String,
+    // @@protoc_insertion_point(field:InternalFilesRow.hash)
+    pub hash: ::std::vec::Vec<u8>,
     // special fields
     // @@protoc_insertion_point(special_field:InternalFilesRow.special_fields)
     pub special_fields: ::protobuf::SpecialFields,
@@ -49,7 +51,7 @@ impl InternalFilesRow {
     }
 
     fn generated_message_descriptor_data() -> ::protobuf::reflect::GeneratedMessageDescriptorData {
-        let mut fields = ::std::vec::Vec::with_capacity(2);
+        let mut fields = ::std::vec::Vec::with_capacity(3);
         let mut oneofs = ::std::vec::Vec::with_capacity(0);
         fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
             "file_id",
@@ -60,6 +62,11 @@ impl InternalFilesRow {
             "internal_path",
             |m: &InternalFilesRow| { &m.internal_path },
             |m: &mut InternalFilesRow| { &mut m.internal_path },
+        ));
+        fields.push(::protobuf::reflect::rt::v2::make_simpler_field_accessor::<_, _>(
+            "hash",
+            |m: &InternalFilesRow| { &m.hash },
+            |m: &mut InternalFilesRow| { &mut m.hash },
         ));
         ::protobuf::reflect::GeneratedMessageDescriptorData::new_2::<InternalFilesRow>(
             "InternalFilesRow",
@@ -85,6 +92,9 @@ impl ::protobuf::Message for InternalFilesRow {
                 18 => {
                     self.internal_path = is.read_string()?;
                 },
+                26 => {
+                    self.hash = is.read_bytes()?;
+                },
                 tag => {
                     ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
                 },
@@ -103,6 +113,9 @@ impl ::protobuf::Message for InternalFilesRow {
         if !self.internal_path.is_empty() {
             my_size += ::protobuf::rt::string_size(2, &self.internal_path);
         }
+        if !self.hash.is_empty() {
+            my_size += ::protobuf::rt::bytes_size(3, &self.hash);
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
         self.special_fields.cached_size().set(my_size as u32);
         my_size
@@ -114,6 +127,9 @@ impl ::protobuf::Message for InternalFilesRow {
         }
         if !self.internal_path.is_empty() {
             os.write_string(2, &self.internal_path)?;
+        }
+        if !self.hash.is_empty() {
+            os.write_bytes(3, &self.hash)?;
         }
         os.write_unknown_fields(self.special_fields.unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -134,6 +150,7 @@ impl ::protobuf::Message for InternalFilesRow {
     fn clear(&mut self) {
         self.file_id = 0;
         self.internal_path.clear();
+        self.hash.clear();
         self.special_fields.clear();
     }
 
@@ -141,6 +158,7 @@ impl ::protobuf::Message for InternalFilesRow {
         static instance: InternalFilesRow = InternalFilesRow {
             file_id: 0,
             internal_path: ::std::string::String::new(),
+            hash: ::std::vec::Vec::new(),
             special_fields: ::protobuf::SpecialFields::new(),
         };
         &instance
@@ -1955,51 +1973,51 @@ impl MusicLinkType {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x10collection.proto\"P\n\x10InternalFilesRow\x12\x17\n\x07file_id\x18\
+    \n\x10collection.proto\"d\n\x10InternalFilesRow\x12\x17\n\x07file_id\x18\
     \x01\x20\x01(\x03R\x06fileId\x12#\n\rinternal_path\x18\x02\x20\x01(\tR\
-    \x0cinternalPath\"\x9c\x02\n\nFoldersRow\x12\x1b\n\tfolder_id\x18\x01\
-    \x20\x01(\x03R\x08folderId\x12(\n\x10parent_folder_id\x18\x02\x20\x01(\
-    \x03R\x0eparentFolderId\x12\x12\n\x04name\x18\x03\x20\x01(\tR\x04name\
-    \x12\x1f\n\x0bfolder_type\x18\x04\x20\x01(\x05R\nfolderType\x12/\n\x11av\
-    atar_picture_id\x18\x05\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01\
-    \x123\n\x13description_file_id\x18\x06\x20\x01(\x03H\x01R\x11description\
-    FileId\x88\x01\x01B\x14\n\x12_avatar_picture_idB\x16\n\x14_description_f\
-    ile_id\"d\n\rMusicItemsRow\x12\"\n\rmusic_item_id\x18\x01\x20\x01(\x03R\
-    \x0bmusicItemId\x12\x12\n\x04name\x18\x02\x20\x01(\tR\x04name\x12\x1b\n\
-    \tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\"\xa3\x01\n\x0eLyricsItems\
-    Row\x12$\n\x0elyrics_item_id\x18\x01\x20\x01(\x03R\x0clyricsItemId\x12\"\
-    \n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x1d\n\nlyrics\
-    _tag\x18\x03\x20\x01(\tR\tlyricsTag\x12(\n\x10internal_file_id\x18\x04\
-    \x20\x01(\x03R\x0einternalFileId\"\x99\x01\n\x0fPictureItemsRow\x12\x0e\
-    \n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\x1b\n\tfolder_id\x18\x03\x20\
-    \x01(\x03R\x08folderId\x12(\n\x10internal_file_id\x18\x04\x20\x01(\x03R\
-    \x0einternalFileId\x12/\n\x0cpicture_type\x18\x05\x20\x01(\x0e2\x0c.Pict\
-    ureTypeR\x0bpictureType\"\x8f\x02\n\x07TagsRow\x12\x15\n\x06tag_id\x18\
-    \x01\x20\x01(\x03R\x05tagId\x12'\n\rmusic_item_id\x18\x02\x20\x01(\x03H\
-    \0R\x0bmusicItemId\x88\x01\x01\x12\x20\n\tfolder_id\x18\x03\x20\x01(\x03\
-    H\x01R\x08folderId\x88\x01\x01\x12\x19\n\x08tag_name\x18\x04\x20\x01(\tR\
-    \x07tagName\x12&\n\x0cstring_value\x18\x05\x20\x01(\tH\x02R\x0bstringVal\
-    ue\x88\x01\x01\x12\x20\n\tint_value\x18\x06\x20\x01(\x05H\x03R\x08intVal\
-    ue\x88\x01\x01B\x10\n\x0e_music_item_idB\x0c\n\n_folder_idB\x0f\n\r_stri\
-    ng_valueB\x0c\n\n_int_value\"v\n\rMusicFilesRow\x12\x0e\n\x02id\x18\x01\
-    \x20\x01(\x03R\x02id\x12(\n\x10internal_file_id\x18\x02\x20\x01(\x03R\
-    \x0einternalFileId\x12+\n\tfile_type\x18\x03\x20\x01(\x0e2\x0e.MusicFile\
-    TypeR\x08fileType\"\x84\x01\n\rMusicLinksRow\x12\x0e\n\x02id\x18\x01\x20\
-    \x01(\x03R\x02id\x12\"\n\rmusic_item_id\x18\x02\x20\x01(\x03R\x0bmusicIt\
-    emId\x12\x12\n\x04link\x18\x03\x20\x01(\tR\x04link\x12+\n\tlink_type\x18\
-    \x04\x20\x01(\x0e2\x0e.MusicLinkTypeR\x08linkType\"\x8a\x01\n\x0cPlaylis\
-    tsRow\x12\x1f\n\x0bplaylist_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\
-    \n\x04name\x18\x02\x20\x01(\tR\x04name\x12/\n\x11avatar_picture_id\x18\
-    \x03\x20\x01(\x03H\0R\x0favatarPictureId\x88\x01\x01B\x14\n\x12_avatar_p\
-    icture_id\"\x98\x01\n\x10PlaylistItemsRow\x12(\n\x10playlist_item_id\x18\
-    \x01\x20\x01(\x03R\x0eplaylistItemId\x12\x1f\n\x0bplaylist_id\x18\x02\
-    \x20\x01(\x03R\nplaylistId\x12'\n\rmusic_item_id\x18\x03\x20\x01(\x03H\0\
-    R\x0bmusicItemId\x88\x01\x01B\x10\n\x0e_music_item_id*E\n\x0bPictureType\
-    \x12\x07\n\x03JPG\x10\0\x12\x07\n\x03PNG\x10\x01\x12\x07\n\x03GIF\x10\
-    \x02\x12\x08\n\x04WEBP\x10\x03\x12\x07\n\x03BMP\x10\x04\x12\x08\n\x04AVI\
-    F\x10\x05*\"\n\rMusicFileType\x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\
-    \x10\x01*+\n\rMusicLinkType\x12\x11\n\rEXTERNAL_FILE\x10\0\x12\x07\n\x03\
-    URL\x10\x01b\x06proto3\
+    \x0cinternalPath\x12\x12\n\x04hash\x18\x03\x20\x01(\x0cR\x04hash\"\x9c\
+    \x02\n\nFoldersRow\x12\x1b\n\tfolder_id\x18\x01\x20\x01(\x03R\x08folderI\
+    d\x12(\n\x10parent_folder_id\x18\x02\x20\x01(\x03R\x0eparentFolderId\x12\
+    \x12\n\x04name\x18\x03\x20\x01(\tR\x04name\x12\x1f\n\x0bfolder_type\x18\
+    \x04\x20\x01(\x05R\nfolderType\x12/\n\x11avatar_picture_id\x18\x05\x20\
+    \x01(\x03H\0R\x0favatarPictureId\x88\x01\x01\x123\n\x13description_file_\
+    id\x18\x06\x20\x01(\x03H\x01R\x11descriptionFileId\x88\x01\x01B\x14\n\
+    \x12_avatar_picture_idB\x16\n\x14_description_file_id\"d\n\rMusicItemsRo\
+    w\x12\"\n\rmusic_item_id\x18\x01\x20\x01(\x03R\x0bmusicItemId\x12\x12\n\
+    \x04name\x18\x02\x20\x01(\tR\x04name\x12\x1b\n\tfolder_id\x18\x03\x20\
+    \x01(\x03R\x08folderId\"\xa3\x01\n\x0eLyricsItemsRow\x12$\n\x0elyrics_it\
+    em_id\x18\x01\x20\x01(\x03R\x0clyricsItemId\x12\"\n\rmusic_item_id\x18\
+    \x02\x20\x01(\x03R\x0bmusicItemId\x12\x1d\n\nlyrics_tag\x18\x03\x20\x01(\
+    \tR\tlyricsTag\x12(\n\x10internal_file_id\x18\x04\x20\x01(\x03R\x0einter\
+    nalFileId\"\x99\x01\n\x0fPictureItemsRow\x12\x0e\n\x02id\x18\x01\x20\x01\
+    (\x03R\x02id\x12\x1b\n\tfolder_id\x18\x03\x20\x01(\x03R\x08folderId\x12(\
+    \n\x10internal_file_id\x18\x04\x20\x01(\x03R\x0einternalFileId\x12/\n\
+    \x0cpicture_type\x18\x05\x20\x01(\x0e2\x0c.PictureTypeR\x0bpictureType\"\
+    \x8f\x02\n\x07TagsRow\x12\x15\n\x06tag_id\x18\x01\x20\x01(\x03R\x05tagId\
+    \x12'\n\rmusic_item_id\x18\x02\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\
+    \x01\x12\x20\n\tfolder_id\x18\x03\x20\x01(\x03H\x01R\x08folderId\x88\x01\
+    \x01\x12\x19\n\x08tag_name\x18\x04\x20\x01(\tR\x07tagName\x12&\n\x0cstri\
+    ng_value\x18\x05\x20\x01(\tH\x02R\x0bstringValue\x88\x01\x01\x12\x20\n\t\
+    int_value\x18\x06\x20\x01(\x05H\x03R\x08intValue\x88\x01\x01B\x10\n\x0e_\
+    music_item_idB\x0c\n\n_folder_idB\x0f\n\r_string_valueB\x0c\n\n_int_valu\
+    e\"v\n\rMusicFilesRow\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12(\n\
+    \x10internal_file_id\x18\x02\x20\x01(\x03R\x0einternalFileId\x12+\n\tfil\
+    e_type\x18\x03\x20\x01(\x0e2\x0e.MusicFileTypeR\x08fileType\"\x84\x01\n\
+    \rMusicLinksRow\x12\x0e\n\x02id\x18\x01\x20\x01(\x03R\x02id\x12\"\n\rmus\
+    ic_item_id\x18\x02\x20\x01(\x03R\x0bmusicItemId\x12\x12\n\x04link\x18\
+    \x03\x20\x01(\tR\x04link\x12+\n\tlink_type\x18\x04\x20\x01(\x0e2\x0e.Mus\
+    icLinkTypeR\x08linkType\"\x8a\x01\n\x0cPlaylistsRow\x12\x1f\n\x0bplaylis\
+    t_id\x18\x01\x20\x01(\x03R\nplaylistId\x12\x12\n\x04name\x18\x02\x20\x01\
+    (\tR\x04name\x12/\n\x11avatar_picture_id\x18\x03\x20\x01(\x03H\0R\x0fava\
+    tarPictureId\x88\x01\x01B\x14\n\x12_avatar_picture_id\"\x98\x01\n\x10Pla\
+    ylistItemsRow\x12(\n\x10playlist_item_id\x18\x01\x20\x01(\x03R\x0eplayli\
+    stItemId\x12\x1f\n\x0bplaylist_id\x18\x02\x20\x01(\x03R\nplaylistId\x12'\
+    \n\rmusic_item_id\x18\x03\x20\x01(\x03H\0R\x0bmusicItemId\x88\x01\x01B\
+    \x10\n\x0e_music_item_id*E\n\x0bPictureType\x12\x07\n\x03JPG\x10\0\x12\
+    \x07\n\x03PNG\x10\x01\x12\x07\n\x03GIF\x10\x02\x12\x08\n\x04WEBP\x10\x03\
+    \x12\x07\n\x03BMP\x10\x04\x12\x08\n\x04AVIF\x10\x05*\"\n\rMusicFileType\
+    \x12\x07\n\x03MP3\x10\0\x12\x08\n\x04FLAC\x10\x01*+\n\rMusicLinkType\x12\
+    \x11\n\rEXTERNAL_FILE\x10\0\x12\x07\n\x03URL\x10\x01b\x06proto3\
 ";
 
 /// `FileDescriptorProto` object which was a source for this generated file

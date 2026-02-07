@@ -8,6 +8,8 @@ pub mod playback;
 pub mod proto;
 pub mod jobs;
 pub mod scripting_engine;
+pub mod storage;
+pub mod utils;
 pub mod workspace;
 
 pub mod app_config;

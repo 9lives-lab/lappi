@@ -21,7 +21,7 @@ impl MusicDb {
     pub fn import(&self, base_path: &Utf8Path) -> Result<()> {
         let db_context = self.db_utils.lock();
 
-        let mut importer = ProtobufImporter::create(base_path, "music_items.pb")?;
+        let mut importer = ProtobufImporter::create(&base_path.join("music_items.pb"))?;
         while let Some(row) = importer.read_next_row::<crate::proto::collection::MusicItemsRow>()? {
             db_context.connection().execute(
                 "INSERT INTO music_items (id, name, folder_id) VALUES (?1, ?2, ?3)",
@@ -44,7 +44,9 @@ impl MusicDb {
             music_items_row.folder_id = row.get::<_, i64>(2)?;
             Ok(music_items_row)
         })?;
-        exporter.write_rows(rows)
+        exporter.write_rows(rows)?;
+        exporter.generate_hash()?;
+        Ok(())
     }
 }
 

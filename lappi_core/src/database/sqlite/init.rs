@@ -20,7 +20,8 @@ pub fn create_tables(connection: &Connection) -> rusqlite::Result<usize> {
     connection.execute(
         "CREATE TABLE internal_files (
                 id                              INTEGER NOT NULL PRIMARY KEY,
-                internal_path                   TEXT    NOT NULL
+                internal_path                   TEXT    NOT NULL,
+                hash                            BLOB    NOT NULL
         )",
         [],
     )?;

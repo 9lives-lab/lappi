@@ -12,7 +12,7 @@ use amina_core::service::{AppContext, Service, ServiceApi, ServiceInitializer};
 
 use database_api::InternalFilesDbApi;
 use crate::database::Database;
-use super::storage::local::LocalStorage;
+use crate::storage::local::LocalStorage;
 
 pub use types::*;
 
@@ -48,6 +48,7 @@ impl InternalFiles {
             std::fs::create_dir_all(parent)?;
         }
         std::fs::File::create(path)?;
+        self.update_file_hash(file_id)?;
         Ok(file_id)
     }
 
@@ -55,6 +56,7 @@ impl InternalFiles {
         let file_id = self.add_new_file(internal_path)?;
         let path = self.get_system_path(file_id)?;
         std::fs::write(path, src_data)?;
+        self.update_file_hash(file_id)?;
         Ok(file_id)
     }
 
@@ -62,6 +64,7 @@ impl InternalFiles {
         let file_id = self.add_new_file(internal_path)?;
         let path = self.get_system_path(file_id)?;
         std::fs::copy(src_path, path)?;
+        self.update_file_hash(file_id)?;
         Ok(file_id)
     }
 
@@ -114,6 +117,22 @@ impl InternalFiles {
             if folders_num == 0 {
                 break;
             }
+        }
+        Ok(())
+    }
+
+    pub fn update_file_hash(&self, file_id: InternalFileId) -> Result<FileHash> {
+        let path = self.get_system_path(file_id)?;
+        let hash_result = crate::utils::hash::blake3::calc_file_hash(&path)?;
+        let file_hash = FileHash::from(hash_result.as_slice());
+        self.db.set_file_hash(file_id, &file_hash)?;
+        Ok(file_hash)
+    }
+
+    pub fn update_file_hashes(&self) -> Result<()> {
+        let files_list = self.db.get_all_files()?;
+        for file_id in files_list {
+            self.update_file_hash(file_id)?;
         }
         Ok(())
     }

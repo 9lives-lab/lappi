@@ -61,7 +61,6 @@ async function updateJob (newJobId) {
 
 onMounted(() => {
   lappiApi.setEventHandler('lappi.jobs.OnJobStateChanged', 'JobTab', () => {
-    console.log('OnJobStateChanged')
     update(false)
   })
 })

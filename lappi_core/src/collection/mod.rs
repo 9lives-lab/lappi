@@ -2,7 +2,6 @@ pub mod database_api;
 pub mod internal_files;
 pub mod music;
 pub mod music_sources;
-pub mod storage;
 pub mod debug;
 pub mod pictures;
 pub mod folders;
@@ -13,9 +12,11 @@ pub mod jobs;
 
 use std::sync::Arc;
 
+use camino::Utf8PathBuf;
 use amina_core::service::{ServiceApi, ServiceInitializer, Context, Service};
 
 use crate::database::Database;
+use crate::storage::local::LocalStorage;
 use crate::collection::internal_files::InternalFiles;
 use crate::collection::folders::FoldersCollection;
 use crate::collection::lyrics::LyricsCollection;
@@ -23,7 +24,6 @@ use crate::collection::music::MusicCollection;
 use crate::collection::music_sources::MusicSourcesCollection;
 use crate::collection::pictures::PicturesCollection;
 use crate::collection::playlists::PlaylistsCollection;
-use crate::collection::storage::local::LocalStorage;
 
 pub use crate::collection::database_api::OnCollectionUpdated;
 
@@ -78,6 +78,10 @@ impl Collection {
 
     pub fn is_empty(&self) -> bool {
         self.folders.is_empty()
+    }
+
+    pub fn get_local_path(&self) -> Utf8PathBuf {
+        self.local_storage.get_collection_base_path()
     }
 
     pub fn save(&self) {
