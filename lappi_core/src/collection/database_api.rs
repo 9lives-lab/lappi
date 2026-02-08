@@ -37,4 +37,6 @@ pub trait CollectionDbApi: Send + Sync {
  
     fn export(&self, base_path: &Utf8Path) -> Result<()>;
     fn import(&self, base_path: &Utf8Path) -> Result<()>;
+
+    fn format(&self) -> Result<()>;
 }

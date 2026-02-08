@@ -12,6 +12,7 @@ pub mod jobs;
 
 use std::sync::Arc;
 
+use anyhow::Result;
 use camino::Utf8PathBuf;
 use amina_core::service::{ServiceApi, ServiceInitializer, Context, Service};
 
@@ -115,6 +116,16 @@ impl Collection {
         }
 
         debug::init().unwrap();
+    }
+
+    pub fn reload(&self) -> Result<()> {
+        if self.local_storage.is_available() {
+            log::debug!("Reload collection from local storage");
+            self.db.format()?;
+            self.db.import(&self.local_storage.get_meta_path())?;
+        }
+
+        Ok(())
     }
 }
 

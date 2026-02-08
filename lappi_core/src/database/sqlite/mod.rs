@@ -105,6 +105,19 @@ impl CollectionDbApi for SqliteDb {
         self.playlists_api.import(base_path)?;
         Ok(())
     }
+
+    fn format(&self) -> Result<()> {
+        let db = self.db_utils.lock();
+
+        let tables = init::get_tables_list();
+        for table in tables.into_iter().rev() {
+            db.connection().execute(&format!("DROP TABLE {}", table), [])?;
+        }
+
+        init::create_tables(db.connection())?;
+
+        Ok(())
+    }
 }
 
 pub fn initialize(context: &Context) -> SqliteDb {

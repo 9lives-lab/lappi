@@ -343,6 +343,7 @@ impl CollectionSyncJob {
             return Ok(())
         }
 
+        self.collection.reload()?;
 
         Ok(())
     }
