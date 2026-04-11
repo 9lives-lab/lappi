@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 
 defineProps({
   message: Object

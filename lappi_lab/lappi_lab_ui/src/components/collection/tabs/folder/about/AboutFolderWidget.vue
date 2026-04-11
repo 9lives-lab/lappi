@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 import { ref, getCurrentInstance } from 'vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi

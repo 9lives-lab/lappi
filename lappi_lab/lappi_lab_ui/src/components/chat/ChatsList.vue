@@ -8,8 +8,8 @@
 
 <script setup>
 import { getCurrentInstance } from 'vue'
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const emit = defineEmits(['openChat'])

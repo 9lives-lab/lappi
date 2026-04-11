@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import CommandsPane from 'src/amina_ui/components/commands/CommandsPane.vue'
+import CommandsPane from 'amina_ui/components/commands/CommandsPane.vue'
 </script>
 
 <style lang="sass" scoped>

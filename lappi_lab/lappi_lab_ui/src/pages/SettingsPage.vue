@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import SettingsPane from 'src/amina_ui/components/settings/SettingsPane.vue'
+import SettingsPane from 'amina_ui/components/settings/SettingsPane.vue'
 </script>
 
 <style lang="sass" scoped>

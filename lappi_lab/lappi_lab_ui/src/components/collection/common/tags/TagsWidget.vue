@@ -22,8 +22,8 @@
 </template>
 
 <script setup>
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
 import TagField from 'components/collection/common/tags/TagField.vue'
 import AddTagDialog from 'components/collection/common/tags/AddTagDialog.vue'
 import { ref, getCurrentInstance } from 'vue'

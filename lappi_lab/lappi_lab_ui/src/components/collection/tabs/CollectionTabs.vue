@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
+import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
 import FolderTab from 'src/components/collection/tabs/folder/FolderTab.vue'
 import MusicItemTab from 'src/components/collection/tabs/music_item/MusicItemTab.vue'
 

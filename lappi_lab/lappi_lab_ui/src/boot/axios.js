@@ -1,5 +1,5 @@
 import { boot } from 'quasar/wrappers'
-import { AminaClientAPI } from 'src/amina_ui/client_api'
+import { AminaClientAPI } from 'amina_ui/client_api'
 
 class LappiApi extends AminaClientAPI {
   constructor(apiBaseAddr) {

@@ -19,7 +19,7 @@
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 import PlaylistSummary from 'src/components/playlists/PlaylistSummary.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi

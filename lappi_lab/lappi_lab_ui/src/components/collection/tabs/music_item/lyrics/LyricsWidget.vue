@@ -12,8 +12,8 @@
 </template>
 
 <script setup>
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
 import { ref, getCurrentInstance } from 'vue'
 
 const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi

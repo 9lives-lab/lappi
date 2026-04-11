@@ -61,9 +61,9 @@
 
 <script setup>
 import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
-import WidgetPane from 'src/amina_ui/components/WidgetPane.vue'
-import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
+import WidgetPane from 'amina_ui/components/WidgetPane.vue'
+import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
 import NavigationBar from 'src/components/collection/NavigationBar.vue'
 import CollectionTabs from 'src/components/collection/tabs/CollectionTabs.vue'
 

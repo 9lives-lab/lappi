@@ -10,7 +10,7 @@
 
 <script setup>
 import { getCurrentInstance, onMounted, ref } from 'vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
 import ItemDescriptionContent from './ItemDescriptionContent.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi

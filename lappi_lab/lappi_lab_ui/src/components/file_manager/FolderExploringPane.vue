@@ -21,8 +21,8 @@
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
-import ToolPane from 'src/amina_ui/components/ToolPane.vue'
-import AbsoluteWrapper from 'src/amina_ui/components/AbsoluteWrapper.vue'
+import ToolPane from 'amina_ui/components/ToolPane.vue'
+import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 

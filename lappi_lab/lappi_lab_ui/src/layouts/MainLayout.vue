@@ -28,7 +28,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
-import RouterIcon from 'src/amina_ui/components/RouterIcon.vue'
+import RouterIcon from 'amina_ui/components/RouterIcon.vue'
 import PlayerPane from 'src/components/player/PlayerPane.vue'
 import FooterToolbar from 'src/components/footer/FooterToolbar.vue'
 
