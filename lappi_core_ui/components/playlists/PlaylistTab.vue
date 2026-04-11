@@ -20,7 +20,7 @@
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
 import WidgetPane from 'amina_ui/components/WidgetPane.vue'
-import PlaylistSummary from 'src/components/playlists/PlaylistSummary.vue'
+import PlaylistSummary from 'lappi_core_ui/components/playlists/PlaylistSummary.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const playlistSummary = ref(null)

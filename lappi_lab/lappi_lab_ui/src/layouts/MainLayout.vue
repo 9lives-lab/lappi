@@ -29,8 +29,8 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import RouterIcon from 'amina_ui/components/RouterIcon.vue'
-import PlayerPane from 'src/components/player/PlayerPane.vue'
-import FooterToolbar from 'src/components/footer/FooterToolbar.vue'
+import PlayerPane from 'lappi_core_ui/components/player/PlayerPane.vue'
+import FooterToolbar from 'lappi_core_ui/components/footer/FooterToolbar.vue'
 
 const linksList = [
   {

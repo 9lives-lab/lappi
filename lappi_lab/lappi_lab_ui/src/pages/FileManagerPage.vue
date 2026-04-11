@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import FileManager from 'src/components/file_manager/FileManager.vue'
+import FileManager from 'lappi_core_ui/components/file_manager/FileManager.vue'
 
 </script>
 

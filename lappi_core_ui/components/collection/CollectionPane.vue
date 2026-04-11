@@ -64,8 +64,8 @@ import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'amina_ui/components/ToolPane.vue'
-import NavigationBar from 'src/components/collection/NavigationBar.vue'
-import CollectionTabs from 'src/components/collection/tabs/CollectionTabs.vue'
+import NavigationBar from 'lappi_core_ui/components/collection/NavigationBar.vue'
+import CollectionTabs from 'lappi_core_ui/components/collection/tabs/CollectionTabs.vue'
 
 const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
 

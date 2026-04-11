@@ -82,6 +82,10 @@ export default defineConfig((ctx) => {
           'amina_ui',
           resolve(__dirname, '../../amina/amina_ui')
         )
+        chain.resolve.alias.set(
+          'lappi_core_ui',
+          resolve(__dirname, '../../lappi_core_ui')
+        )
       },
     },
 

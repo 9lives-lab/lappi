@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import PlayersSwitch from 'src/components/footer/PlayersSwitch.vue'
+import PlayersSwitch from 'lappi_core_ui/components/footer/PlayersSwitch.vue'
 </script>
 
 <style lang="sass" scoped>

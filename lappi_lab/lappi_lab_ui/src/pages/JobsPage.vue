@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import JobsPane from 'src/components/jobs/JobsPane.vue'
+import JobsPane from 'lappi_core_ui/components/jobs/JobsPane.vue'
 </script>
 
 <style lang="sass" scoped>

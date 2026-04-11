@@ -13,8 +13,8 @@
 <script setup>
 import { ref } from 'vue'
 import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
-import FolderTab from 'src/components/collection/tabs/folder/FolderTab.vue'
-import MusicItemTab from 'src/components/collection/tabs/music_item/MusicItemTab.vue'
+import FolderTab from 'lappi_core_ui/components/collection/tabs/folder/FolderTab.vue'
+import MusicItemTab from 'lappi_core_ui/components/collection/tabs/music_item/MusicItemTab.vue'
 
 const folderTab = ref(null)
 const musicItemTab = ref(null)
@@ -44,7 +44,7 @@ defineExpose({
 .root-tab
   height: 100%
   width: 100%
-  background-image: url( '~assets/lappi_pattern.svg' )
+  background-image: url( '~lappi_core_ui/assets/lappi_pattern.svg' )
   background-position: center
   background-size: 350px
   background-repeat: no-repeat

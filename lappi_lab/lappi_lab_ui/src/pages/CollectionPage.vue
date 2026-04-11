@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import CollectionPane from 'src/components/collection/CollectionPane.vue'
+import CollectionPane from 'lappi_core_ui/components/collection/CollectionPane.vue'
 
 </script>
 

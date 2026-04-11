@@ -14,15 +14,15 @@
 
 <script setup>
 import { ref, getCurrentInstance } from 'vue'
-import TabHeader from 'src/components/collection/tabs/TabHeader.vue'
-import TagsWidget from 'src/components/collection/common/tags/TagsWidget.vue'
-import MusicItemSummaryWidget from 'src/components/collection/tabs/music_item/MusicItemSummaryWidget.vue'
-import MusicFileWidget from 'src/components/collection/tabs/music_item/MusicFileWidget.vue'
-import MusicLinksWidget from 'src/components/collection/tabs/music_item/MusicLinksWidget.vue'
-import LyricsWidget from 'src/components/collection/tabs/music_item/lyrics/LyricsWidget.vue'
-import AddToPlaylistWidget from 'src/components/collection/common/AddToPlaylistWidget.vue'
-import ChatExploringWidget from 'src/components/collection/common/exploring/ChatExploringWidget.vue'
-import ScriptsWidget from 'src/components/collection/common/ScriptsWidget.vue'
+import TabHeader from 'lappi_core_ui/components/collection/tabs/TabHeader.vue'
+import TagsWidget from 'lappi_core_ui/components/collection/common/tags/TagsWidget.vue'
+import MusicItemSummaryWidget from 'lappi_core_ui/components/collection/tabs/music_item/MusicItemSummaryWidget.vue'
+import MusicFileWidget from 'lappi_core_ui/components/collection/tabs/music_item/MusicFileWidget.vue'
+import MusicLinksWidget from 'lappi_core_ui/components/collection/tabs/music_item/MusicLinksWidget.vue'
+import LyricsWidget from 'lappi_core_ui/components/collection/tabs/music_item/lyrics/LyricsWidget.vue'
+import AddToPlaylistWidget from 'lappi_core_ui/components/collection/common/AddToPlaylistWidget.vue'
+import ChatExploringWidget from 'lappi_core_ui/components/collection/common/exploring/ChatExploringWidget.vue'
+import ScriptsWidget from 'lappi_core_ui/components/collection/common/ScriptsWidget.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 

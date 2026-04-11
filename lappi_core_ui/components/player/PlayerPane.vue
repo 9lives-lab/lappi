@@ -27,7 +27,7 @@
 
 <script setup>
 import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
-import WebPlayerPane from 'src/components/player/WebPlayerPane.vue'
+import WebPlayerPane from 'lappi_core_ui/components/player/WebPlayerPane.vue'
 
 const lappiApi = getCurrentInstance().appContext.config.globalProperties.$lappiApi
 

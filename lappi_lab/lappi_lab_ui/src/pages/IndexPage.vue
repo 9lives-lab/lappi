@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import MainChat from 'src/components/chat/MainChat.vue'
+import MainChat from 'lappi_core_ui/components/chat/MainChat.vue'
 
 </script>
 

@@ -11,12 +11,12 @@
 
 <script setup>
 import { getCurrentInstance, ref } from 'vue'
-import TabHeader from 'src/components/collection/tabs/TabHeader.vue'
-import TagsWidget from 'src/components/collection/common/tags/TagsWidget.vue'
-import FolderSummaryWidget from 'src/components/collection/tabs/folder/FolderSummaryWidget.vue'
-import PicturesWidget from 'src/components/collection/tabs/folder/pictures/PicturesWidget.vue'
-import AboutFolderWidget from 'src/components/collection/tabs/folder/about/AboutFolderWidget.vue'
-import ChatExploringWidget from 'src/components/collection/common/exploring/ChatExploringWidget.vue'
+import TabHeader from 'lappi_core_ui/components/collection/tabs/TabHeader.vue'
+import TagsWidget from 'lappi_core_ui/components/collection/common/tags/TagsWidget.vue'
+import FolderSummaryWidget from 'lappi_core_ui/components/collection/tabs/folder/FolderSummaryWidget.vue'
+import PicturesWidget from 'lappi_core_ui/components/collection/tabs/folder/pictures/PicturesWidget.vue'
+import AboutFolderWidget from 'lappi_core_ui/components/collection/tabs/folder/about/AboutFolderWidget.vue'
+import ChatExploringWidget from 'lappi_core_ui/components/collection/common/exploring/ChatExploringWidget.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 const folderName = ref(null)

@@ -6,7 +6,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import ItemDescriptionContent from 'src/components/collection/ItemDescriptionContent.vue'
+import ItemDescriptionContent from 'lappi_core_ui/components/collection/ItemDescriptionContent.vue'
 
 const contentPane = ref(null)
 

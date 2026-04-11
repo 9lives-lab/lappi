@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref, getCurrentInstance, nextTick, onMounted } from 'vue'
-import ChatMessage from 'src/components/chat/ChatMessage.vue'
+import ChatMessage from 'lappi_core_ui/components/chat/ChatMessage.vue'
 
 const scrollArea = ref(null)
 const message = ref('')

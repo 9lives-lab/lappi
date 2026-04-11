@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import PlaylistsPane from 'src/components/playlists/PlaylistsPane.vue'
+import PlaylistsPane from 'lappi_core_ui/components/playlists/PlaylistsPane.vue'
 
 </script>
 

@@ -7,13 +7,13 @@
 </template>
 
 <script setup>
-import ChatPane from 'src/components/chat/ChatPane.vue'
+import ChatPane from 'lappi_core_ui/components/chat/ChatPane.vue'
 
 </script>
 
 <style lang="sass" scoped>
 .main-chat
-  background-image: url( '~assets/lappi_pattern.svg' )
+  background-image: url( '~lappi_core_ui/assets/lappi_pattern.svg' )
   background-position: center
   background-size: 350px
   background-repeat: no-repeat

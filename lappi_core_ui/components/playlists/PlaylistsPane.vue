@@ -35,7 +35,7 @@ import { getCurrentInstance, onMounted, onUnmounted, ref } from 'vue'
 import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 import AbsoluteWrapper from 'amina_ui/components/AbsoluteWrapper.vue'
 import ToolPane from 'amina_ui/components/ToolPane.vue'
-import PlaylistTab from 'src/components/playlists/PlaylistTab.vue'
+import PlaylistTab from 'lappi_core_ui/components/playlists/PlaylistTab.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
@@ -98,7 +98,7 @@ onUnmounted(() => {
 .empty-playlist-wrapper
   height: 100%
   width: 100%
-  background-image: url( '~assets/lappi_pattern.svg' )
+  background-image: url( '~lappi_core_ui/assets/lappi_pattern.svg' )
   background-position: center
   background-size: 350px
   background-repeat: no-repeat

@@ -24,7 +24,7 @@
 import { getCurrentInstance, ref } from 'vue'
 import WidgetPane from 'amina_ui/components/WidgetPane.vue'
 import ToolPane from 'amina_ui/components/ToolPane.vue'
-import PicturesViewer from 'src/components/collection/tabs/folder/pictures/PicturesViewer.vue'
+import PicturesViewer from 'lappi_core_ui/components/collection/tabs/folder/pictures/PicturesViewer.vue'
 
 const aminaApi = getCurrentInstance().appContext.config.globalProperties.$aminaApi
 
