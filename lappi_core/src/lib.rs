@@ -1,3 +1,20 @@
+use crate::storage::local::LocalStorage;
+use crate::storage::remote::RemoteStorage;
+use crate::playback::players::web_player::WebPlayerService;
+use crate::playback::Playback;
+use crate::database::Database;
+use crate::exploring::chat::ChatService;
+use crate::exploring::chat::templates::ChatTemplates;
+use crate::import::collection::CollectionImporter;
+use crate::scripting_engine::ScriptingEngine;
+use crate::settings::Settings;
+use crate::exploring::lyrics::LyricsExplorer;
+use crate::workspace::Workspace;
+use crate::jobs::Jobs;
+use crate::file_manager::FileManager;
+use crate::file_manager::search::FilesExplorer;
+use crate::py_server_client::PyServerClient;
+
 pub mod collection;
 pub mod database;
 pub mod exploring;
@@ -34,3 +51,28 @@ pub fn context() -> &'static Context {
     });
     &INSTANCE
 }
+
+pub fn initilaize() {
+    let context = context();
+
+    context.init_service::<Workspace>();
+    context.init_service::<Settings>();
+    context.init_service::<Jobs>();
+    context.init_service::<ScriptingEngine>();
+    context.init_service::<FileManager>();
+    context.init_service::<FilesExplorer>();
+    context.init_service::<Database>();
+    context.init_service::<LocalStorage>();
+    context.init_service::<RemoteStorage>();
+
+    crate::collection::initialize();
+
+    context.init_service::<WebPlayerService>();
+    context.init_service::<Playback>();
+    context.init_service::<CollectionImporter>();
+    context.init_service::<PyServerClient>();
+    context.init_service::<ChatService>();
+    context.init_service::<ChatTemplates>();
+    context.init_service::<LyricsExplorer>();
+}
+
